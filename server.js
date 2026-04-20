@@ -13,6 +13,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // ----------------------
 // POOL MYSQL
+// ✅ SSL desactivado - hosting no lo soporta
 // ----------------------
 const pool = mysql.createPool({
     host:     process.env.DB_HOST     || "mysql.us.cloudlogin.co",
@@ -25,15 +26,14 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit:    10,
     queueLimit:         0,
-    // ✅ SSL requerido para conexiones remotas
-    ssl: { rejectUnauthorized: false }
+    ssl:                false          // ✅ FIX
 });
 
-// ✅ VERIFICAR CONEXIÓN AL INICIAR
+// VERIFICAR CONEXIÓN AL INICIAR
 pool.getConnection()
     .then(conn => {
         console.log("✅ MySQL conectado correctamente");
-        console.log(`📦 BD: ${process.env.DB_NAME || "intelliall_apps"}`);
+        console.log(`📦 BD:   ${process.env.DB_NAME || "intelliall_apps"}`);
         console.log(`🌐 Host: ${process.env.DB_HOST || "mysql.us.cloudlogin.co"}`);
         conn.release();
     })
@@ -41,9 +41,6 @@ pool.getConnection()
         console.error("❌ ERROR CONEXIÓN MYSQL:");
         console.error("   Mensaje:", err.message);
         console.error("   Código:",  err.code);
-        console.error("   Host:",    process.env.DB_HOST);
-        console.error("   BD:",      process.env.DB_NAME);
-        console.error("   Usuario:", process.env.DB_USER);
     });
 
 // ----------------------
@@ -55,7 +52,7 @@ async function query(sql, params){
 }
 
 // ----------------------
-// RUTA TEST — muestra config
+// RUTA TEST
 // ----------------------
 app.get("/", (req, res) => {
     res.json({
@@ -71,45 +68,31 @@ app.get("/", (req, res) => {
 });
 
 // ----------------------
-// RUTA DIAGNÓSTICO
-// ✅ Verifica conexión en vivo
+// PING - Verificar conexión
 // ----------------------
 app.get("/ping", async (req, res) => {
     try {
         const rows = await query("SELECT 1 AS ok", []);
-        res.json({
-            ok:       true,
-            mysql:    "✅ Conectado",
-            resultado: rows
-        });
+        res.json({ ok: true, mysql: "✅ Conectado", resultado: rows });
     } catch(err) {
         res.status(500).json({
-            ok:      false,
-            mysql:   "❌ Sin conexión",
-            error:   err.message,
-            codigo:  err.code
+            ok:     false,
+            mysql:  "❌ Sin conexión",
+            error:  err.message,
+            codigo: err.code
         });
     }
 });
 
 // ----------------------
-// RUTA CONTAR GUÍAS
-// ✅ Para debuggear cuántas hay
+// CONTAR GUÍAS
 // ----------------------
 app.get("/contar", async (req, res) => {
     try {
-        const rows = await query(
-            "SELECT COUNT(*) as total FROM guias", []
-        );
-        res.json({
-            ok:    true,
-            total: rows[0].total
-        });
+        const rows = await query("SELECT COUNT(*) as total FROM guias", []);
+        res.json({ ok: true, total: rows[0].total });
     } catch(err) {
-        res.status(500).json({
-            ok:    false,
-            error: err.message
-        });
+        res.status(500).json({ ok: false, error: err.message });
     }
 });
 
@@ -166,8 +149,7 @@ app.get("/guias/:id", async (req, res) => {
 
         if(guias.length === 0){
             return res.status(404).json({
-                ok:      false,
-                mensaje: "❌ Guía no encontrada"
+                ok: false, mensaje: "❌ Guía no encontrada"
             });
         }
 
@@ -255,8 +237,8 @@ app.post("/guardar-guia", async (req, res) => {
 // HISTORIAL PAGINADO
 // ----------------------
 app.get("/guias", async (req, res) => {
-    const limit  = Math.max(1,  parseInt(req.query.limit,  10) || 10);
-    const offset = Math.max(0,  parseInt(req.query.offset, 10) || 0);
+    const limit  = Math.max(1, parseInt(req.query.limit,  10) || 10);
+    const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
 
     try {
         const guias = await query(
@@ -264,9 +246,7 @@ app.get("/guias", async (req, res) => {
             [limit, offset]
         );
 
-        // ✅ Log para ver qué devuelve en producción
-        console.log(`📋 /guias → ${guias.length} registros (limit:${limit} offset:${offset})`);
-
+        console.log(`📋 /guias → ${guias.length} registros`);
         res.json(guias);
 
     } catch(err) {
@@ -276,7 +256,7 @@ app.get("/guias", async (req, res) => {
 });
 
 // ----------------------
-// FALLBACK → FRONTEND
+// FALLBACK FRONTEND
 // ----------------------
 app.use((req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
@@ -287,6 +267,6 @@ app.use((req, res) => {
 // ----------------------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor en http://localhost:${PORT}`);
+    console.log(`🚀 Servidor en puerto ${PORT}`);
     console.log(`📦 Entorno: ${process.env.NODE_ENV || "development"}`);
 });
