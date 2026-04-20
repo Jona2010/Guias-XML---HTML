@@ -1,53 +1,56 @@
 require("dotenv").config();
 
 const express = require("express");
-const cors    = require("cors");
+const cors    = require("express");
 const mysql   = require("mysql2/promise");
 const path    = require("path");
 
-const app = express();
+const app = require("express")();
 
-app.use(cors());
+app.use(require("cors")());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // ----------------------
 // POOL MYSQL
-// ✅ SSL desactivado - hosting no lo soporta
+// ✅ SSL desactivado
 // ----------------------
 const pool = mysql.createPool({
-    host:     process.env.DB_HOST     || "mysql.us.cloudlogin.co",
-    port:     process.env.DB_PORT
-                ? Number(process.env.DB_PORT)
-                : 3306,
-    database: process.env.DB_NAME     || "intelliall_apps",
-    user:     process.env.DB_USER     || "intelliall_apps",
-    password: process.env.DB_PASS     || "426896",
+    host:     process.env.DB_HOST || "mysql.us.cloudlogin.co",
+    port:     Number(process.env.DB_PORT || 3306),
+    database: process.env.DB_NAME || "intelliall_apps",
+    user:     process.env.DB_USER || "intelliall_apps",
+    password: process.env.DB_PASS || "426896",
     waitForConnections: true,
     connectionLimit:    10,
     queueLimit:         0,
-    ssl:                false          // ✅ FIX
+    ssl:                false,
+    // ✅ Forzar tipos numéricos correctos
+    typeCast: function(field, next){
+        if(field.type === "NEWDECIMAL" || field.type === "DECIMAL"){
+            return parseFloat(field.string());
+        }
+        return next();
+    }
 });
 
-// VERIFICAR CONEXIÓN AL INICIAR
+// VERIFICAR CONEXIÓN
 pool.getConnection()
     .then(conn => {
-        console.log("✅ MySQL conectado correctamente");
-        console.log(`📦 BD:   ${process.env.DB_NAME || "intelliall_apps"}`);
-        console.log(`🌐 Host: ${process.env.DB_HOST || "mysql.us.cloudlogin.co"}`);
+        console.log("✅ MySQL conectado");
+        console.log(`📦 BD: ${process.env.DB_NAME || "intelliall_apps"}`);
         conn.release();
     })
     .catch(err => {
-        console.error("❌ ERROR CONEXIÓN MYSQL:");
-        console.error("   Mensaje:", err.message);
-        console.error("   Código:",  err.code);
+        console.error("❌ Error MySQL:", err.message, err.code);
     });
 
 // ----------------------
 // QUERY HELPER
+// ✅ Usa pool.query (no execute) para LIMIT/OFFSET
 // ----------------------
-async function query(sql, params){
-    const [rows] = await pool.execute(sql, params);
+async function query(sql, params = []){
+    const [rows] = await pool.query(sql, params);
     return rows;
 }
 
@@ -58,22 +61,18 @@ app.get("/", (req, res) => {
     res.json({
         ok:      true,
         mensaje: "🚀 API funcionando con MySQL",
-        config: {
-            host:     process.env.DB_HOST     || "mysql.us.cloudlogin.co",
-            database: process.env.DB_NAME     || "intelliall_apps",
-            user:     process.env.DB_USER     || "intelliall_apps",
-            port:     process.env.DB_PORT     || 3306
-        }
+        host:    process.env.DB_HOST || "mysql.us.cloudlogin.co",
+        db:      process.env.DB_NAME || "intelliall_apps"
     });
 });
 
 // ----------------------
-// PING - Verificar conexión
+// PING
 // ----------------------
 app.get("/ping", async (req, res) => {
     try {
-        const rows = await query("SELECT 1 AS ok", []);
-        res.json({ ok: true, mysql: "✅ Conectado", resultado: rows });
+        const rows = await query("SELECT 1 AS ok");
+        res.json({ ok: true, mysql: "✅ Conectado", rows });
     } catch(err) {
         res.status(500).json({
             ok:     false,
@@ -89,7 +88,7 @@ app.get("/ping", async (req, res) => {
 // ----------------------
 app.get("/contar", async (req, res) => {
     try {
-        const rows = await query("SELECT COUNT(*) as total FROM guias", []);
+        const rows = await query("SELECT COUNT(*) AS total FROM guias");
         res.json({ ok: true, total: rows[0].total });
     } catch(err) {
         res.status(500).json({ ok: false, error: err.message });
@@ -141,7 +140,7 @@ app.get("/buscar", async (req, res) => {
 // ----------------------
 app.get("/guias/:id", async (req, res) => {
     try {
-        const { id } = req.params;
+        const id = Number(req.params.id);
 
         const guias = await query(
             "SELECT * FROM guias WHERE id = ?", [id]
@@ -164,7 +163,7 @@ app.get("/guias/:id", async (req, res) => {
         res.json({ ok: true, ...guias[0], items });
 
     } catch(err) {
-        console.error("❌ Error obteniendo guía:", err.message);
+        console.error("❌ Error guía:", err.message);
         res.status(500).json({ ok: false, mensaje: err.message });
     }
 });
@@ -187,7 +186,7 @@ app.post("/guardar-guia", async (req, res) => {
             });
         }
 
-        const result = await pool.execute(`
+        const [result] = await pool.query(`
             INSERT INTO guias
             (numero, fecha_emision, hora_emision, remitente_ruc,
              remitente_nombre, destinatario_nombre, motivo, peso_total,
@@ -206,10 +205,10 @@ app.post("/guardar-guia", async (req, res) => {
             g.llegada.direccion
         ]);
 
-        const guiaId = result[0].insertId;
+        const guiaId = result.insertId;
 
         for(const item of g.items){
-            await pool.execute(`
+            await pool.query(`
                 INSERT INTO guia_items
                 (guia_id, linea, descripcion, cantidad, unidad)
                 VALUES (?,?,?,?,?)
@@ -228,29 +227,31 @@ app.post("/guardar-guia", async (req, res) => {
         });
 
     } catch(err) {
-        console.error("❌ Error guardando guía:", err.message);
+        console.error("❌ Error guardando:", err.message);
         res.status(500).json({ ok: false, mensaje: err.message });
     }
 });
 
 // ----------------------
 // HISTORIAL PAGINADO
+// ✅ FIX PRINCIPAL - pool.query + Number()
 // ----------------------
 app.get("/guias", async (req, res) => {
-    const limit  = Math.max(1, parseInt(req.query.limit,  10) || 10);
-    const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
+
+    const limit  = Number(Math.max(1, parseInt(req.query.limit,  10) || 10));
+    const offset = Number(Math.max(0, parseInt(req.query.offset, 10) || 0));
 
     try {
-        const guias = await query(
+        const [guias] = await pool.query(
             "SELECT * FROM guias ORDER BY id DESC LIMIT ? OFFSET ?",
             [limit, offset]
         );
 
-        console.log(`📋 /guias → ${guias.length} registros`);
+        console.log(`📋 /guias → ${guias.length} registros (L:${limit} O:${offset})`);
         res.json(guias);
 
     } catch(err) {
-        console.error("❌ Error obteniendo guías:", err.message);
+        console.error("❌ Error guías:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -263,10 +264,10 @@ app.use((req, res) => {
 });
 
 // ----------------------
-// INICIAR SERVIDOR
+// INICIAR
 // ----------------------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor en puerto ${PORT}`);
+    console.log(`🚀 Puerto: ${PORT}`);
     console.log(`📦 Entorno: ${process.env.NODE_ENV || "development"}`);
 });
