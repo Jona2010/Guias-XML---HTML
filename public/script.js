@@ -458,13 +458,13 @@ async function filtrarGuias(){
         <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
             <thead>
                 <tr style="background:#1976D2; color:white; font-size:12px;">
-                    <th style="padding:7px 6px; width:35%; text-align:left;">
+                    <th style="padding:7px 6px; width:25%; text-align:left;">
                         N° Guía
                     </th>
-                    <th style="padding:7px 6px; width:28%; text-align:left;">
+                    <th style="padding:7px 6px; width:25%; text-align:left;">
                         Cliente
                     </th>
-                    <th style="padding:7px 6px; width:17%; text-align:center;">
+                    <th style="padding:7px 6px; width:15%; text-align:center;">
                         Fecha
                     </th>
                     <th style="padding:7px 6px; width:20%; text-align:left;">

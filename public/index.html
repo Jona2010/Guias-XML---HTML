@@ -40,22 +40,20 @@
 
         <h3><i class="fa-solid fa-folder"></i> Historial</h3>
 
-        <!-- BUSCADOR -->
-        <div class="search-container">
+        <!-- ✅ BUSCADOR -->
+        <div class="buscador-wrapper">
             <input
-                type="text"
                 id="buscador"
+                type="text"
                 placeholder="🔍 Buscar por número de guía o item..."
                 oninput="filtrarGuias()"
+                autocomplete="off"
             >
             <button
                 id="btn-limpiar"
                 onclick="limpiarBusqueda()"
-                class="btn-limpiar"
                 title="Limpiar búsqueda"
-            >
-                <i class="fa-solid fa-times"></i>
-            </button>
+            >✖</button>
         </div>
 
         <!-- ✅ HISTORIAL NORMAL — visible por defecto -->
