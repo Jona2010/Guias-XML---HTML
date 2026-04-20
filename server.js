@@ -144,13 +144,14 @@ app.post("/guardar-guia", async (req, res) => {
 
 // Obtener historial paginado
 app.get("/guias", async (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 10;
-  const offset = parseInt(req.query.offset, 10) || 0;
+    
+   const limit = Math.max(1, parseInt(req.query.limit, 10) || 10);
+   const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
 
   try {
     const guias = await query(
-      "SELECT * FROM guias ORDER BY id DESC LIMIT ? OFFSET ?",
-      [limit, offset]
+    "SELECT * FROM guias ORDER BY id DESC LIMIT ? OFFSET ?",
+    [limit, offset]
     );
     res.json(guias);
   } catch (err) {
