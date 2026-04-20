@@ -333,9 +333,9 @@ async function mostrarHistorial(){
     <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
         <thead>
             <tr style="background:#1976D2; color:white; font-size:12px;">
-                <th style="padding:8px 6px; width:42%; text-align:left;">N° Guía</th>
-                <th style="padding:8px 6px; width:36%; text-align:left;">Cliente</th>
-                <th style="padding:8px 6px; width:22%; text-align:center;">Fecha</th>
+                <th style="padding:8px 6px; width:30%; text-align:left;">N° Guía</th>
+                <th style="padding:8px 6px; width:45%; text-align:left;">Cliente</th>
+                <th style="padding:8px 6px; width:25%; text-align:center;">Fecha</th>
             </tr>
         </thead>
         <tbody>
