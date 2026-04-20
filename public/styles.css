@@ -1,0 +1,307 @@
+/* =========================
+   BASE
+========================= */
+body{
+    margin:0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background:#f4f6f9;
+    color:#1b2d4a;
+}
+
+/* =========================
+   HEADER
+========================= */
+.header{
+    background:#0d47a1;
+    color:white;
+    padding:15px 25px;
+    font-size:18px;
+    font-weight:bold;
+    letter-spacing:0.5px;
+}
+
+/* =========================
+   LAYOUT
+========================= */
+.container{
+    display:grid;
+    grid-template-columns:420px 1fr;
+    height:calc(100vh - 60px);
+}
+
+/* =========================
+   SIDEBAR (HISTORIAL)
+========================= */
+.sidebar{
+    background:white;
+    padding:15px;
+    border-right:1px solid #ddd;
+    overflow-y:auto;
+    height:100%;
+}
+
+.sidebar h3{
+    margin-top:0;
+}
+
+/* =========================
+   🔥 BUSCADOR MEJORADO CON BOTÓN X INTEGRADO
+========================= */
+.search-container {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 12px 45px 12px 16px !important;  /* 🔥 padding derecho para botón X */
+    font-size: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    box-sizing: border-box;
+    background: #fafafa;
+    transition: all 0.3s ease;
+}
+
+.search-container input:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+    background: white;
+}
+
+.btn-limpiar {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.search-container input:not(:placeholder-shown) + .btn-limpiar,
+.search-container input:focus ~ .btn-limpiar {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.btn-limpiar:hover {
+    color: #666;
+    background: rgba(0,0,0,0.1);
+}
+
+.btn-limpiar:active {
+    transform: translateY(-48%) scale(0.95);
+}
+
+/* =========================
+   MAIN
+========================= */
+.main{
+    padding:20px;
+    overflow-y:auto;
+}
+
+/* =========================
+   CARDS
+========================= */
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.08);
+}
+
+.card-top{
+    margin-bottom:15px;
+}
+
+.export-buttons{
+    margin-bottom:15px;
+}
+
+/* =========================
+   BOTONES
+========================= */
+button{
+    background:linear-gradient(135deg,#1976d2,#42a5f5);
+    border:none;
+    color:white;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:13px;
+}
+
+button:hover{
+    transform:translateY(-1px);
+    box-shadow:0 3px 8px rgba(0,0,0,0.2);
+}
+
+/* =========================
+   TABLAS
+========================= */
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+}
+
+th{
+    background:#1976d2;
+    color:white;
+    padding:10px 8px;
+    text-align:left;
+    font-size:12px;
+}
+
+td{
+    padding:10px 8px;
+    border-bottom:1px solid #f0f0f0;
+    font-size:12px;
+}
+
+/* =========================
+   HISTORIAL PRO (CORREGIDO FINAL)
+========================= */
+.historial-tabla{
+    width:100%;
+    border-radius:10px;
+    overflow:hidden;
+    table-layout: auto;
+}
+
+.historial-tabla th,
+.historial-tabla td{
+    padding:5px 6px;
+    font-size:11px;
+    line-height:1.2;
+    vertical-align: top;
+}
+
+.historial-tabla th:nth-child(1),
+.historial-tabla td:nth-child(1){
+    width:90px;
+}
+
+.historial-tabla th:nth-child(2),
+.historial-tabla td:nth-child(2){
+    width:auto;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.historial-tabla th:nth-child(3),
+.historial-tabla td:nth-child(3){
+    width:100px;
+    text-align:center;
+}
+
+.historial-tabla tbody tr{
+    transition: background 0.2s ease;
+}
+
+.historial-tabla tbody tr:hover{
+    background:#e3f2fd;
+    cursor:pointer;
+}
+
+.historial-tabla thead th{
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    font-weight:600;
+}
+
+/* =========================
+   PAGINACIÓN PRO
+========================= */
+.paginacion{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:15px;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.paginacion-info{
+    font-size:12px;
+    color:#555;
+}
+
+.paginacion-botones{
+    display:flex;
+    gap:10px;
+    align-items:center;
+}
+
+.paginacion button:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+    transform:none;
+    box-shadow:none;
+}
+
+/* =========================
+   GUÍA (VISOR)
+========================= */
+.guia-card{
+    background:#fafafa;
+    border-radius:10px;
+    padding:15px;
+    border:1px solid #eee;
+}
+
+.guia-card h3{
+    margin-top:0;
+}
+
+/* =========================
+   PDF AREA
+========================= */
+#pdf-area{
+    background:white;
+}
+
+#pdf-area .guia-card{
+    box-shadow:none;
+    border:1px solid #ccc;
+}
+
+/* =========================
+   INPUT FILE
+========================= */
+input[type="file"]{
+    margin:10px 0;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media(max-width:900px){
+
+    .container{
+        grid-template-columns:1fr;
+    }
+
+    .sidebar{
+        height:300px;
+        border-right:none;
+        border-bottom:1px solid #ddd;
+    }
+
+    .search-container input {
+        padding: 12px 45px 12px 16px !important;
+    }
+
+}

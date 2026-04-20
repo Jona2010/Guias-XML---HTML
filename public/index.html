@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Lector de Guías SUNAT | Sistema Profesional</title>
+
+<meta name="description" content="Sistema profesional para visualizar y exportar guías de remisión SUNAT XML a Excel y PDF.">
+<meta name="keywords" content="SUNAT, guía remisión, XML, exportar Excel, Perú">
+
+<link rel="stylesheet" href="styles.css">
+
+<!-- ICONOS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<!-- Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<!-- PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script src="script.js" defer></script>
+
+</head>
+
+<body>
+
+<!-- HEADER PROFESIONAL -->
+<header class="header">
+    🚚 Sistema de Guías de Remisión SUNAT
+</header>
+
+<div class="container">
+
+    <!-- SIDEBAR (HISTORIAL) -->
+    <aside class="sidebar">
+
+        <h3><i class="fa-solid fa-folder"></i> Historial</h3>
+
+        <!-- 🔥 BUSCADOR CON EVENTO INPUT -->
+        <div class="search-container">
+            <input
+                type="text"
+                id="buscador"
+                placeholder="🔍 Buscar por número de guía o descripción de items..."
+                oninput="filtrarGuias()"
+            >
+            <button
+                id="btn-limpiar"
+                onclick="limpiarBusqueda()"
+                class="btn-limpiar"
+                title="Limpiar búsqueda"
+            >
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+
+        <div id="historial"></div>
+
+    </aside>
+
+    <!-- MAIN (VISOR) -->
+    <section class="main">
+
+        <!-- CARGA XML -->
+        <div class="card-top">
+
+            <label><strong>Seleccionar XML:</strong></label>
+            <input type="file" id="xmlfile" accept=".xml">
+
+            <button onclick="leerGuia()">
+                <i class="fa-solid fa-upload"></i> Procesar
+            </button>
+
+        </div>
+
+        <!-- EXPORTACIONES -->
+        <div class="export-buttons">
+
+            <button onclick="exportarExcel()">
+                <i class="fa-solid fa-file-excel"></i> Excel
+            </button>
+
+            <button onclick="exportarPDF()">
+                <i class="fa-solid fa-file-pdf"></i> PDF
+            </button>
+
+        </div>
+
+        <!-- VISOR -->
+        <div class="card">
+
+            <h2><i class="fa-solid fa-file"></i> Vista de Guía</h2>
+
+            <div id="pdf-area">
+                <div id="salida"></div>
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+<!-- SEO -->
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "SoftwareApplication",
+ "name": "Sistema de Guías SUNAT",
+ "applicationCategory": "BusinessApplication",
+ "operatingSystem": "Web"
+}
+</script>
+
+</body>
+</html>
