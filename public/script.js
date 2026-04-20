@@ -219,10 +219,28 @@ async function guardarGuia(g){
 // ✅ Con debug para ver qué llega
 // ----------------------
 async function verGuiaPorId(id){
-    if(!id){ mostrarAlerta("❌ ID inválido", "error"); return; }
+
+    if(!id){
+        mostrarAlerta("❌ ID inválido", "error");
+        return;
+    }
+
+    // 🔥 generar token único de petición
+    const requestId = Date.now();
+    ultimaGuiaCargada = requestId;
 
     const { ok, data, error } = await fetchJSON(`${API_URL}/guias/${id}`);
-    if(error){ mostrarAlerta(error, "error"); return; }
+
+    // 🔥 IGNORAR respuestas viejas
+    if(requestId !== ultimaGuiaCargada){
+        console.log("⚠️ Respuesta ignorada (request viejo)");
+        return;
+    }
+
+    if(error){
+        mostrarAlerta(error, "error");
+        return;
+    }
 
     if(!ok || !data.ok){
         mostrarAlerta(
@@ -232,13 +250,13 @@ async function verGuiaPorId(id){
         return;
     }
 
-    // ✅ DEBUG — ver qué llega del servidor
     console.log("📦 Items recibidos del servidor:");
     (data.items || []).forEach((i, idx) => {
-        console.log(`   ${idx + 1}. linea=${i.linea} | desc="${i.descripcion}" | cant=${i.cantidad} | unidad=${i.unidad}`);
+        console.log(`   ${idx + 1}. desc="${i.descripcion}"`);
     });
 
-    const g    = data;
+    const g = data;
+
     const guia = {
         numero:        g.numero,
         fecha_emision: g.fecha_emision,
@@ -248,12 +266,19 @@ async function verGuiaPorId(id){
         traslado:      { motivo: g.motivo, peso_total: g.peso_total },
         partida:       { direccion: g.direccion_partida },
         llegada:       { direccion: g.direccion_llegada },
-        items:         (g.items || []).map(i => ({
-                            linea: i.linea,
-                            descripcion: (i.descripcion || "").trim(),
-                            cantidad: i.cantidad,
-                            unidad: i.unidad
-                        }))
+
+        // 🔥 FILTRO DEFINITIVO
+        items: (g.items || [])
+            .map(i => ({
+                linea: i.linea,
+                descripcion: (i.descripcion || "").trim(),
+                cantidad: i.cantidad,
+                unidad: i.unidad
+            }))
+            .filter(i =>
+                i.descripcion &&
+                !i.descripcion.toLowerCase().includes("indicador de bien regulado")
+            )
     };
 
     mostrarGuiaBonita(guia);
@@ -321,7 +346,7 @@ async function mostrarHistorial(){
             : (g.destinatario_nombre || "-");
 
         html += `
-        <tr onclick="verGuiaPorId(${g.id})"
+        <tr onclick="if(!this.dataset.loading){ this.dataset.loading=1; verGuiaPorId(${g.id}); setTimeout(()=>this.dataset.loading=0,500);}">"
             style="cursor:pointer; border-bottom:1px solid #eee; font-size:12px;"
             onmouseover="this.style.background='#e3f2fd'"
             onmouseout="this.style.background='white'">
