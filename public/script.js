@@ -65,7 +65,6 @@ async function fetchJSON(url, options = {}){
 
 // ----------------------
 // LEER XML
-// ✅ FIX PRINCIPAL: agregar push() al array de items
 // ----------------------
 async function leerGuia(){
     const file = document.getElementById("xmlfile").files[0];
@@ -102,7 +101,6 @@ async function leerGuia(){
         guia.llegada = { direccion: val(deliveryAddress, UBL.cbc, "Line") };
         guia.partida = { direccion: val(despatchAddress,  UBL.cbc, "Line") };
 
-        // ✅ FIX: el push estaba fuera del loop — ahora está DENTRO
         guia.items = [];
         const lineas = xml.getElementsByTagNameNS(UBL.cac, "DespatchLine");
 
@@ -110,27 +108,20 @@ async function leerGuia(){
             const l        = lineas[i];
             const itemNode = first(l, UBL.cac, "Item");
 
-            // ✅ Leer Name desde cac:Item > cbc:Name
             const name = itemNode ? val(itemNode, UBL.cbc, "Name") : "";
-
-            // ✅ Leer Description desde cac:Item > cbc:Description
             const desc = itemNode ? val(itemNode, UBL.cbc, "Description") : "";
 
-            // ✅ Prioridad: Name > Description > fallback línea
             let descripcion = "";
-
             if(name && !name.toLowerCase().includes("indicador")){
                 descripcion = name;
             } else if(desc && !desc.toLowerCase().includes("indicador")){
                 descripcion = desc;
             } else {
-                // último recurso: buscar directo en la línea
                 descripcion = val(l, UBL.cbc, "Name")
                            || val(l, UBL.cbc, "Description")
                            || "Item sin descripción";
             }
 
-            // ✅ FIX CRÍTICO: push DENTRO del loop
             guia.items.push({
                 linea:       val(l, UBL.cbc, "ID"),
                 descripcion: descripcion,
@@ -139,11 +130,7 @@ async function leerGuia(){
             });
         }
 
-        // ✅ Debug — ver items leídos del XML
-        console.log(`📄 Guía: ${guia.numero} → ${guia.items.length} items`);
-        guia.items.forEach((it, idx) => {
-            console.log(`   ${idx+1}. "${it.descripcion}" | ${it.cantidad} ${it.unidad}`);
-        });
+        console.log(`📄 ${guia.numero} → ${guia.items.length} items`);
 
         mostrarGuiaBonita(guia);
         await guardarGuia(guia);
@@ -170,8 +157,8 @@ function mostrarGuiaBonita(g){
         <p><b>🚚 Motivo de traslado:</b> ${g.traslado.motivo}</p>
         <p><b>⚖️ Peso total:</b> ${g.traslado.peso_total}</p>
         <hr>
-        <p><b>📍 Punto de partida:</b> ${g.partida?.direccion  || "No disponible"}</p>
-        <p><b>📍 Punto de llegada:</b> ${g.llegada?.direccion  || "No disponible"}</p>
+        <p><b>📍 Punto de partida:</b> ${g.partida?.direccion || "No disponible"}</p>
+        <p><b>📍 Punto de llegada:</b> ${g.llegada?.direccion || "No disponible"}</p>
         <hr>
         <h4>📦 Items (${g.items.length})</h4>
         <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
@@ -257,7 +244,6 @@ async function verGuiaPorId(id){
     const { ok, data, error } = await fetchJSON(`${API_URL}/guias/${id}`);
 
     if(requestId !== ultimaGuiaCargada) return;
-
     if(error){ mostrarAlerta(error, "error"); return; }
 
     if(!ok || !data.ok){
@@ -267,8 +253,6 @@ async function verGuiaPorId(id){
         );
         return;
     }
-
-    console.log(`📦 Items guía ${id}:`, data.items);
 
     const g    = data;
     const guia = {
@@ -333,17 +317,19 @@ async function mostrarHistorial(){
     <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
         <thead>
             <tr style="background:#1976D2; color:white; font-size:12px;">
-                <th style="padding:8px 6px; width:30%; text-align:left;">N° Guía</th>
-                <th style="padding:8px 6px; width:45%; text-align:left;">Cliente</th>
-                <th style="padding:8px 6px; width:25%; text-align:center;">Fecha</th>
+                <th style="padding:8px 6px; width:38%; text-align:left;">N° Guía</th>
+                <th style="padding:8px 6px; width:38%; text-align:left;">Cliente</th>
+                <th style="padding:8px 6px; width:24%; text-align:center;">Fecha</th>
             </tr>
         </thead>
         <tbody>
     `;
 
     data.forEach(g => {
-        const cliente = (g.destinatario_nombre || "-").length > 22
-            ? (g.destinatario_nombre || "-").substring(0, 22) + "..."
+
+        // ✅ FIX: truncar con ellipsis en JS
+        const cliente = (g.destinatario_nombre || "-").length > 20
+            ? (g.destinatario_nombre || "-").substring(0, 20) + "..."
             : (g.destinatario_nombre || "-");
 
         html += `
@@ -395,6 +381,7 @@ async function mostrarHistorial(){
 
 // ----------------------
 // BUSCADOR
+// ✅ Ahora muestra también partida/llegada en resultados
 // ----------------------
 async function filtrarGuias(){
 
@@ -442,7 +429,7 @@ async function filtrarGuias(){
                     🔍 Sin resultados para "<strong>${texto}</strong>"
                 </p>
                 <p style="font-size:12px; color:#999; margin-top:6px;">
-                    Busca por número de guía o descripción de items
+                    Busca por: número, items, punto de partida o llegada
                 </p>
             </div>`;
         return;
@@ -457,18 +444,21 @@ async function filtrarGuias(){
         </div>
         <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
             <thead>
-                <tr style="background:#1976D2; color:white; font-size:12px;">
-                    <th style="padding:7px 6px; width:25%; text-align:left;">
+                <tr style="background:#1976D2; color:white; font-size:11px;">
+                    <th style="padding:7px 5px; width:22%; text-align:left;">
                         N° Guía
                     </th>
-                    <th style="padding:7px 6px; width:25%; text-align:left;">
+                    <th style="padding:7px 5px; width:20%; text-align:left;">
                         Cliente
                     </th>
-                    <th style="padding:7px 6px; width:15%; text-align:center;">
+                    <th style="padding:7px 5px; width:13%; text-align:center;">
                         Fecha
                     </th>
-                    <th style="padding:7px 6px; width:20%; text-align:left;">
+                    <th style="padding:7px 5px; width:22%; text-align:left;">
                         Items
+                    </th>
+                    <th style="padding:7px 5px; width:23%; text-align:left;">
+                        Partida / Llegada
                     </th>
                 </tr>
             </thead>
@@ -476,14 +466,16 @@ async function filtrarGuias(){
     `;
 
     data.forEach(g => {
+
+        // ✅ Items que coinciden
         const itemsMatch = (g.items || []).filter(i =>
             (i.descripcion || "").toLowerCase().includes(textoLower)
         );
 
         const itemsCol = itemsMatch.length > 0
             ? itemsMatch.slice(0, 2).map(i => {
-                const desc = (i.descripcion || "").length > 28
-                    ? (i.descripcion || "").substring(0, 28) + "..."
+                const desc = (i.descripcion || "").length > 25
+                    ? (i.descripcion || "").substring(0, 25) + "..."
                     : (i.descripcion || "");
                 return `<div style="font-size:11px; color:#1565C0;
                                     white-space:nowrap; overflow:hidden;
@@ -498,6 +490,40 @@ async function filtrarGuias(){
                 : "")
             : `<span style="color:#ccc; font-size:11px;">—</span>`;
 
+        // ✅ Columna Partida / Llegada
+        const partida = (g.direccion_partida || "").toLowerCase()
+            .includes(textoLower);
+        const llegada = (g.direccion_llegada || "").toLowerCase()
+            .includes(textoLower);
+
+        let ubicacionCol = "";
+
+        if(partida && g.direccion_partida){
+            const dir = g.direccion_partida.length > 25
+                ? g.direccion_partida.substring(0, 25) + "..."
+                : g.direccion_partida;
+            ubicacionCol += `
+                <div style="font-size:11px; color:#e65100; white-space:nowrap;
+                            overflow:hidden; text-overflow:ellipsis;">
+                    🚀 ${resaltarTexto(dir, texto)}
+                </div>`;
+        }
+
+        if(llegada && g.direccion_llegada){
+            const dir = g.direccion_llegada.length > 25
+                ? g.direccion_llegada.substring(0, 25) + "..."
+                : g.direccion_llegada;
+            ubicacionCol += `
+                <div style="font-size:11px; color:#1b5e20; white-space:nowrap;
+                            overflow:hidden; text-overflow:ellipsis;">
+                    🏁 ${resaltarTexto(dir, texto)}
+                </div>`;
+        }
+
+        if(!ubicacionCol){
+            ubicacionCol = `<span style="color:#ccc; font-size:11px;">—</span>`;
+        }
+
         const cliente = (g.destinatario_nombre || "-").length > 18
             ? (g.destinatario_nombre || "-").substring(0, 18) + "..."
             : (g.destinatario_nombre || "-");
@@ -507,21 +533,24 @@ async function filtrarGuias(){
             style="cursor:pointer; border-bottom:1px solid #eee; font-size:12px;"
             onmouseover="this.style.background='#e3f2fd'"
             onmouseout="this.style.background='white'">
-            <td style="padding:7px 6px; white-space:nowrap;
+            <td style="padding:7px 5px; white-space:nowrap;
                        overflow:hidden; text-overflow:ellipsis;">
                 📄 ${resaltarTexto(g.numero, texto)}
             </td>
-            <td style="padding:7px 6px; color:#555; white-space:nowrap;
+            <td style="padding:7px 5px; color:#555; white-space:nowrap;
                        overflow:hidden; text-overflow:ellipsis;"
                 title="${g.destinatario_nombre || ""}">
                 ${cliente}
             </td>
-            <td style="padding:7px 6px; text-align:center; color:#777;
+            <td style="padding:7px 5px; text-align:center; color:#777;
                        white-space:nowrap;">
                 ${formatearFecha(g.fecha_emision)}
             </td>
-            <td style="padding:7px 6px;">
+            <td style="padding:7px 5px;">
                 ${itemsCol}
+            </td>
+            <td style="padding:7px 5px;">
+                ${ubicacionCol}
             </td>
         </tr>`;
     });

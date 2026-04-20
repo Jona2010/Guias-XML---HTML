@@ -97,6 +97,7 @@ app.get("/contar", async (req, res) => {
 
 // ----------------------
 // BUSCAR GUÍAS
+// ✅ Ahora incluye partida y llegada
 // ----------------------
 app.get("/buscar", async (req, res) => {
     const q = (req.query.q || "").trim();
@@ -108,7 +109,9 @@ app.get("/buscar", async (req, res) => {
         const guias = await query(`
             SELECT DISTINCT g.*
             FROM guias g
-            WHERE LOWER(g.numero) LIKE ?
+            WHERE LOWER(g.numero)            LIKE ?
+               OR LOWER(g.direccion_partida) LIKE ?
+               OR LOWER(g.direccion_llegada) LIKE ?
 
             UNION
 
@@ -118,7 +121,7 @@ app.get("/buscar", async (req, res) => {
             WHERE LOWER(i.descripcion) LIKE ?
 
             ORDER BY id DESC
-        `, [termino, termino]);
+        `, [termino, termino, termino, termino]);
 
         for(const g of guias){
             g.items = await query(
