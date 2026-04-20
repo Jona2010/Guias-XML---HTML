@@ -156,7 +156,7 @@ app.get("/guias", async (req, res) => {
     res.json(guias);
   } catch (err) {
     console.error("❌ Error obteniendo guías:", err);
-    res.status(500).json({ error: "Error obteniendo guías" });
+    res.json([]);
   }
 });
 

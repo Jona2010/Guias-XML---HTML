@@ -280,15 +280,15 @@ async function mostrarHistorial(){
         `${API_URL}/guias?limit=${limite}&offset=${pagina * limite}`
     );
 
-    if(error){
-        cont.innerHTML = `<p style="color:red;">${error}</p>`;
+    if(!Array.isArray(data)){
+        cont.innerHTML = `<p style="color:red;">Error del servidor</p>`;
         return;
     }
 
-    const guias = data;
+    const guias = Array.isArray(data) ? data : [];
 
-    if(!guias || guias.length === 0){
-        cont.innerHTML = "<p>No hay más guías</p>";
+    if(guias.length === 0){
+        cont.innerHTML = "<p>No hay guías</p>";
         return;
     }
 
