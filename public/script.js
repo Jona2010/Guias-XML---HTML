@@ -544,9 +544,6 @@ async function filtrarGuias(){
                 ${formatearFecha(g.fecha_emision)}
             </td>
             <td style="padding:7px 5px;">
-                ${itemsCol}
-            </td>
-            <td style="padding:7px 5px;">
                 ${ubicacionCol}
             </td>
         </tr>`;
