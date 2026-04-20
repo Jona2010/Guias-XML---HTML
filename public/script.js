@@ -280,13 +280,16 @@ async function mostrarHistorial(){
         `${API_URL}/guias?limit=${limite}&offset=${pagina * limite}`
     );
 
-    if(!Array.isArray(data)){
-        cont.innerHTML = `<p style="color:red;">Error del servidor</p>`;
+    // ❌ Error de conexión
+    if(error){
+        cont.innerHTML = `<p style="color:red;">${error}</p>`;
         return;
     }
 
+    // ⚠️ Si no es array → forzar array vacío
     const guias = Array.isArray(data) ? data : [];
 
+    // 🟡 Sin datos
     if(guias.length === 0){
         cont.innerHTML = "<p>No hay guías</p>";
         return;
@@ -312,7 +315,7 @@ async function mostrarHistorial(){
         html += `
         <tr onclick="verGuiaPorId(${g.id})" style="cursor:pointer;">
             <td>📄 ${g.numero}</td>
-            <td title="${g.destinatario_nombre}">${g.destinatario_nombre || "-"}</td>
+            <td>${g.destinatario_nombre || "-"}</td>
             <td>${formatearFecha(g.fecha_emision)}</td>
         </tr>
         `;
@@ -324,13 +327,7 @@ async function mostrarHistorial(){
     </div>
 
     <div class="paginacion">
-        <div class="paginacion-info">Mostrando ${inicio} - ${fin}</div>
-        <div class="paginacion-botones">
-            <button onclick="anteriorPagina()" 
-                ${pagina === 0 ? "disabled" : ""}>⬅ Anterior</button>
-            <span>Página ${pagina + 1}</span>
-            <button onclick="siguientePagina()">Siguiente ➡</button>
-        </div>
+        <div>Mostrando ${inicio} - ${fin}</div>
     </div>
     `;
 

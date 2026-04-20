@@ -156,8 +156,8 @@ app.get("/guias", async (req, res) => {
     res.json(guias);
   } catch (err) {
     console.error("❌ Error obteniendo guías:", err);
-    res.json([]);
-  }
+    res.json([]); // 👈 correcto
+    }
 });
 
 // 👇 fallback SOLO al final
