@@ -105,27 +105,27 @@ async function leerGuia(){
 
             // ✅ Buscar descripción en el orden correcto
             // ✅ Obtener valores
-            let desc = "";
-            let name = "";
+            let descripcion = "";
 
-            if(item){
-                desc = val(item, UBL.cbc, "Description") || "";
-                name = val(item, UBL.cbc, "Name") || "";
+            // 🔹 obtener valores
+            let desc = item ? val(item, UBL.cbc, "Description") : "";
+            let name = item ? val(item, UBL.cbc, "Name") : "";
+
+            // 🔥 regla 1: usar NAME primero (producto real)
+            if(name && name.trim() !== ""){
+                descripcion = name;
             }
 
-            // 🔥 limpiar texto basura SUNAT
-            if(desc.toLowerCase().includes("indicador de bien regulado")){
-                desc = "";
+            // 🔥 regla 2: usar DESCRIPTION si no es basura
+            else if(desc && !desc.toLowerCase().includes("indicador")){
+                descripcion = desc;
             }
 
-            // ✅ elegir correctamente
-            let descripcion = desc || name;
-
-            // 🔁 fallback si aún está vacío
+            // 🔥 regla 3: fallback a línea
             if(!descripcion){
                 descripcion = val(l, UBL.cbc, "Description")
                         || val(l, UBL.cbc, "Name")
-                        || "Sin descripción";
+                        || "Item sin descripción";
             }
         }
 
