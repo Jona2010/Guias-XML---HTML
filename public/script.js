@@ -346,24 +346,29 @@ async function mostrarHistorial(){
             : (g.destinatario_nombre || "-");
 
         html += `
-        <tr onclick="if(!this.dataset.loading){ this.dataset.loading=1; verGuiaPorId(${g.id}); setTimeout(()=>this.dataset.loading=0,500);}">"
-            style="cursor:pointer; border-bottom:1px solid #eee; font-size:12px;"
-            onmouseover="this.style.background='#e3f2fd'"
-            onmouseout="this.style.background='white'">
-            <td style="padding:7px 6px; white-space:nowrap;
-                       overflow:hidden; text-overflow:ellipsis;">
-                📄 ${g.numero}
-            </td>
-            <td style="padding:7px 6px; color:#555; white-space:nowrap;
-                       overflow:hidden; text-overflow:ellipsis;"
-                title="${g.destinatario_nombre || ''}">
-                ${cliente}
-            </td>
-            <td style="padding:7px 6px; text-align:center; color:#777;
-                       white-space:nowrap;">
-                ${formatearFecha(g.fecha_emision)}
-            </td>
-        </tr>`;
+            <tr 
+                onclick="handleClickGuia(this, ${g.id})"
+                style="cursor:pointer; border-bottom:1px solid #eee; font-size:12px;"
+                onmouseover="this.style.background='#e3f2fd'"
+                onmouseout="this.style.background='white'">
+
+                <td style="padding:7px 6px; white-space:nowrap;
+                        overflow:hidden; text-overflow:ellipsis;">
+                    📄 ${g.numero}
+                </td>
+
+                <td style="padding:7px 6px; color:#555; white-space:nowrap;
+                        overflow:hidden; text-overflow:ellipsis;"
+                    title="${g.destinatario_nombre || ''}">
+                    ${cliente}
+                </td>
+
+                <td style="padding:7px 6px; text-align:center; color:#777;
+                        white-space:nowrap;">
+                    ${formatearFecha(g.fecha_emision)}
+                </td>
+
+            </tr>`;
     });
 
     html += `
@@ -669,6 +674,27 @@ function limpiarBusqueda(){
     contHistorial.style.display = "block";
     mostrarHistorial();
     input.focus();
+}
+
+function handleClickGuia(el, id){
+
+    // 🚫 evitar múltiples clicks
+    if(el.dataset.loading === "1"){
+        return;
+    }
+
+    el.dataset.loading = "1";
+
+    // 👇 opcional: feedback visual
+    el.style.opacity = "0.6";
+
+    verGuiaPorId(id);
+
+    // ⏳ liberar después de 500ms
+    setTimeout(() => {
+        el.dataset.loading = "0";
+        el.style.opacity = "1";
+    }, 500);
 }
 
 // ----------------------
