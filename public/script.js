@@ -104,24 +104,29 @@ async function leerGuia(){
             const item = first(l, UBL.cac, "Item");
 
             // ✅ Buscar descripción en el orden correcto
-            let descripcion = "";
+            // ✅ Obtener valores
+            let desc = "";
+            let name = "";
+
             if(item){
-                descripcion = val(item, UBL.cbc, "Description")
-                           || val(item, UBL.cbc, "Name")
-                           || "";
-            }
-            if(!descripcion){
-                descripcion = val(l, UBL.cbc, "Description")
-                           || val(l, UBL.cbc, "Name")
-                           || "Sin descripción";
+                desc = val(item, UBL.cbc, "Description") || "";
+                name = val(item, UBL.cbc, "Name") || "";
             }
 
-            guia.items.push({
-                linea:       val(l, UBL.cbc, "ID"),
-                descripcion: descripcion,
-                cantidad:    val(l, UBL.cbc, "DeliveredQuantity"),
-                unidad:      attr(l, UBL.cbc, "DeliveredQuantity", "unitCode")
-            });
+            // 🔥 limpiar texto basura SUNAT
+            if(desc.toLowerCase().includes("indicador de bien regulado")){
+                desc = "";
+            }
+
+            // ✅ elegir correctamente
+            let descripcion = desc || name;
+
+            // 🔁 fallback si aún está vacío
+            if(!descripcion){
+                descripcion = val(l, UBL.cbc, "Description")
+                        || val(l, UBL.cbc, "Name")
+                        || "Sin descripción";
+            }
         }
 
         mostrarGuiaBonita(guia);
