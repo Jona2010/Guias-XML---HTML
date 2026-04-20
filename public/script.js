@@ -61,6 +61,7 @@ async function fetchJSON(url, options = {}){
 
 // ----------------------
 // LEER XML
+// ✅ FIX: descripcion en Item > Description
 // ----------------------
 async function leerGuia(){
     const file = document.getElementById("xmlfile").files[0];
@@ -84,8 +85,8 @@ async function leerGuia(){
         const destinatario = first(xml, UBL.cac, "DeliveryCustomerParty");
         guia.destinatario  = { nombre: val(destinatario, UBL.cbc, "RegistrationName") };
 
-        const shipment  = first(xml, UBL.cac, "Shipment");
-        guia.traslado   = {
+        const shipment = first(xml, UBL.cac, "Shipment");
+        guia.traslado  = {
             motivo:     val(shipment, UBL.cbc, "HandlingInstructions"),
             peso_total: val(shipment, UBL.cbc, "GrossWeightMeasure")
         };
@@ -97,11 +98,27 @@ async function leerGuia(){
 
         guia.items = [];
         const lineas = xml.getElementsByTagNameNS(UBL.cac, "DespatchLine");
+
         for(let i = 0; i < lineas.length; i++){
-            const l = lineas[i];
+            const l    = lineas[i];
+            const item = first(l, UBL.cac, "Item");
+
+            // ✅ Buscar descripción en el orden correcto
+            let descripcion = "";
+            if(item){
+                descripcion = val(item, UBL.cbc, "Description")
+                           || val(item, UBL.cbc, "Name")
+                           || "";
+            }
+            if(!descripcion){
+                descripcion = val(l, UBL.cbc, "Description")
+                           || val(l, UBL.cbc, "Name")
+                           || "Sin descripción";
+            }
+
             guia.items.push({
                 linea:       val(l, UBL.cbc, "ID"),
-                descripcion: val(l, UBL.cbc, "Name"),
+                descripcion: descripcion,
                 cantidad:    val(l, UBL.cbc, "DeliveredQuantity"),
                 unidad:      attr(l, UBL.cbc, "DeliveredQuantity", "unitCode")
             });
@@ -223,7 +240,7 @@ async function verGuiaPorId(id){
 }
 
 // ----------------------
-// HISTORIAL — separado del buscador
+// HISTORIAL
 // ----------------------
 async function mostrarHistorial(){
 
@@ -232,17 +249,15 @@ async function mostrarHistorial(){
 
     buscando = false;
 
-    // ✅ Sección historial separada
-    const contHistorial  = document.getElementById("historial-lista");
-    const contBuscador   = document.getElementById("historial-busqueda");
+    const contHistorial = document.getElementById("historial-lista");
+    const contBuscador  = document.getElementById("historial-busqueda");
 
-    // ✅ Mostrar historial, ocultar resultados búsqueda
-    contHistorial.style.display  = "block";
-    contBuscador.style.display   = "none";
-    contBuscador.innerHTML       = "";
+    contHistorial.style.display = "block";
+    contBuscador.style.display  = "none";
+    contBuscador.innerHTML      = "";
 
     contHistorial.innerHTML = `
-        <p style="color:#999; text-align:center; padding:10px;">
+        <p style="color:#999; text-align:center; padding:10px; font-size:13px;">
             Cargando...
         </p>`;
 
@@ -251,7 +266,7 @@ async function mostrarHistorial(){
     );
 
     if(error){
-        contHistorial.innerHTML = `<p style="color:red;">${error}</p>`;
+        contHistorial.innerHTML = `<p style="color:red; font-size:13px;">${error}</p>`;
         return;
     }
 
@@ -259,7 +274,7 @@ async function mostrarHistorial(){
 
     if(!guias || guias.length === 0){
         contHistorial.innerHTML = `
-            <p style="color:#999; text-align:center; padding:20px;">
+            <p style="color:#999; text-align:center; padding:20px; font-size:13px;">
                 No hay guías registradas
             </p>`;
         return;
@@ -271,24 +286,18 @@ async function mostrarHistorial(){
     let html = `
     <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
         <thead>
-            <tr style="background:#1976D2; color:white; font-size:13px;">
-                <th style="padding:8px 6px; width:45%; text-align:left;">
-                    N° Guía
-                </th>
-                <th style="padding:8px 6px; width:35%; text-align:left;">
-                    Cliente
-                </th>
-                <th style="padding:8px 6px; width:20%; text-align:center;">
-                    Fecha
-                </th>
+            <tr style="background:#1976D2; color:white; font-size:12px;">
+                <th style="padding:8px 6px; width:42%; text-align:left;">N° Guía</th>
+                <th style="padding:8px 6px; width:36%; text-align:left;">Cliente</th>
+                <th style="padding:8px 6px; width:22%; text-align:center;">Fecha</th>
             </tr>
         </thead>
         <tbody>
     `;
 
     guias.forEach(g => {
-        const cliente = (g.destinatario_nombre || "-").length > 25
-            ? (g.destinatario_nombre || "-").substring(0, 25) + "..."
+        const cliente = (g.destinatario_nombre || "-").length > 22
+            ? (g.destinatario_nombre || "-").substring(0, 22) + "..."
             : (g.destinatario_nombre || "-");
 
         html += `
@@ -296,16 +305,17 @@ async function mostrarHistorial(){
             style="cursor:pointer; border-bottom:1px solid #eee; font-size:12px;"
             onmouseover="this.style.background='#e3f2fd'"
             onmouseout="this.style.background='white'">
-            <td style="padding:7px 6px; overflow:hidden;
-                       text-overflow:ellipsis; white-space:nowrap;">
+            <td style="padding:7px 6px; white-space:nowrap;
+                       overflow:hidden; text-overflow:ellipsis;">
                 📄 ${g.numero}
             </td>
-            <td style="padding:7px 6px; color:#555; overflow:hidden;
-                       text-overflow:ellipsis; white-space:nowrap;"
+            <td style="padding:7px 6px; color:#555; white-space:nowrap;
+                       overflow:hidden; text-overflow:ellipsis;"
                 title="${g.destinatario_nombre || ''}">
                 ${cliente}
             </td>
-            <td style="padding:7px 6px; text-align:center; color:#777;">
+            <td style="padding:7px 6px; text-align:center; color:#777;
+                       white-space:nowrap;">
                 ${formatearFecha(g.fecha_emision)}
             </td>
         </tr>`;
@@ -314,7 +324,6 @@ async function mostrarHistorial(){
     html += `
         </tbody>
     </table>
-
     <div style="display:flex; justify-content:space-between; align-items:center;
                 padding:8px 4px; margin-top:6px; font-size:12px; color:#888;
                 border-top:1px solid #eee;">
@@ -325,14 +334,12 @@ async function mostrarHistorial(){
                 style="padding:4px 10px; border:1px solid #ddd; border-radius:4px;
                        background:${pagina === 0 ? '#f5f5f5' : 'white'};
                        cursor:${pagina === 0 ? 'not-allowed' : 'pointer'};
-                       color:${pagina === 0 ? '#bbb' : '#333'};">
-                ⬅
+                       color:${pagina === 0 ? '#bbb' : '#333'};">⬅
             </button>
             <span style="font-weight:bold;">Pág. ${pagina + 1}</span>
             <button onclick="siguientePagina()"
-                style="padding:4px 10px; border:1px solid #ddd;
-                       border-radius:4px; background:white; cursor:pointer;">
-                ➡
+                style="padding:4px 10px; border:1px solid #ddd; border-radius:4px;
+                       background:white; cursor:pointer;">➡
             </button>
         </div>
     </div>`;
@@ -341,23 +348,19 @@ async function mostrarHistorial(){
 }
 
 // ----------------------
-// BUSCADOR — separado del historial
+// BUSCADOR
 // ----------------------
 async function filtrarGuias(){
 
     const texto      = document.getElementById("buscador").value.trim();
     const btnLimpiar = document.getElementById("btn-limpiar");
-
-    // ✅ Secciones separadas
     const contHistorial = document.getElementById("historial-lista");
     const contBuscador  = document.getElementById("historial-busqueda");
 
-    // Mostrar/ocultar X
     if(btnLimpiar){
         btnLimpiar.style.display = texto ? "flex" : "none";
     }
 
-    // ✅ Sin texto → mostrar historial, ocultar búsqueda
     if(!texto){
         buscando = false;
         pagina   = 0;
@@ -368,7 +371,6 @@ async function filtrarGuias(){
         return;
     }
 
-    // ✅ Con texto → ocultar historial, mostrar búsqueda
     buscando = true;
     contHistorial.style.display = "none";
     contBuscador.style.display  = "block";
@@ -404,47 +406,34 @@ async function filtrarGuias(){
 
     let html = `
         <div style="padding:8px 10px; margin-bottom:8px; background:#e8f5e9;
-                    border-radius:6px; border-left:4px solid #4CAF50;
-                    font-size:12px;">
+                    border-radius:6px; border-left:4px solid #4CAF50; font-size:12px;">
             <strong>📊 ${data.length} resultado(s) para: "${texto}"</strong>
         </div>
-
         <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
             <thead>
                 <tr style="background:#1976D2; color:white; font-size:12px;">
-                    <th style="padding:7px 6px; width:35%; text-align:left;">
-                        N° Guía
-                    </th>
-                    <th style="padding:7px 6px; width:30%; text-align:left;">
-                        Cliente
-                    </th>
-                    <th style="padding:7px 6px; width:15%; text-align:center;">
-                        Fecha
-                    </th>
-                    <th style="padding:7px 6px; width:20%; text-align:left;">
-                        Items
-                    </th>
+                    <th style="padding:7px 6px; width:35%; text-align:left;">N° Guía</th>
+                    <th style="padding:7px 6px; width:28%; text-align:left;">Cliente</th>
+                    <th style="padding:7px 6px; width:17%; text-align:center;">Fecha</th>
+                    <th style="padding:7px 6px; width:20%; text-align:left;">Items</th>
                 </tr>
             </thead>
             <tbody>
     `;
 
     data.forEach(g => {
-
-        // Items que coinciden con la búsqueda
         const itemsMatch = (g.items || []).filter(i =>
             (i.descripcion || "").toLowerCase().includes(textoLower)
         );
 
-        // ✅ Columna items — solo si hay coincidencias
         const itemsCol = itemsMatch.length > 0
             ? itemsMatch.slice(0, 2).map(i => {
-                const desc = (i.descripcion || "").length > 30
-                    ? (i.descripcion || "").substring(0, 30) + "..."
+                const desc = (i.descripcion || "").length > 28
+                    ? (i.descripcion || "").substring(0, 28) + "..."
                     : (i.descripcion || "");
                 return `<div style="font-size:11px; color:#1565C0;
-                                    overflow:hidden; text-overflow:ellipsis;
-                                    white-space:nowrap;">
+                                    white-space:nowrap; overflow:hidden;
+                                    text-overflow:ellipsis;">
                     📦 ${resaltarTexto(desc, texto)}
                 </div>`;
               }).join("") +
@@ -455,8 +444,8 @@ async function filtrarGuias(){
                 : "")
             : `<span style="color:#ccc; font-size:11px;">—</span>`;
 
-        const cliente = (g.destinatario_nombre || "-").length > 20
-            ? (g.destinatario_nombre || "-").substring(0, 20) + "..."
+        const cliente = (g.destinatario_nombre || "-").length > 18
+            ? (g.destinatario_nombre || "-").substring(0, 18) + "..."
             : (g.destinatario_nombre || "-");
 
         html += `
@@ -464,16 +453,17 @@ async function filtrarGuias(){
             style="cursor:pointer; border-bottom:1px solid #eee; font-size:12px;"
             onmouseover="this.style.background='#e3f2fd'"
             onmouseout="this.style.background='white'">
-            <td style="padding:7px 6px; overflow:hidden;
-                       text-overflow:ellipsis; white-space:nowrap;">
+            <td style="padding:7px 6px; white-space:nowrap;
+                       overflow:hidden; text-overflow:ellipsis;">
                 📄 ${resaltarTexto(g.numero, texto)}
             </td>
-            <td style="padding:7px 6px; color:#555; overflow:hidden;
-                       text-overflow:ellipsis; white-space:nowrap;"
+            <td style="padding:7px 6px; color:#555; white-space:nowrap;
+                       overflow:hidden; text-overflow:ellipsis;"
                 title="${g.destinatario_nombre || ""}">
                 ${cliente}
             </td>
-            <td style="padding:7px 6px; text-align:center; color:#777;">
+            <td style="padding:7px 6px; text-align:center; color:#777;
+                       white-space:nowrap;">
                 ${formatearFecha(g.fecha_emision)}
             </td>
             <td style="padding:7px 6px;">
@@ -491,17 +481,13 @@ async function filtrarGuias(){
 // ----------------------
 function resaltarTexto(texto, busqueda){
     if(!busqueda || !texto) return String(texto);
-
     const textoStr    = String(texto);
     const busquedaStr = String(busqueda);
     const posicion    = textoStr.toLowerCase().indexOf(busquedaStr.toLowerCase());
-
     if(posicion === -1) return textoStr;
-
     const antes    = textoStr.substring(0, posicion);
     const coincide = textoStr.substring(posicion, posicion + busquedaStr.length);
     const despues  = textoStr.substring(posicion + busquedaStr.length);
-
     return antes +
         '<mark style="background:#FFF176; padding:1px 2px;' +
         'border-radius:2px; color:#000;">' +
@@ -533,7 +519,6 @@ async function exportarExcel(){
     if(error || !data || data.length === 0){
         alert("No hay datos para exportar"); return;
     }
-
     const g = data[0];
     let rows = [
         ["GUÍA DE REMISIÓN"], [],
@@ -549,15 +534,12 @@ async function exportarExcel(){
         ["ITEMS"],
         ["#", "Descripción", "Cantidad", "Unidad"]
     ];
-
     (g.items || []).forEach(i => {
         rows.push([i.linea, i.descripcion, i.cantidad, i.unidad]);
     });
-
     let ws = XLSX.utils.aoa_to_sheet(rows);
     ws["!cols"]   = [{wch:5},{wch:50},{wch:10},{wch:10}];
     ws["!merges"] = [{ s:{r:0,c:0}, e:{r:0,c:3} }];
-
     let wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Guía");
     XLSX.writeFile(wb, `guia_${g.numero}.xlsx`);
@@ -571,31 +553,25 @@ async function exportarPDF(){
     if(!contenido || contenido.innerText.trim().length < 50){
         alert("Primero selecciona o carga una guía"); return;
     }
-
     await new Promise(resolve => setTimeout(resolve, 300));
     const canvas  = await html2canvas(contenido, { scale: 3, useCORS: true });
     const imgData = canvas.toDataURL("image/png");
-
     const { jsPDF } = window.jspdf;
     const pdf       = new jsPDF("p", "mm", "a4");
     const pageWidth  = 210;
     const pageHeight = 297;
     const imgWidth   = pageWidth;
     const imgHeight  = canvas.height * imgWidth / canvas.width;
-
     let heightLeft = imgHeight;
     let position   = 0;
-
     pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
     heightLeft -= pageHeight;
-
     while(heightLeft > 0){
         position   = heightLeft - imgHeight;
         pdf.addPage();
         pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
     }
-
     pdf.save("guia_sunat.pdf");
 }
 
@@ -605,7 +581,6 @@ async function exportarPDF(){
 function mostrarAlerta(msg, tipo = "info"){
     const div = document.createElement("div");
     div.innerText = msg;
-
     Object.assign(div.style, {
         position:     "fixed",
         top:          "20px",
@@ -620,7 +595,6 @@ function mostrarAlerta(msg, tipo = "info"){
         transition:   "all 0.4s ease",
         background:   tipo === "error" ? "#d32f2f" : "#2e7d32"
     });
-
     document.body.appendChild(div);
     setTimeout(() => {
         div.style.opacity   = "1";
@@ -639,20 +613,15 @@ function mostrarAlerta(msg, tipo = "info"){
 function limpiarBusqueda(){
     const input      = document.getElementById("buscador");
     const btnLimpiar = document.getElementById("btn-limpiar");
-
     input.value = "";
     buscando    = false;
     pagina      = 0;
-
     if(btnLimpiar) btnLimpiar.style.display = "none";
-
-    // ✅ Ocultar búsqueda, mostrar historial
     const contBuscador  = document.getElementById("historial-busqueda");
     const contHistorial = document.getElementById("historial-lista");
     contBuscador.style.display  = "none";
     contBuscador.innerHTML      = "";
     contHistorial.style.display = "block";
-
     mostrarHistorial();
     input.focus();
 }
@@ -671,10 +640,7 @@ function anteriorPagina(){
 document.addEventListener("DOMContentLoaded", () => {
     const btnLimpiar = document.getElementById("btn-limpiar");
     if(btnLimpiar) btnLimpiar.style.display = "none";
-
-    // ✅ Ocultar búsqueda al inicio
     const contBuscador = document.getElementById("historial-busqueda");
     if(contBuscador) contBuscador.style.display = "none";
-
     mostrarHistorial();
 });
