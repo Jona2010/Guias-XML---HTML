@@ -135,6 +135,11 @@ async function leerGuia(){
 // MOSTRAR GUIA
 // ----------------------
 function mostrarGuiaBonita(g){
+
+    // 🔥 LIMPIAR COMPLETAMENTE
+    const contenedor = document.getElementById("salida");
+    contenedor.innerHTML = "";
+
     let html = `
     <div class="guia-card">
         <h3>📄 ${g.numero}</h3>
@@ -172,7 +177,7 @@ function mostrarGuiaBonita(g){
             </td>
             <td style="padding:8px; border-bottom:1px solid #eee;
                        word-break:break-word; white-space:normal; font-size:13px;">
-                ${i.descripcion ?? "-"}
+                ${(i.descripcion || "").trim() || "-"}
             </td>
             <td style="padding:8px; border-bottom:1px solid #eee;
                        text-align:center; font-size:13px;">
@@ -243,7 +248,12 @@ async function verGuiaPorId(id){
         traslado:      { motivo: g.motivo, peso_total: g.peso_total },
         partida:       { direccion: g.direccion_partida },
         llegada:       { direccion: g.direccion_llegada },
-        items:         g.items || []
+        items:         (g.items || []).map(i => ({
+                            linea: i.linea,
+                            descripcion: (i.descripcion || "").trim(),
+                            cantidad: i.cantidad,
+                            unidad: i.unidad
+                        }))
     };
 
     mostrarGuiaBonita(guia);
