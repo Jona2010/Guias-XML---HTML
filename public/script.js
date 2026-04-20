@@ -14,9 +14,9 @@ const UBL = {
 };
 
 // VARIABLES
-let pagina = 0;
+let pagina  = 0;
 const limite = 10;
-let buscando = false; // ✅ Flag para saber si estamos buscando
+let buscando = false;
 
 function first(parent, ns, tag){
     if(!parent) return null;
@@ -38,26 +38,22 @@ function attr(parent, ns, tag, att){
 // ----------------------
 async function fetchJSON(url, options = {}){
     try {
-        const res = await fetch(url, options);
+        const res         = await fetch(url, options);
         const contentType = res.headers.get("content-type") || "";
 
         if(!contentType.includes("application/json")){
             return {
-                ok: false,
-                status: res.status,
-                data: null,
-                error: `El servidor devolvió una respuesta inválida (HTTP ${res.status})`
+                ok: false, status: res.status, data: null,
+                error: `Respuesta inválida (HTTP ${res.status})`
             };
         }
 
         const data = await res.json();
         return { ok: res.ok, status: res.status, data, error: null };
 
-    } catch(err) {
+    } catch(err){
         return {
-            ok: false,
-            status: 0,
-            data: null,
+            ok: false, status: 0, data: null,
             error: "❌ No se pudo conectar con el servidor."
         };
     }
@@ -71,41 +67,36 @@ async function leerGuia(){
     if(!file){ alert("Selecciona la guía XML"); return; }
 
     const reader = new FileReader();
-
     reader.onload = async function(e){
         const xml = new DOMParser().parseFromString(e.target.result, "text/xml");
 
-        let guia = {};
+        let guia       = {};
         guia.numero        = val(xml, UBL.cbc, "ID");
         guia.fecha_emision = val(xml, UBL.cbc, "IssueDate");
         guia.hora_emision  = val(xml, UBL.cbc, "IssueTime");
 
-        const remitente = first(xml, UBL.cac, "DespatchSupplierParty");
-        guia.remitente = {
+        const remitente    = first(xml, UBL.cac, "DespatchSupplierParty");
+        guia.remitente     = {
             ruc:          val(remitente, UBL.cbc, "ID"),
             razon_social: val(remitente, UBL.cbc, "RegistrationName")
         };
 
         const destinatario = first(xml, UBL.cac, "DeliveryCustomerParty");
-        guia.destinatario = {
-            nombre: val(destinatario, UBL.cbc, "RegistrationName")
-        };
+        guia.destinatario  = { nombre: val(destinatario, UBL.cbc, "RegistrationName") };
 
-        const shipment = first(xml, UBL.cac, "Shipment");
-        guia.traslado = {
+        const shipment  = first(xml, UBL.cac, "Shipment");
+        guia.traslado   = {
             motivo:     val(shipment, UBL.cbc, "HandlingInstructions"),
             peso_total: val(shipment, UBL.cbc, "GrossWeightMeasure")
         };
 
         const deliveryAddress = first(xml, UBL.cac, "DeliveryAddress");
-        const despatchAddress  = first(xml, UBL.cac, "DespatchAddress");
-
+        const despatchAddress = first(xml, UBL.cac, "DespatchAddress");
         guia.llegada = { direccion: val(deliveryAddress, UBL.cbc, "Line") };
         guia.partida = { direccion: val(despatchAddress,  UBL.cbc, "Line") };
 
         guia.items = [];
         const lineas = xml.getElementsByTagNameNS(UBL.cac, "DespatchLine");
-
         for(let i = 0; i < lineas.length; i++){
             const l = lineas[i];
             guia.items.push({
@@ -118,9 +109,10 @@ async function leerGuia(){
 
         mostrarGuiaBonita(guia);
         await guardarGuia(guia);
-        await mostrarHistorial();
-    };
 
+        // ✅ Solo recargar historial si NO estamos buscando
+        if(!buscando) await mostrarHistorial();
+    };
     reader.readAsText(file);
 }
 
@@ -139,17 +131,17 @@ function mostrarGuiaBonita(g){
         <p><b>🚚 Motivo de traslado:</b> ${g.traslado.motivo}</p>
         <p><b>⚖️ Peso total:</b> ${g.traslado.peso_total}</p>
         <hr>
-        <p><b>📍 Punto de partida:</b> ${g.partida?.direccion || "No disponible"}</p>
-        <p><b>📍 Punto de llegada:</b> ${g.llegada?.direccion || "No disponible"}</p>
+        <p><b>📍 Punto de partida:</b> ${g.partida?.direccion  || "No disponible"}</p>
+        <p><b>📍 Punto de llegada:</b> ${g.llegada?.direccion  || "No disponible"}</p>
         <hr>
         <h4>📦 Items</h4>
-        <table style="width:100%; border-collapse:collapse;">
+        <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
             <thead>
                 <tr style="background:#1976D2; color:white;">
-                    <th style="padding:10px; width:5%;">#</th>
-                    <th style="padding:10px; width:60%;">Descripción</th>
-                    <th style="padding:10px; width:15%;">Cantidad</th>
-                    <th style="padding:10px; width:20%;">Unidad</th>
+                    <th style="padding:8px; width:8%; text-align:center;">#</th>
+                    <th style="padding:8px; width:62%; text-align:left;">Descripción</th>
+                    <th style="padding:8px; width:15%; text-align:center;">Cantidad</th>
+                    <th style="padding:8px; width:15%; text-align:center;">Unidad</th>
                 </tr>
             </thead>
             <tbody>
@@ -158,21 +150,21 @@ function mostrarGuiaBonita(g){
     g.items.forEach((i, idx) => {
         const bg = idx % 2 === 0 ? "#ffffff" : "#f5f5f5";
         html += `
-            <tr style="background:${bg};">
-                <td style="padding:8px 10px; border-bottom:1px solid #eee;">
-                    ${i.linea ?? idx + 1}
-                </td>
-                <td style="padding:8px 10px; border-bottom:1px solid #eee;">
-                    ${i.descripcion ?? "-"}
-                </td>
-                <td style="padding:8px 10px; border-bottom:1px solid #eee; text-align:center;">
-                    ${i.cantidad ?? "-"}
-                </td>
-                <td style="padding:8px 10px; border-bottom:1px solid #eee; text-align:center;">
-                    ${i.unidad ?? "-"}
-                </td>
-            </tr>
-        `;
+        <tr style="background:${bg};">
+            <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;">
+                ${i.linea ?? idx + 1}
+            </td>
+            <td style="padding:8px; border-bottom:1px solid #eee;
+                       word-break:break-word; white-space:normal;">
+                ${i.descripcion ?? "-"}
+            </td>
+            <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;">
+                ${i.cantidad ?? "-"}
+            </td>
+            <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;">
+                ${i.unidad ?? "-"}
+            </td>
+        </tr>`;
     });
 
     html += `</tbody></table></div>`;
@@ -184,9 +176,9 @@ function mostrarGuiaBonita(g){
 // ----------------------
 async function guardarGuia(g){
     const { data, error } = await fetchJSON(`${API_URL}/guardar-guia`, {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(g)
+        body:    JSON.stringify(g)
     });
 
     if(error){ mostrarAlerta(error, "error"); return; }
@@ -197,7 +189,6 @@ async function guardarGuia(g){
     }
 
     mostrarAlerta(`✅ Guía ${g.numero} guardada correctamente`, "success");
-    await mostrarHistorial();
 }
 
 // ----------------------
@@ -207,7 +198,6 @@ async function verGuiaPorId(id){
     if(!id){ mostrarAlerta("❌ ID inválido", "error"); return; }
 
     const { ok, data, error } = await fetchJSON(`${API_URL}/guias/${id}`);
-
     if(error){ mostrarAlerta(error, "error"); return; }
 
     if(!ok || !data.ok){
@@ -215,23 +205,17 @@ async function verGuiaPorId(id){
         return;
     }
 
-    const g = data;
+    const g    = data;
     const guia = {
         numero:        g.numero,
         fecha_emision: g.fecha_emision,
         hora_emision:  g.hora_emision || "",
-        remitente: {
-            ruc:          g.remitente_ruc,
-            razon_social: g.remitente_nombre
-        },
-        destinatario: { nombre: g.destinatario_nombre },
-        traslado: {
-            motivo:     g.motivo,
-            peso_total: g.peso_total
-        },
-        partida: { direccion: g.direccion_partida },
-        llegada: { direccion: g.direccion_llegada },
-        items:   g.items || []
+        remitente:     { ruc: g.remitente_ruc, razon_social: g.remitente_nombre },
+        destinatario:  { nombre: g.destinatario_nombre },
+        traslado:      { motivo: g.motivo, peso_total: g.peso_total },
+        partida:       { direccion: g.direccion_partida },
+        llegada:       { direccion: g.direccion_llegada },
+        items:         g.items || []
     };
 
     mostrarGuiaBonita(guia);
@@ -239,20 +223,18 @@ async function verGuiaPorId(id){
 
 // ----------------------
 // HISTORIAL DESDE BD
-// ✅ Solo se ejecuta si NO estamos buscando
 // ----------------------
 async function mostrarHistorial(){
 
-    // ✅ Si hay texto en el buscador, no sobreescribir resultados
+    // ✅ Si hay búsqueda activa NO tocar el historial
     const textoBuscador = document.getElementById("buscador").value.trim();
-    if(textoBuscador){
-        return;
-    }
+    if(textoBuscador) return;
 
     buscando = false;
     const cont = document.getElementById("historial");
+    cont.innerHTML = `<p style="color:#999; text-align:center;">Cargando...</p>`;
 
-    const { ok, data, error } = await fetchJSON(
+    const { data, error } = await fetchJSON(
         `${API_URL}/guias?limit=${limite}&offset=${pagina * limite}`
     );
 
@@ -264,51 +246,75 @@ async function mostrarHistorial(){
     const guias = data;
 
     if(!guias || guias.length === 0){
-        cont.innerHTML = "<p>No hay más guías</p>";
+        cont.innerHTML = `<p style="color:#999; text-align:center; padding:20px;">
+            No hay guías registradas
+        </p>`;
         return;
     }
 
     const inicio = (pagina * limite) + 1;
     const fin    = inicio + guias.length - 1;
 
+    // ✅ Tabla con anchos fijos y word-break
     let html = `
-    <div class="historial-wrapper">
-    <table class="historial-tabla">
+    <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
         <thead>
-            <tr>
-                <th>N° Guía</th>
-                <th>Cliente</th>
-                <th>Fecha</th>
+            <tr style="background:#1976D2; color:white;">
+                <th style="padding:8px; width:40%; text-align:left;">N° Guía</th>
+                <th style="padding:8px; width:40%; text-align:left;">Cliente</th>
+                <th style="padding:8px; width:20%; text-align:center;">Fecha</th>
             </tr>
         </thead>
         <tbody>
     `;
 
     guias.forEach(g => {
+        // ✅ Truncar nombre largo del cliente
+        const cliente = (g.destinatario_nombre || "-").substring(0, 30) +
+            ((g.destinatario_nombre || "").length > 30 ? "..." : "");
+
         html += `
-        <tr onclick="verGuiaPorId(${g.id})" style="cursor:pointer;">
-            <td>📄 ${g.numero}</td>
-            <td title="${g.destinatario_nombre || ''}">${g.destinatario_nombre || "-"}</td>
-            <td>${formatearFecha(g.fecha_emision)}</td>
-        </tr>
-        `;
+        <tr onclick="verGuiaPorId(${g.id})"
+            style="cursor:pointer; border-bottom:1px solid #eee;"
+            onmouseover="this.style.background='#f0f7ff'"
+            onmouseout="this.style.background='white'">
+            <td style="padding:8px; word-break:break-all; font-size:13px;">
+                📄 ${g.numero}
+            </td>
+            <td style="padding:8px; font-size:12px; color:#555;"
+                title="${g.destinatario_nombre || ''}">
+                ${cliente}
+            </td>
+            <td style="padding:8px; text-align:center; font-size:12px;">
+                ${formatearFecha(g.fecha_emision)}
+            </td>
+        </tr>`;
     });
 
     html += `
         </tbody>
     </table>
-    </div>
-    <div class="paginacion">
-        <div class="paginacion-info">Mostrando ${inicio} - ${fin}</div>
-        <div class="paginacion-botones">
+    <div style="display:flex; justify-content:space-between; align-items:center;
+                padding:10px 5px; margin-top:8px; font-size:13px; color:#666;">
+        <span>Mostrando ${inicio}–${fin}</span>
+        <div style="display:flex; gap:8px; align-items:center;">
             <button onclick="anteriorPagina()"
-                ${pagina === 0 ? "disabled" : ""}>⬅ Anterior</button>
-            <span>Página ${pagina + 1}</span>
-            <button onclick="siguientePagina()">Siguiente ➡</button>
+                ${pagina === 0 ? "disabled" : ""}
+                style="padding:5px 10px; border:1px solid #ddd; border-radius:5px;
+                       background:${pagina === 0 ? '#f5f5f5' : 'white'};
+                       cursor:${pagina === 0 ? 'not-allowed' : 'pointer'};">
+                ⬅
+            </button>
+            <span>Pág. ${pagina + 1}</span>
+            <button onclick="siguientePagina()"
+                style="padding:5px 10px; border:1px solid #ddd;
+                       border-radius:5px; background:white; cursor:pointer;">
+                ➡
+            </button>
         </div>
-    </div>
-    `;
+    </div>`;
 
+    // ✅ Reemplaza TODO el contenido
     cont.innerHTML = html;
 }
 
@@ -330,8 +336,7 @@ function formatearHora(fechaISO){
 }
 
 // ----------------------
-// HELPER: Resaltar texto
-// ✅ Sin regex - 100% seguro
+// HELPER: Resaltar texto sin regex
 // ----------------------
 function resaltarTexto(texto, busqueda){
     if(!busqueda || !texto) return String(texto);
@@ -347,83 +352,77 @@ function resaltarTexto(texto, busqueda){
     const despues  = textoStr.substring(posicion + busquedaStr.length);
 
     return antes +
-        '<mark style="background:#FFF176; padding:1px 3px;' +
+        '<mark style="background:#FFF176; padding:1px 3px; ' +
         'border-radius:3px; color:#000;">' +
         coincide + '</mark>' + despues;
 }
 
 // ----------------------
 // 🔍 BUSCADOR
-// ✅ Reemplaza historial completamente
 // ----------------------
 async function filtrarGuias(){
 
-    const texto = document.getElementById("buscador").value.trim();
-    const cont  = document.getElementById("historial");
+    const texto      = document.getElementById("buscador").value.trim();
+    const cont       = document.getElementById("historial");
+    const btnLimpiar = document.getElementById("btn-limpiar");
 
     // ✅ Mostrar/ocultar botón X
-    const btnLimpiar = document.getElementById("btn-limpiar");
     if(btnLimpiar){
         btnLimpiar.style.display = texto ? "flex" : "none";
     }
 
-    // Si vacío → historial normal
+    // ✅ Si vacío → volver al historial normal
     if(!texto){
         buscando = false;
-        pagina = 0;
-        mostrarHistorial();
+        pagina   = 0;
+        await mostrarHistorial();
         return;
     }
 
     buscando = true;
 
-    // ✅ Limpiar historial ANTES de mostrar resultados
+    // ✅ Limpiar INMEDIATAMENTE antes del fetch
     cont.innerHTML = `
         <div style="text-align:center; padding:30px; color:#666;">
-            <p>🔍 Buscando "<strong>${texto}</strong>"...</p>
-        </div>
-    `;
+            🔍 Buscando "<strong>${texto}</strong>"...
+        </div>`;
 
     const { data, error } = await fetchJSON(
         `${API_URL}/buscar?q=${encodeURIComponent(texto)}`
     );
 
     if(error){
-        cont.innerHTML = `<p style="color:red;">${error}</p>`;
+        cont.innerHTML = `<p style="color:red; padding:10px;">${error}</p>`;
         return;
     }
 
     if(!data || data.length === 0){
         cont.innerHTML = `
-            <div style="text-align:center; padding:40px; color:#666;">
-                <p style="font-size:16px;">
-                    🔍 No se encontraron guías con
-                    "<strong>${texto}</strong>"
+            <div style="text-align:center; padding:30px; color:#666;">
+                <p>🔍 Sin resultados para "<strong>${texto}</strong>"</p>
+                <p style="font-size:12px; color:#999; margin-top:8px;">
+                    Busca por número de guía o descripción de items
                 </p>
-                <p style="font-size:13px; margin-top:8px; color:#999;">
-                    Busca por: número de guía o descripción de items
-                </p>
-            </div>
-        `;
+            </div>`;
         return;
     }
 
     const textoLower = texto.toLowerCase();
 
-    // ✅ Tabla de resultados SIN paginación debajo
+    // ✅ Tabla con anchos fijos
     let html = `
-        <div style="margin-bottom:12px; padding:12px 15px;
-                    background:#e8f5e9; border-radius:8px;
-                    border-left:4px solid #4CAF50; font-size:14px;">
+        <div style="padding:10px 12px; margin-bottom:10px;
+                    background:#e8f5e9; border-radius:6px;
+                    border-left:4px solid #4CAF50; font-size:13px;">
             <strong>📊 ${data.length} resultado(s) para: "${texto}"</strong>
         </div>
-        <table class="historial-tabla">
+        <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
             <thead>
-                <tr>
-                    <th>N° Guía</th>
-                    <th>Cliente</th>
-                    <th>Fecha</th>
-                    <th>Items encontrados</th>
+                <tr style="background:#1976D2; color:white;">
+                    <th style="padding:8px; width:35%;">N° Guía</th>
+                    <th style="padding:8px; width:30%;">Cliente</th>
+                    <th style="padding:8px; width:15%; text-align:center;">Fecha</th>
+                    <th style="padding:8px; width:20%;">Items</th>
                 </tr>
             </thead>
             <tbody>
@@ -435,35 +434,47 @@ async function filtrarGuias(){
         );
 
         const itemsCol = itemsMatch.length > 0
-            ? `<div style="font-size:12px; color:#1565C0; line-height:1.6;">
-                ${itemsMatch.slice(0, 2).map(i => {
-                    const desc = i.descripcion.length > 50
-                        ? i.descripcion.substring(0, 50) + "..."
-                        : i.descripcion;
-                    return `📦 ${resaltarTexto(desc, texto)}`;
-                }).join("<br>")}
-                ${itemsMatch.length > 2
-                    ? `<br><em style="color:#999;">+${itemsMatch.length - 2} más</em>`
-                    : ""}
-               </div>`
-            : `<span style="color:#999; font-size:12px;">—</span>`;
+            ? itemsMatch.slice(0, 2).map(i => {
+                const desc = (i.descripcion || "").substring(0, 35) +
+                    ((i.descripcion || "").length > 35 ? "..." : "");
+                return `<div style="font-size:11px; color:#1565C0;">
+                    📦 ${resaltarTexto(desc, texto)}
+                </div>`;
+              }).join("") +
+              (itemsMatch.length > 2
+                ? `<div style="font-size:11px; color:#999;">
+                    +${itemsMatch.length - 2} más
+                   </div>`
+                : "")
+            : `<span style="color:#ccc; font-size:12px;">—</span>`;
+
+        const cliente = (g.destinatario_nombre || "-").substring(0, 20) +
+            ((g.destinatario_nombre || "").length > 20 ? "..." : "");
 
         html += `
-        <tr onclick="verGuiaPorId(${g.id})" style="cursor:pointer;"
-            title="Click para ver detalle">
-            <td>📄 ${resaltarTexto(g.numero, texto)}</td>
-            <td title="${g.destinatario_nombre || ""}">
-                ${g.destinatario_nombre || "-"}
+        <tr onclick="verGuiaPorId(${g.id})"
+            style="cursor:pointer; border-bottom:1px solid #eee;"
+            onmouseover="this.style.background='#f0f7ff'"
+            onmouseout="this.style.background='white'">
+            <td style="padding:8px; font-size:12px; word-break:break-all;">
+                📄 ${resaltarTexto(g.numero, texto)}
             </td>
-            <td>${formatearFecha(g.fecha_emision)}</td>
-            <td>${itemsCol}</td>
-        </tr>
-        `;
+            <td style="padding:8px; font-size:12px; color:#555;"
+                title="${g.destinatario_nombre || ""}">
+                ${cliente}
+            </td>
+            <td style="padding:8px; font-size:11px; text-align:center;">
+                ${formatearFecha(g.fecha_emision)}
+            </td>
+            <td style="padding:8px;">
+                ${itemsCol}
+            </td>
+        </tr>`;
     });
 
     html += `</tbody></table>`;
 
-    // ✅ Reemplaza TODO el contenido del historial
+    // ✅ Reemplaza TODO — sin historial debajo
     cont.innerHTML = html;
 }
 
@@ -472,10 +483,8 @@ async function filtrarGuias(){
 // ----------------------
 async function exportarExcel(){
     const { data, error } = await fetchJSON(`${API_URL}/guias`);
-
     if(error || !data || data.length === 0){
-        alert("No hay datos para exportar");
-        return;
+        alert("No hay datos para exportar"); return;
     }
 
     const g = data[0];
@@ -512,19 +521,16 @@ async function exportarExcel(){
 // ----------------------
 async function exportarPDF(){
     const contenido = document.getElementById("salida");
-
     if(!contenido || contenido.innerText.trim().length < 50){
-        alert("Primero selecciona o carga una guía");
-        return;
+        alert("Primero selecciona o carga una guía"); return;
     }
 
     await new Promise(resolve => setTimeout(resolve, 300));
-
     const canvas  = await html2canvas(contenido, { scale: 3, useCORS: true });
     const imgData = canvas.toDataURL("image/png");
 
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF("p", "mm", "a4");
+    const pdf       = new jsPDF("p", "mm", "a4");
 
     const pageWidth  = 210;
     const pageHeight = 297;
@@ -538,7 +544,7 @@ async function exportarPDF(){
     heightLeft -= pageHeight;
 
     while(heightLeft > 0){
-        position = heightLeft - imgHeight;
+        position   = heightLeft - imgHeight;
         pdf.addPage();
         pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
@@ -570,9 +576,12 @@ function mostrarAlerta(msg, tipo = "info"){
     });
 
     document.body.appendChild(div);
-    setTimeout(() => { div.style.opacity = "1"; div.style.transform = "translateY(0)"; }, 50);
     setTimeout(() => {
-        div.style.opacity = "0";
+        div.style.opacity   = "1";
+        div.style.transform = "translateY(0)";
+    }, 50);
+    setTimeout(() => {
+        div.style.opacity   = "0";
         div.style.transform = "translateY(-10px)";
         setTimeout(() => div.remove(), 400);
     }, 3000);
@@ -580,17 +589,15 @@ function mostrarAlerta(msg, tipo = "info"){
 
 // ----------------------
 // LIMPIAR BÚSQUEDA
-// ✅ Oculta la X y vuelve al historial
 // ----------------------
 function limpiarBusqueda(){
-    const input = document.getElementById("buscador");
+    const input      = document.getElementById("buscador");
     const btnLimpiar = document.getElementById("btn-limpiar");
 
     input.value = "";
-    buscando = false;
-    pagina = 0;
+    buscando    = false;
+    pagina      = 0;
 
-    // ✅ Ocultar botón X
     if(btnLimpiar) btnLimpiar.style.display = "none";
 
     mostrarHistorial();
@@ -600,17 +607,20 @@ function limpiarBusqueda(){
 // ----------------------
 // PAGINACIÓN
 // ----------------------
-function siguientePagina(){ pagina++; mostrarHistorial(); }
-function anteriorPagina(){ if(pagina > 0){ pagina--; mostrarHistorial(); } }
+function siguientePagina(){
+    pagina++;
+    mostrarHistorial();
+}
+
+function anteriorPagina(){
+    if(pagina > 0){ pagina--; mostrarHistorial(); }
+}
 
 // ----------------------
 // INIT
 // ----------------------
 document.addEventListener("DOMContentLoaded", () => {
-
-    // ✅ Ocultar X al inicio
     const btnLimpiar = document.getElementById("btn-limpiar");
     if(btnLimpiar) btnLimpiar.style.display = "none";
-
     mostrarHistorial();
 });
