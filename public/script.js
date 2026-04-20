@@ -267,17 +267,8 @@ async function verGuiaPorId(id){
         partida:       { direccion: g.direccion_partida },
         llegada:       { direccion: g.direccion_llegada },
 
-        // 🔥 FILTRO DEFINITIVO
-        items: (g.items || []).map(i => ({
-                linea: i.linea,
-                descripcion: i.descripcion, // 🔥 SIN modificar
-                cantidad: i.cantidad,
-                unidad: i.unidad
-            }))
-            .filter(i =>
-                i.descripcion &&
-                !i.descripcion.toLowerCase().includes("indicador de bien regulado")
-            )
+        // 🔥 NO tocar data
+        items: Array.isArray(g.items) ? g.items : []
     };
 
     mostrarGuiaBonita(guia);
