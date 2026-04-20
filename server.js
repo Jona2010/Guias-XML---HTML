@@ -11,7 +11,9 @@ app.use(cors());
 app.use(express.json());
 
 // Servir archivos estáticos del frontend
-app.use(express.static(path.join(__dirname, "public")));
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 // Crear pool conexión MySQL con datos de .env o valores por defecto
 const pool = mysql.createPool({
