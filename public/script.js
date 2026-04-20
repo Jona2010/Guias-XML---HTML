@@ -177,7 +177,7 @@ function mostrarGuiaBonita(g){
             </td>
             <td style="padding:8px; border-bottom:1px solid #eee;
                        word-break:break-word; white-space:normal; font-size:13px;">
-                ${(i.descripcion || "").trim() || "-"}
+                ${limpiarDescripcion(i.descripcion)}
             </td>
             <td style="padding:8px; border-bottom:1px solid #eee;
                        text-align:center; font-size:13px;">
@@ -268,10 +268,9 @@ async function verGuiaPorId(id){
         llegada:       { direccion: g.direccion_llegada },
 
         // 🔥 FILTRO DEFINITIVO
-        items: (g.items || [])
-            .map(i => ({
+        items: (g.items || []).map(i => ({
                 linea: i.linea,
-                descripcion: (i.descripcion || "").trim(),
+                descripcion: i.descripcion, // 🔥 SIN modificar
                 cantidad: i.cantidad,
                 unidad: i.unidad
             }))
@@ -695,6 +694,20 @@ function handleClickGuia(el, id){
         el.dataset.loading = "0";
         el.style.opacity = "1";
     }, 500);
+}
+
+function limpiarDescripcion(desc){
+
+    if(!desc) return "-";
+
+    let texto = desc.trim();
+
+    // 🔥 eliminar texto basura SUNAT
+    if(texto.toLowerCase().includes("indicador de bien regulado")){
+        return "-";
+    }
+
+    return texto;
 }
 
 // ----------------------
