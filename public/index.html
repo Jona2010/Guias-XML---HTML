@@ -28,24 +28,24 @@
 
 <body>
 
-<!-- HEADER PROFESIONAL -->
+<!-- HEADER -->
 <header class="header">
     🚚 Sistema de Guías de Remisión SUNAT
 </header>
 
 <div class="container">
 
-    <!-- SIDEBAR (HISTORIAL) -->
+    <!-- SIDEBAR -->
     <aside class="sidebar">
 
         <h3><i class="fa-solid fa-folder"></i> Historial</h3>
 
-        <!-- 🔥 BUSCADOR CON EVENTO INPUT -->
+        <!-- BUSCADOR -->
         <div class="search-container">
             <input
                 type="text"
                 id="buscador"
-                placeholder="🔍 Buscar por número de guía o descripción de items..."
+                placeholder="🔍 Buscar por número de guía o item..."
                 oninput="filtrarGuias()"
             >
             <button
@@ -58,61 +58,56 @@
             </button>
         </div>
 
-        <div id="historial"></div>
+        <!-- ✅ HISTORIAL NORMAL — visible por defecto -->
+        <div id="historial-lista"></div>
+
+        <!-- ✅ RESULTADOS BÚSQUEDA — oculto por defecto -->
+        <div id="historial-busqueda" style="display:none;"></div>
 
     </aside>
 
-    <!-- MAIN (VISOR) -->
+    <!-- MAIN -->
     <section class="main">
 
         <!-- CARGA XML -->
         <div class="card-top">
-
             <label><strong>Seleccionar XML:</strong></label>
             <input type="file" id="xmlfile" accept=".xml">
-
             <button onclick="leerGuia()">
                 <i class="fa-solid fa-upload"></i> Procesar
             </button>
-
         </div>
 
         <!-- EXPORTACIONES -->
         <div class="export-buttons">
-
             <button onclick="exportarExcel()">
                 <i class="fa-solid fa-file-excel"></i> Excel
             </button>
-
             <button onclick="exportarPDF()">
                 <i class="fa-solid fa-file-pdf"></i> PDF
             </button>
-
         </div>
 
         <!-- VISOR -->
         <div class="card">
-
             <h2><i class="fa-solid fa-file"></i> Vista de Guía</h2>
-
             <div id="pdf-area">
                 <div id="salida"></div>
             </div>
-
         </div>
 
     </section>
 
 </div>
 
-<!-- SEO -->
+<!-- SEO JSON-LD -->
 <script type="application/ld+json">
 {
- "@context": "https://schema.org",
- "@type": "SoftwareApplication",
- "name": "Sistema de Guías SUNAT",
- "applicationCategory": "BusinessApplication",
- "operatingSystem": "Web"
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Sistema de Guías SUNAT",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web"
 }
 </script>
 
