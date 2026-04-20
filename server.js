@@ -10,10 +10,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Servir archivos estáticos del frontend
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
+// Servir archivos estáticos
+app.use(express.static(path.join(__dirname, "public")));
 
 // Crear pool conexión MySQL con datos de .env o valores por defecto
 const pool = mysql.createPool({
@@ -161,8 +159,8 @@ app.get("/guias", async (req, res) => {
   }
 });
 
-// Servir frontend para cualquier ruta no API
-app.get("*", (req, res) => {
+// 👇 fallback SOLO al final
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
