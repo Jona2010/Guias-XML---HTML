@@ -49,43 +49,48 @@ body{
 ========================= */
 .search-container {
     position: relative;
-    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 0;
 }
 
 .search-container input {
     width: 100%;
-    padding: 12px 45px 12px 16px !important;  /* 🔥 padding derecho para botón X */
-    font-size: 16px;
-    border: 2px solid #e0e0e0;
+    padding: 10px 40px 10px 14px;
+    border: 1px solid #ddd;
     border-radius: 8px;
+    font-size: 14px;
+    outline: none;
     box-sizing: border-box;
-    background: #fafafa;
-    transition: all 0.3s ease;
 }
 
 .search-container input:focus {
-    outline: none;
-    border-color: #2196F3;
-    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-    background: white;
+    border-color: #1976D2;
+    box-shadow: 0 0 0 2px rgba(25,118,210,0.15);
 }
 
+
+/* ✅ Botón X FIJO dentro del input */
 .btn-limpiar {
     position: absolute;
-    right: 12px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
-    background: none;
+    background: #e0e0e0;
     border: none;
-    color: #999;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: none; /* ✅ Oculto por defecto */
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    font-size: 16px;
-    padding: 4px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 10;
+    font-size: 11px;
+    color: #555;
+    padding: 0;
+    line-height: 1;
+    z-index: 2;
 }
 
 .search-container input:not(:placeholder-shown) + .btn-limpiar,
@@ -95,8 +100,8 @@ body{
 }
 
 .btn-limpiar:hover {
-    color: #666;
-    background: rgba(0,0,0,0.1);
+    background: #f44336;
+    color: white;
 }
 
 .btn-limpiar:active {

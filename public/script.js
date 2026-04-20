@@ -1,11 +1,9 @@
 // ----------------------
 // CONFIG
 // ----------------------
-
-// ✅ API dinámica (funciona en local y producción cPanel)
 const API_URL = window.location.hostname === "localhost"
     ? "http://localhost:3000"
-    : window.location.origin;
+    : "";
 
 // ----------------------
 // UBL
@@ -18,6 +16,7 @@ const UBL = {
 // VARIABLES
 let pagina = 0;
 const limite = 10;
+let buscando = false; // ✅ Flag para saber si estamos buscando
 
 function first(parent, ns, tag){
     if(!parent) return null;
@@ -40,7 +39,6 @@ function attr(parent, ns, tag, att){
 async function fetchJSON(url, options = {}){
     try {
         const res = await fetch(url, options);
-
         const contentType = res.headers.get("content-type") || "";
 
         if(!contentType.includes("application/json")){
@@ -48,7 +46,7 @@ async function fetchJSON(url, options = {}){
                 ok: false,
                 status: res.status,
                 data: null,
-                error: `El servidor devolvió una respuesta inválida (HTTP ${res.status}). ¿Está corriendo node server.js?`
+                error: `El servidor devolvió una respuesta inválida (HTTP ${res.status})`
             };
         }
 
@@ -60,7 +58,7 @@ async function fetchJSON(url, options = {}){
             ok: false,
             status: 0,
             data: null,
-            error: "❌ No se pudo conectar con el servidor. Verifica que esté corriendo."
+            error: "❌ No se pudo conectar con el servidor."
         };
     }
 }
@@ -69,18 +67,15 @@ async function fetchJSON(url, options = {}){
 // LEER XML
 // ----------------------
 async function leerGuia(){
-
     const file = document.getElementById("xmlfile").files[0];
     if(!file){ alert("Selecciona la guía XML"); return; }
 
     const reader = new FileReader();
 
     reader.onload = async function(e){
-
         const xml = new DOMParser().parseFromString(e.target.result, "text/xml");
 
         let guia = {};
-
         guia.numero        = val(xml, UBL.cbc, "ID");
         guia.fecha_emision = val(xml, UBL.cbc, "IssueDate");
         guia.hora_emision  = val(xml, UBL.cbc, "IssueTime");
@@ -132,15 +127,11 @@ async function leerGuia(){
 // ----------------------
 // MOSTRAR GUIA
 // ----------------------
-// ----------------------
-// MOSTRAR GUIA
-// ----------------------
 function mostrarGuiaBonita(g){
-
     let html = `
     <div class="guia-card">
         <h3>📄 ${g.numero}</h3>
-        <p><b>Fecha:</b> ${formatearFecha(g.fecha_emision)} 
+        <p><b>Fecha:</b> ${formatearFecha(g.fecha_emision)}
            ${g.hora_emision || formatearHora(g.fecha_emision)}</p>
         <p><b>Remitente:</b> ${g.remitente.razon_social} (${g.remitente.ruc})</p>
         <p><b>Destinatario:</b> ${g.destinatario.nombre}</p>
@@ -152,14 +143,13 @@ function mostrarGuiaBonita(g){
         <p><b>📍 Punto de llegada:</b> ${g.llegada?.direccion || "No disponible"}</p>
         <hr>
         <h4>📦 Items</h4>
-
         <table style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr style="background:#1976D2; color:white;">
-                    <th style="padding:10px; text-align:left; width:5%;">#</th>
-                    <th style="padding:10px; text-align:left; width:60%;">Descripción</th>
-                    <th style="padding:10px; text-align:center; width:15%;">Cantidad</th>
-                    <th style="padding:10px; text-align:center; width:20%;">Unidad</th>
+                    <th style="padding:10px; width:5%;">#</th>
+                    <th style="padding:10px; width:60%;">Descripción</th>
+                    <th style="padding:10px; width:15%;">Cantidad</th>
+                    <th style="padding:10px; width:20%;">Unidad</th>
                 </tr>
             </thead>
             <tbody>
@@ -185,12 +175,7 @@ function mostrarGuiaBonita(g){
         `;
     });
 
-    html += `
-            </tbody>
-        </table>
-    </div>
-    `;
-
+    html += `</tbody></table></div>`;
     document.getElementById("salida").innerHTML = html;
 }
 
@@ -198,17 +183,13 @@ function mostrarGuiaBonita(g){
 // GUARDAR EN BD
 // ----------------------
 async function guardarGuia(g){
-
     const { data, error } = await fetchJSON(`${API_URL}/guardar-guia`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(g)
     });
 
-    if(error){
-        mostrarAlerta(error, "error");
-        return;
-    }
+    if(error){ mostrarAlerta(error, "error"); return; }
 
     if(!data.ok){
         mostrarAlerta(data.mensaje || `⚠️ La guía ${g.numero} ya fue procesada`, "error");
@@ -223,29 +204,18 @@ async function guardarGuia(g){
 // VER GUIA POR ID
 // ----------------------
 async function verGuiaPorId(id){
-
-    if(!id){
-        mostrarAlerta("❌ ID inválido", "error");
-        return;
-    }
+    if(!id){ mostrarAlerta("❌ ID inválido", "error"); return; }
 
     const { ok, data, error } = await fetchJSON(`${API_URL}/guias/${id}`);
 
-    if(error){
-        mostrarAlerta(error, "error");
-        return;
-    }
+    if(error){ mostrarAlerta(error, "error"); return; }
 
     if(!ok || !data.ok){
-        mostrarAlerta(
-            data?.mensaje || `⚠️ Guía no encontrada (ID: ${id})`,
-            "error"
-        );
+        mostrarAlerta(data?.mensaje || `⚠️ Guía no encontrada (ID: ${id})`, "error");
         return;
     }
 
     const g = data;
-
     const guia = {
         numero:        g.numero,
         fecha_emision: g.fecha_emision,
@@ -254,9 +224,7 @@ async function verGuiaPorId(id){
             ruc:          g.remitente_ruc,
             razon_social: g.remitente_nombre
         },
-        destinatario: {
-            nombre: g.destinatario_nombre
-        },
+        destinatario: { nombre: g.destinatario_nombre },
         traslado: {
             motivo:     g.motivo,
             peso_total: g.peso_total
@@ -271,27 +239,32 @@ async function verGuiaPorId(id){
 
 // ----------------------
 // HISTORIAL DESDE BD
+// ✅ Solo se ejecuta si NO estamos buscando
 // ----------------------
 async function mostrarHistorial(){
 
+    // ✅ Si hay texto en el buscador, no sobreescribir resultados
+    const textoBuscador = document.getElementById("buscador").value.trim();
+    if(textoBuscador){
+        return;
+    }
+
+    buscando = false;
     const cont = document.getElementById("historial");
 
     const { ok, data, error } = await fetchJSON(
         `${API_URL}/guias?limit=${limite}&offset=${pagina * limite}`
     );
 
-    // ❌ Error de conexión
     if(error){
         cont.innerHTML = `<p style="color:red;">${error}</p>`;
         return;
     }
 
-    // ⚠️ Si no es array → forzar array vacío
-    const guias = Array.isArray(data) ? data : [];
+    const guias = data;
 
-    // 🟡 Sin datos
-    if(guias.length === 0){
-        cont.innerHTML = "<p>No hay guías</p>";
+    if(!guias || guias.length === 0){
+        cont.innerHTML = "<p>No hay más guías</p>";
         return;
     }
 
@@ -315,7 +288,7 @@ async function mostrarHistorial(){
         html += `
         <tr onclick="verGuiaPorId(${g.id})" style="cursor:pointer;">
             <td>📄 ${g.numero}</td>
-            <td>${g.destinatario_nombre || "-"}</td>
+            <td title="${g.destinatario_nombre || ''}">${g.destinatario_nombre || "-"}</td>
             <td>${formatearFecha(g.fecha_emision)}</td>
         </tr>
         `;
@@ -325,9 +298,14 @@ async function mostrarHistorial(){
         </tbody>
     </table>
     </div>
-
     <div class="paginacion">
-        <div>Mostrando ${inicio} - ${fin}</div>
+        <div class="paginacion-info">Mostrando ${inicio} - ${fin}</div>
+        <div class="paginacion-botones">
+            <button onclick="anteriorPagina()"
+                ${pagina === 0 ? "disabled" : ""}>⬅ Anterior</button>
+            <span>Página ${pagina + 1}</span>
+            <button onclick="siguientePagina()">Siguiente ➡</button>
+        </div>
     </div>
     `;
 
@@ -352,59 +330,60 @@ function formatearHora(fechaISO){
 }
 
 // ----------------------
-// HELPER: Resaltar texto encontrado
-// ✅ SIN REGEX - 100% seguro
+// HELPER: Resaltar texto
+// ✅ Sin regex - 100% seguro
 // ----------------------
 function resaltarTexto(texto, busqueda){
-
     if(!busqueda || !texto) return String(texto);
 
     const textoStr    = String(texto);
     const busquedaStr = String(busqueda);
+    const posicion    = textoStr.toLowerCase().indexOf(busquedaStr.toLowerCase());
 
-    // Buscar posición ignorando mayúsculas
-    const posicion = textoStr.toLowerCase()
-                             .indexOf(busquedaStr.toLowerCase());
-
-    // Si no encuentra nada, devolver texto original
     if(posicion === -1) return textoStr;
 
-    // Dividir en 3 partes: antes, coincidencia, después
-    const antes       = textoStr.substring(0, posicion);
-    const coincide    = textoStr.substring(posicion, posicion + busquedaStr.length);
-    const despues     = textoStr.substring(posicion + busquedaStr.length);
+    const antes    = textoStr.substring(0, posicion);
+    const coincide = textoStr.substring(posicion, posicion + busquedaStr.length);
+    const despues  = textoStr.substring(posicion + busquedaStr.length);
 
     return antes +
-        '<mark style="background:#FFF176; padding:1px 3px; ' +
+        '<mark style="background:#FFF176; padding:1px 3px;' +
         'border-radius:3px; color:#000;">' +
-        coincide +
-        '</mark>' +
-        despues;
+        coincide + '</mark>' + despues;
 }
 
 // ----------------------
-// 🔍 BUSCADOR (por número de guía e ITEMS)
+// 🔍 BUSCADOR
+// ✅ Reemplaza historial completamente
 // ----------------------
 async function filtrarGuias(){
 
     const texto = document.getElementById("buscador").value.trim();
     const cont  = document.getElementById("historial");
 
-    // Si está vacío → historial normal
+    // ✅ Mostrar/ocultar botón X
+    const btnLimpiar = document.getElementById("btn-limpiar");
+    if(btnLimpiar){
+        btnLimpiar.style.display = texto ? "flex" : "none";
+    }
+
+    // Si vacío → historial normal
     if(!texto){
+        buscando = false;
         pagina = 0;
         mostrarHistorial();
         return;
     }
 
-    // Loading mientras busca
+    buscando = true;
+
+    // ✅ Limpiar historial ANTES de mostrar resultados
     cont.innerHTML = `
-        <div style="text-align:center; padding:40px; color:#666;">
+        <div style="text-align:center; padding:30px; color:#666;">
             <p>🔍 Buscando "<strong>${texto}</strong>"...</p>
         </div>
     `;
 
-    // Llamar al endpoint /buscar del servidor
     const { data, error } = await fetchJSON(
         `${API_URL}/buscar?q=${encodeURIComponent(texto)}`
     );
@@ -414,23 +393,16 @@ async function filtrarGuias(){
         return;
     }
 
-    // Sin resultados
     if(!data || data.length === 0){
         cont.innerHTML = `
             <div style="text-align:center; padding:40px; color:#666;">
                 <p style="font-size:16px;">
-                    🔍 No se encontraron guías con 
+                    🔍 No se encontraron guías con
                     "<strong>${texto}</strong>"
                 </p>
                 <p style="font-size:13px; margin-top:8px; color:#999;">
                     Busca por: número de guía o descripción de items
                 </p>
-                <button onclick="limpiarBusqueda()"
-                    style="margin-top:15px; padding:8px 20px; border:none;
-                           border-radius:6px; background:#1976D2; color:white;
-                           cursor:pointer; font-size:14px;">
-                    ✖ Limpiar búsqueda
-                </button>
             </div>
         `;
         return;
@@ -438,13 +410,13 @@ async function filtrarGuias(){
 
     const textoLower = texto.toLowerCase();
 
+    // ✅ Tabla de resultados SIN paginación debajo
     let html = `
         <div style="margin-bottom:12px; padding:12px 15px;
                     background:#e8f5e9; border-radius:8px;
                     border-left:4px solid #4CAF50; font-size:14px;">
             <strong>📊 ${data.length} resultado(s) para: "${texto}"</strong>
         </div>
-
         <table class="historial-tabla">
             <thead>
                 <tr>
@@ -458,7 +430,6 @@ async function filtrarGuias(){
     `;
 
     data.forEach(g => {
-
         const itemsMatch = (g.items || []).filter(i =>
             (i.descripcion || "").toLowerCase().includes(textoLower)
         );
@@ -472,16 +443,14 @@ async function filtrarGuias(){
                     return `📦 ${resaltarTexto(desc, texto)}`;
                 }).join("<br>")}
                 ${itemsMatch.length > 2
-                    ? `<br><em style="color:#999;">
-                        +${itemsMatch.length - 2} item(s) más
-                       </em>`
+                    ? `<br><em style="color:#999;">+${itemsMatch.length - 2} más</em>`
                     : ""}
                </div>`
             : `<span style="color:#999; font-size:12px;">—</span>`;
 
         html += `
         <tr onclick="verGuiaPorId(${g.id})" style="cursor:pointer;"
-            title="Click para ver detalle completo">
+            title="Click para ver detalle">
             <td>📄 ${resaltarTexto(g.numero, texto)}</td>
             <td title="${g.destinatario_nombre || ""}">
                 ${g.destinatario_nombre || "-"}
@@ -492,20 +461,9 @@ async function filtrarGuias(){
         `;
     });
 
-    html += `
-            </tbody>
-        </table>
+    html += `</tbody></table>`;
 
-        <div style="margin-top:12px; text-align:right;">
-            <button onclick="limpiarBusqueda()"
-                style="padding:8px 18px; border:none; border-radius:6px;
-                       background:#f44336; color:white; cursor:pointer;
-                       font-size:13px; font-weight:bold;">
-                ✖ Limpiar búsqueda
-            </button>
-        </div>
-    `;
-
+    // ✅ Reemplaza TODO el contenido del historial
     cont.innerHTML = html;
 }
 
@@ -513,7 +471,6 @@ async function filtrarGuias(){
 // EXPORTAR EXCEL
 // ----------------------
 async function exportarExcel(){
-
     const { data, error } = await fetchJSON(`${API_URL}/guias`);
 
     if(error || !data || data.length === 0){
@@ -522,7 +479,6 @@ async function exportarExcel(){
     }
 
     const g = data[0];
-
     let rows = [
         ["GUÍA DE REMISIÓN"], [],
         ["Número:",       g.numero],
@@ -555,7 +511,6 @@ async function exportarExcel(){
 // EXPORTAR PDF
 // ----------------------
 async function exportarPDF(){
-
     const contenido = document.getElementById("salida");
 
     if(!contenido || contenido.innerText.trim().length < 50){
@@ -596,7 +551,6 @@ async function exportarPDF(){
 // ALERTAS
 // ----------------------
 function mostrarAlerta(msg, tipo = "info"){
-
     const div = document.createElement("div");
     div.innerText = msg;
 
@@ -616,38 +570,47 @@ function mostrarAlerta(msg, tipo = "info"){
     });
 
     document.body.appendChild(div);
-
+    setTimeout(() => { div.style.opacity = "1"; div.style.transform = "translateY(0)"; }, 50);
     setTimeout(() => {
-        div.style.opacity    = "1";
-        div.style.transform  = "translateY(0)";
-    }, 50);
-
-    setTimeout(() => {
-        div.style.opacity    = "0";
-        div.style.transform  = "translateY(-10px)";
+        div.style.opacity = "0";
+        div.style.transform = "translateY(-10px)";
         setTimeout(() => div.remove(), 400);
     }, 3000);
 }
 
 // ----------------------
 // LIMPIAR BÚSQUEDA
+// ✅ Oculta la X y vuelve al historial
 // ----------------------
 function limpiarBusqueda(){
-    document.getElementById("buscador").value = "";
+    const input = document.getElementById("buscador");
+    const btnLimpiar = document.getElementById("btn-limpiar");
+
+    input.value = "";
+    buscando = false;
     pagina = 0;
+
+    // ✅ Ocultar botón X
+    if(btnLimpiar) btnLimpiar.style.display = "none";
+
     mostrarHistorial();
+    input.focus();
 }
 
 // ----------------------
 // PAGINACIÓN
 // ----------------------
 function siguientePagina(){ pagina++; mostrarHistorial(); }
-
 function anteriorPagina(){ if(pagina > 0){ pagina--; mostrarHistorial(); } }
 
 // ----------------------
 // INIT
 // ----------------------
 document.addEventListener("DOMContentLoaded", () => {
+
+    // ✅ Ocultar X al inicio
+    const btnLimpiar = document.getElementById("btn-limpiar");
+    if(btnLimpiar) btnLimpiar.style.display = "none";
+
     mostrarHistorial();
 });
