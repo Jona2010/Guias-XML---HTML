@@ -14,10 +14,14 @@ const UBL = {
 };
 
 // VARIABLES
-let pagina   = 0;
-const limite = 10;
-let buscando = false;
+let pagina            = 0;
+const limite          = 10;
+let buscando          = false;
+let ultimaGuiaCargada = null;
 
+// ----------------------
+// HELPERS XML
+// ----------------------
 function first(parent, ns, tag){
     if(!parent) return null;
     return parent.getElementsByTagNameNS(ns, tag)[0] || null;
@@ -61,7 +65,7 @@ async function fetchJSON(url, options = {}){
 
 // ----------------------
 // LEER XML
-// ✅ FIX: descripcion en Item > Description
+// ✅ FIX PRINCIPAL: agregar push() al array de items
 // ----------------------
 async function leerGuia(){
     const file = document.getElementById("xmlfile").files[0];
@@ -83,7 +87,9 @@ async function leerGuia(){
         };
 
         const destinatario = first(xml, UBL.cac, "DeliveryCustomerParty");
-        guia.destinatario  = { nombre: val(destinatario, UBL.cbc, "RegistrationName") };
+        guia.destinatario  = {
+            nombre: val(destinatario, UBL.cbc, "RegistrationName")
+        };
 
         const shipment = first(xml, UBL.cac, "Shipment");
         guia.traslado  = {
@@ -96,38 +102,48 @@ async function leerGuia(){
         guia.llegada = { direccion: val(deliveryAddress, UBL.cbc, "Line") };
         guia.partida = { direccion: val(despatchAddress,  UBL.cbc, "Line") };
 
+        // ✅ FIX: el push estaba fuera del loop — ahora está DENTRO
         guia.items = [];
         const lineas = xml.getElementsByTagNameNS(UBL.cac, "DespatchLine");
 
         for(let i = 0; i < lineas.length; i++){
-            const l    = lineas[i];
-            const item = first(l, UBL.cac, "Item");
+            const l        = lineas[i];
+            const itemNode = first(l, UBL.cac, "Item");
 
-            // ✅ Buscar descripción en el orden correcto
-            // ✅ Obtener valores
+            // ✅ Leer Name desde cac:Item > cbc:Name
+            const name = itemNode ? val(itemNode, UBL.cbc, "Name") : "";
+
+            // ✅ Leer Description desde cac:Item > cbc:Description
+            const desc = itemNode ? val(itemNode, UBL.cbc, "Description") : "";
+
+            // ✅ Prioridad: Name > Description > fallback línea
             let descripcion = "";
 
-            // 🔹 obtener valores
-            let desc = item ? val(item, UBL.cbc, "Description") : "";
-            let name = item ? val(item, UBL.cbc, "Name") : "";
-
-            // 🔥 regla 1: usar NAME primero (producto real)
-            if(name && name.trim() !== ""){
+            if(name && !name.toLowerCase().includes("indicador")){
                 descripcion = name;
-            }
-
-            // 🔥 regla 2: usar DESCRIPTION si no es basura
-            else if(desc && !desc.toLowerCase().includes("indicador")){
+            } else if(desc && !desc.toLowerCase().includes("indicador")){
                 descripcion = desc;
+            } else {
+                // último recurso: buscar directo en la línea
+                descripcion = val(l, UBL.cbc, "Name")
+                           || val(l, UBL.cbc, "Description")
+                           || "Item sin descripción";
             }
 
-            // 🔥 regla 3: fallback a línea
-            if(!descripcion){
-                descripcion = val(l, UBL.cbc, "Description")
-                        || val(l, UBL.cbc, "Name")
-                        || "Item sin descripción";
-            }
+            // ✅ FIX CRÍTICO: push DENTRO del loop
+            guia.items.push({
+                linea:       val(l, UBL.cbc, "ID"),
+                descripcion: descripcion,
+                cantidad:    val(l, UBL.cbc, "DeliveredQuantity"),
+                unidad:      attr(l, UBL.cbc, "DeliveredQuantity", "unitCode")
+            });
         }
+
+        // ✅ Debug — ver items leídos del XML
+        console.log(`📄 Guía: ${guia.numero} → ${guia.items.length} items`);
+        guia.items.forEach((it, idx) => {
+            console.log(`   ${idx+1}. "${it.descripcion}" | ${it.cantidad} ${it.unidad}`);
+        });
 
         mostrarGuiaBonita(guia);
         await guardarGuia(guia);
@@ -141,9 +157,7 @@ async function leerGuia(){
 // ----------------------
 function mostrarGuiaBonita(g){
 
-    // 🔥 LIMPIAR COMPLETAMENTE
-    const contenedor = document.getElementById("salida");
-    contenedor.innerHTML = "";
+    document.getElementById("salida").innerHTML = "";
 
     let html = `
     <div class="guia-card">
@@ -159,7 +173,7 @@ function mostrarGuiaBonita(g){
         <p><b>📍 Punto de partida:</b> ${g.partida?.direccion  || "No disponible"}</p>
         <p><b>📍 Punto de llegada:</b> ${g.llegada?.direccion  || "No disponible"}</p>
         <hr>
-        <h4>📦 Items</h4>
+        <h4>📦 Items (${g.items.length})</h4>
         <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
             <thead>
                 <tr style="background:#1976D2; color:white;">
@@ -172,28 +186,37 @@ function mostrarGuiaBonita(g){
             <tbody>
     `;
 
-    g.items.forEach((i, idx) => {
-        const bg = idx % 2 === 0 ? "#ffffff" : "#f5f5f5";
+    if(g.items.length === 0){
         html += `
-        <tr style="background:${bg};">
-            <td style="padding:8px; border-bottom:1px solid #eee;
-                       text-align:center; font-size:13px;">
-                ${i.linea ?? idx + 1}
-            </td>
-            <td style="padding:8px; border-bottom:1px solid #eee;
-                       word-break:break-word; white-space:normal; font-size:13px;">
-                ${limpiarDescripcion(i.descripcion)}
-            </td>
-            <td style="padding:8px; border-bottom:1px solid #eee;
-                       text-align:center; font-size:13px;">
-                ${i.cantidad ?? "-"}
-            </td>
-            <td style="padding:8px; border-bottom:1px solid #eee;
-                       text-align:center; font-size:13px;">
-                ${i.unidad ?? "-"}
+        <tr>
+            <td colspan="4" style="padding:20px; text-align:center; color:#999;">
+                No hay items registrados
             </td>
         </tr>`;
-    });
+    } else {
+        g.items.forEach((i, idx) => {
+            const bg = idx % 2 === 0 ? "#ffffff" : "#f5f5f5";
+            html += `
+            <tr style="background:${bg};">
+                <td style="padding:8px; border-bottom:1px solid #eee;
+                           text-align:center; font-size:13px;">
+                    ${i.linea ?? idx + 1}
+                </td>
+                <td style="padding:8px; border-bottom:1px solid #eee;
+                           word-break:break-word; white-space:normal; font-size:13px;">
+                    ${i.descripcion || "-"}
+                </td>
+                <td style="padding:8px; border-bottom:1px solid #eee;
+                           text-align:center; font-size:13px;">
+                    ${i.cantidad || "-"}
+                </td>
+                <td style="padding:8px; border-bottom:1px solid #eee;
+                           text-align:center; font-size:13px;">
+                    ${i.unidad || "-"}
+                </td>
+            </tr>`;
+        });
+    }
 
     html += `</tbody></table></div>`;
     document.getElementById("salida").innerHTML = html;
@@ -212,7 +235,10 @@ async function guardarGuia(g){
     if(error){ mostrarAlerta(error, "error"); return; }
 
     if(!data.ok){
-        mostrarAlerta(data.mensaje || `⚠️ La guía ${g.numero} ya fue procesada`, "error");
+        mostrarAlerta(
+            data.mensaje || `⚠️ La guía ${g.numero} ya fue procesada`,
+            "error"
+        );
         return;
     }
 
@@ -221,31 +247,18 @@ async function guardarGuia(g){
 
 // ----------------------
 // VER GUIA POR ID
-// ✅ Con debug para ver qué llega
 // ----------------------
 async function verGuiaPorId(id){
+    if(!id){ mostrarAlerta("❌ ID inválido", "error"); return; }
 
-    if(!id){
-        mostrarAlerta("❌ ID inválido", "error");
-        return;
-    }
-
-    // 🔥 generar token único de petición
-    const requestId = Date.now();
+    const requestId   = Date.now();
     ultimaGuiaCargada = requestId;
 
     const { ok, data, error } = await fetchJSON(`${API_URL}/guias/${id}`);
 
-    // 🔥 IGNORAR respuestas viejas
-    if(requestId !== ultimaGuiaCargada){
-        console.log("⚠️ Respuesta ignorada (request viejo)");
-        return;
-    }
+    if(requestId !== ultimaGuiaCargada) return;
 
-    if(error){
-        mostrarAlerta(error, "error");
-        return;
-    }
+    if(error){ mostrarAlerta(error, "error"); return; }
 
     if(!ok || !data.ok){
         mostrarAlerta(
@@ -255,13 +268,9 @@ async function verGuiaPorId(id){
         return;
     }
 
-    console.log("📦 Items recibidos del servidor:");
-    (data.items || []).forEach((i, idx) => {
-        console.log(`   ${idx + 1}. desc="${i.descripcion}"`);
-    });
+    console.log(`📦 Items guía ${id}:`, data.items);
 
-    const g = data;
-
+    const g    = data;
     const guia = {
         numero:        g.numero,
         fecha_emision: g.fecha_emision,
@@ -271,9 +280,7 @@ async function verGuiaPorId(id){
         traslado:      { motivo: g.motivo, peso_total: g.peso_total },
         partida:       { direccion: g.direccion_partida },
         llegada:       { direccion: g.direccion_llegada },
-
-        // 🔥 NO tocar data
-        items: Array.isArray(g.items) ? g.items : []
+        items:         Array.isArray(g.items) ? g.items : []
     };
 
     mostrarGuiaBonita(guia);
@@ -306,13 +313,12 @@ async function mostrarHistorial(){
     );
 
     if(error){
-        contHistorial.innerHTML = `<p style="color:red; font-size:13px;">${error}</p>`;
+        contHistorial.innerHTML = `
+            <p style="color:red; font-size:13px; padding:10px;">${error}</p>`;
         return;
     }
 
-    const guias = data;
-
-    if(!guias || guias.length === 0){
+    if(!data || data.length === 0){
         contHistorial.innerHTML = `
             <p style="color:#999; text-align:center; padding:20px; font-size:13px;">
                 No hay guías registradas
@@ -321,7 +327,7 @@ async function mostrarHistorial(){
     }
 
     const inicio = (pagina * limite) + 1;
-    const fin    = inicio + guias.length - 1;
+    const fin    = inicio + data.length - 1;
 
     let html = `
     <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
@@ -335,35 +341,30 @@ async function mostrarHistorial(){
         <tbody>
     `;
 
-    guias.forEach(g => {
+    data.forEach(g => {
         const cliente = (g.destinatario_nombre || "-").length > 22
             ? (g.destinatario_nombre || "-").substring(0, 22) + "..."
             : (g.destinatario_nombre || "-");
 
         html += `
-            <tr 
-                onclick="handleClickGuia(this, ${g.id})"
-                style="cursor:pointer; border-bottom:1px solid #eee; font-size:12px;"
-                onmouseover="this.style.background='#e3f2fd'"
-                onmouseout="this.style.background='white'">
-
-                <td style="padding:7px 6px; white-space:nowrap;
-                        overflow:hidden; text-overflow:ellipsis;">
-                    📄 ${g.numero}
-                </td>
-
-                <td style="padding:7px 6px; color:#555; white-space:nowrap;
-                        overflow:hidden; text-overflow:ellipsis;"
-                    title="${g.destinatario_nombre || ''}">
-                    ${cliente}
-                </td>
-
-                <td style="padding:7px 6px; text-align:center; color:#777;
-                        white-space:nowrap;">
-                    ${formatearFecha(g.fecha_emision)}
-                </td>
-
-            </tr>`;
+        <tr onclick="handleClickGuia(this, ${g.id})"
+            style="cursor:pointer; border-bottom:1px solid #eee; font-size:12px;"
+            onmouseover="this.style.background='#e3f2fd'"
+            onmouseout="this.style.background='white'">
+            <td style="padding:7px 6px; white-space:nowrap;
+                       overflow:hidden; text-overflow:ellipsis;">
+                📄 ${g.numero}
+            </td>
+            <td style="padding:7px 6px; color:#555; white-space:nowrap;
+                       overflow:hidden; text-overflow:ellipsis;"
+                title="${g.destinatario_nombre || ''}">
+                ${cliente}
+            </td>
+            <td style="padding:7px 6px; text-align:center; color:#777;
+                       white-space:nowrap;">
+                ${formatearFecha(g.fecha_emision)}
+            </td>
+        </tr>`;
     });
 
     html += `
@@ -397,8 +398,8 @@ async function mostrarHistorial(){
 // ----------------------
 async function filtrarGuias(){
 
-    const texto      = document.getElementById("buscador").value.trim();
-    const btnLimpiar = document.getElementById("btn-limpiar");
+    const texto         = document.getElementById("buscador").value.trim();
+    const btnLimpiar    = document.getElementById("btn-limpiar");
     const contHistorial = document.getElementById("historial-lista");
     const contBuscador  = document.getElementById("historial-busqueda");
 
@@ -457,10 +458,18 @@ async function filtrarGuias(){
         <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
             <thead>
                 <tr style="background:#1976D2; color:white; font-size:12px;">
-                    <th style="padding:7px 6px; width:35%; text-align:left;">N° Guía</th>
-                    <th style="padding:7px 6px; width:28%; text-align:left;">Cliente</th>
-                    <th style="padding:7px 6px; width:17%; text-align:center;">Fecha</th>
-                    <th style="padding:7px 6px; width:20%; text-align:left;">Items</th>
+                    <th style="padding:7px 6px; width:35%; text-align:left;">
+                        N° Guía
+                    </th>
+                    <th style="padding:7px 6px; width:28%; text-align:left;">
+                        Cliente
+                    </th>
+                    <th style="padding:7px 6px; width:17%; text-align:center;">
+                        Fecha
+                    </th>
+                    <th style="padding:7px 6px; width:20%; text-align:left;">
+                        Items
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -653,57 +662,40 @@ function mostrarAlerta(msg, tipo = "info"){
 }
 
 // ----------------------
-// LIMPIAR BÚSQUEDA
+// HANDLE CLICK GUIA
 // ----------------------
-function limpiarBusqueda(){
-    const input      = document.getElementById("buscador");
-    const btnLimpiar = document.getElementById("btn-limpiar");
-    input.value = "";
-    buscando    = false;
-    pagina      = 0;
-    if(btnLimpiar) btnLimpiar.style.display = "none";
-    const contBuscador  = document.getElementById("historial-busqueda");
-    const contHistorial = document.getElementById("historial-lista");
-    contBuscador.style.display  = "none";
-    contBuscador.innerHTML      = "";
-    contHistorial.style.display = "block";
-    mostrarHistorial();
-    input.focus();
-}
-
 function handleClickGuia(el, id){
-
-    // 🚫 evitar múltiples clicks
-    if(el.dataset.loading === "1"){
-        return;
-    }
-
+    if(el.dataset.loading === "1") return;
     el.dataset.loading = "1";
-
-    // 👇 opcional: feedback visual
-    el.style.opacity = "0.6";
-
+    el.style.opacity   = "0.6";
     verGuiaPorId(id);
-
-    // ⏳ liberar después de 500ms
     setTimeout(() => {
         el.dataset.loading = "0";
-        el.style.opacity = "1";
+        el.style.opacity   = "1";
     }, 500);
 }
 
-function limpiarDescripcion(desc){
+// ----------------------
+// LIMPIAR BÚSQUEDA
+// ----------------------
+function limpiarBusqueda(){
+    const input         = document.getElementById("buscador");
+    const btnLimpiar    = document.getElementById("btn-limpiar");
+    const contBuscador  = document.getElementById("historial-busqueda");
+    const contHistorial = document.getElementById("historial-lista");
 
-    if(!desc) return "-";
+    input.value = "";
+    buscando    = false;
+    pagina      = 0;
 
-    let texto = desc.trim();
+    if(btnLimpiar) btnLimpiar.style.display = "none";
 
-    // 🔥 eliminar texto basura SUNAT
-    if(texto.toLowerCase().includes("indicador de bien regulado")){
-        return "-";
-    }
+    contBuscador.style.display  = "none";
+    contBuscador.innerHTML      = "";
+    contHistorial.style.display = "block";
 
-    return texto;
+    mostrarHistorial();
+    input.focus();
 }
 
 // ----------------------
@@ -718,9 +710,11 @@ function anteriorPagina(){
 // INIT
 // ----------------------
 document.addEventListener("DOMContentLoaded", () => {
-    const btnLimpiar = document.getElementById("btn-limpiar");
-    if(btnLimpiar) btnLimpiar.style.display = "none";
+    const btnLimpiar   = document.getElementById("btn-limpiar");
     const contBuscador = document.getElementById("historial-busqueda");
+
+    if(btnLimpiar)   btnLimpiar.style.display   = "none";
     if(contBuscador) contBuscador.style.display = "none";
+
     mostrarHistorial();
 });
