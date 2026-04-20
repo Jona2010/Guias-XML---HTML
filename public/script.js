@@ -211,6 +211,7 @@ async function guardarGuia(g){
 
 // ----------------------
 // VER GUIA POR ID
+// ✅ Con debug para ver qué llega
 // ----------------------
 async function verGuiaPorId(id){
     if(!id){ mostrarAlerta("❌ ID inválido", "error"); return; }
@@ -219,9 +220,18 @@ async function verGuiaPorId(id){
     if(error){ mostrarAlerta(error, "error"); return; }
 
     if(!ok || !data.ok){
-        mostrarAlerta(data?.mensaje || `⚠️ Guía no encontrada (ID: ${id})`, "error");
+        mostrarAlerta(
+            data?.mensaje || `⚠️ Guía no encontrada (ID: ${id})`,
+            "error"
+        );
         return;
     }
+
+    // ✅ DEBUG — ver qué llega del servidor
+    console.log("📦 Items recibidos del servidor:");
+    (data.items || []).forEach((i, idx) => {
+        console.log(`   ${idx + 1}. linea=${i.linea} | desc="${i.descripcion}" | cant=${i.cantidad} | unidad=${i.unidad}`);
+    });
 
     const g    = data;
     const guia = {

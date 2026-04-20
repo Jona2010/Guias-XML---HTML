@@ -137,6 +137,7 @@ app.get("/buscar", async (req, res) => {
 
 // ----------------------
 // OBTENER GUÍA POR ID
+// ✅ FIX: traer items con descripcion correcta
 // ----------------------
 app.get("/guias/:id", async (req, res) => {
     try {
@@ -152,13 +153,25 @@ app.get("/guias/:id", async (req, res) => {
             });
         }
 
-        const items = await query(
-            `SELECT id, guia_id, linea, descripcion, cantidad, unidad
-             FROM guia_items
-             WHERE guia_id = ?
-             ORDER BY linea ASC`,
-            [id]
-        );
+        // ✅ Traer items con todos los campos
+        const items = await query(`
+            SELECT 
+                id,
+                guia_id,
+                linea,
+                descripcion,
+                cantidad,
+                unidad
+            FROM guia_items
+            WHERE guia_id = ?
+            ORDER BY CAST(linea AS UNSIGNED) ASC
+        `, [id]);
+
+        // ✅ Log para verificar qué trae la BD
+        console.log(`🔍 Guía ${id} → ${items.length} items`);
+        items.forEach(i => {
+            console.log(`   Item ${i.linea}: "${i.descripcion}"`);
+        });
 
         res.json({ ok: true, ...guias[0], items });
 
