@@ -454,9 +454,6 @@ async function filtrarGuias(){
                     <th style="padding:7px 5px; width:13%; text-align:center;">
                         Fecha
                     </th>
-                    <th style="padding:7px 5px; width:22%; text-align:left;">
-                        Items
-                    </th>
                     <th style="padding:7px 5px; width:23%; text-align:left;">
                         Partida / Llegada
                     </th>
