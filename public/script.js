@@ -591,7 +591,10 @@ function resaltarTexto(texto, busqueda){
 function formatearFecha(fechaISO){
     if(!fechaISO) return "";
 
-    const [year, month, day] = fechaISO.split("-");
+    // 🔥 cortar solo la fecha antes de la T
+    const fecha = fechaISO.split("T")[0];
+
+    const [year, month, day] = fecha.split("-");
     return `${day}/${month}/${year}`;
 }
 
