@@ -21,6 +21,7 @@ const limite          = 10;
 let buscando          = false;
 let ultimaGuiaCargada = null;
 let hayMasPaginas = true;
+let guiaSeleccionadaId = null;
 
 // ── Buscador: control de race conditions ──
 let debounceTimer      = null;   // setTimeout del debounce
@@ -558,7 +559,7 @@ async function filtrarGuias(){
             : `<span style="color:#ccc;">—</span>`;
 
         html += `
-        <tr onclick="verGuiaPorId(${g.id})"
+        <tr onclick="seleccionarGuia(this, ${g.id})"
             style="cursor:pointer; border-bottom:1px solid #eee;">
             
             <td>📄 ${resaltarTexto(g.numero, texto)}</td>
@@ -743,6 +744,25 @@ function limpiarBusqueda(){
 
     mostrarHistorial();
     input.focus();
+}
+
+// ----------------------
+// RESALTADO
+// ----------------------
+function seleccionarGuia(fila, id){
+
+    // 🔴 Quitar selección anterior
+    document.querySelectorAll(".fila-activa").forEach(el => {
+        el.classList.remove("fila-activa");
+    });
+
+    // 🟢 Marcar nueva
+    fila.classList.add("fila-activa");
+
+    guiaSeleccionadaId = id;
+
+    // 🔥 cargar guía
+    verGuiaPorId(id);
 }
 
 // ----------------------
