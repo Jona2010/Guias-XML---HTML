@@ -109,27 +109,31 @@ app.get("/buscar", async (req, res) => {
         const guias = await query(`
             SELECT DISTINCT g.*
             FROM guias g
+            LEFT JOIN guia_items i ON i.guia_id = g.id
             WHERE LOWER(g.numero)            LIKE ?
                OR LOWER(g.direccion_partida) LIKE ?
                OR LOWER(g.direccion_llegada) LIKE ?
-               OR gi.codigo_bien LIKE ?
+               OR LOWER(i.descripcion)       LIKE ?
+               OR LOWER(i.codigo_bien)       LIKE ?
+            ORDER BY g.id DESC
+            LIMIT 50
+        `, [termino, termino, termino, termino, termino]);
 
-            UNION
-
-            SELECT DISTINCT g.*
+        const rows = await query(`
+            SELECT 
+                g.*,
+                i.descripcion,
+                i.codigo_bien
             FROM guias g
-            INNER JOIN guia_items i ON i.guia_id = g.id
-            WHERE LOWER(i.descripcion) LIKE ?
-
-            ORDER BY id DESC
-        `, [termino, termino, termino, termino]);
-
-        for(const g of guias){
-            g.items = await query(
-                "SELECT * FROM guia_items WHERE guia_id = ? ORDER BY linea ASC",
-                [g.id]
-            );
-        }
+            LEFT JOIN guia_items i ON i.guia_id = g.id
+            WHERE LOWER(g.numero)            LIKE ?
+            OR LOWER(g.direccion_partida) LIKE ?
+            OR LOWER(g.direccion_llegada) LIKE ?
+            OR LOWER(i.descripcion)       LIKE ?
+            OR LOWER(i.codigo_bien)       LIKE ?
+            ORDER BY g.id DESC
+            LIMIT 50
+        `, [termino, termino, termino, termino, termino]);
 
         res.json(guias);
 
