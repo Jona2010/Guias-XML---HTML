@@ -120,6 +120,25 @@ async function leerGuia(){
             const l        = lineas[i];
             const itemNode = first(l, UBL.cac, "Item");
 
+            // 🔥 NUEVO: obtener código de bien
+            let codigoBien = "";
+
+            // 1. SellersItemIdentification
+            const seller = first(itemNode, UBL.cac, "SellersItemIdentification");
+            codigoBien = val(seller, UBL.cbc, "ID");
+
+            // 2. fallback Buyers
+            if(!codigoBien){
+                const buyer = first(itemNode, UBL.cac, "BuyersItemIdentification");
+                codigoBien = val(buyer, UBL.cbc, "ID");
+            }
+
+            // 3. fallback Standard
+            if(!codigoBien){
+                const standard = first(itemNode, UBL.cac, "StandardItemIdentification");
+                codigoBien = val(standard, UBL.cbc, "ID");
+            }
+
             const name = itemNode ? val(itemNode, UBL.cbc, "Name")        : "";
             const desc = itemNode ? val(itemNode, UBL.cbc, "Description") : "";
 
@@ -136,6 +155,7 @@ async function leerGuia(){
 
             guia.items.push({
                 linea:       val(l, UBL.cbc, "ID"),
+                codigo_bien: codigoBien || null,   // 👈 NUEVO
                 descripcion: descripcion,
                 cantidad:    val(l, UBL.cbc, "DeliveredQuantity"),
                 unidad:      attr(l, UBL.cbc, "DeliveredQuantity", "unitCode")
