@@ -433,9 +433,6 @@ async function mostrarHistorial(){
                     color:${!hayMasPaginas ? '#bbb' : '#333'};">
                 ➡
             </button>
-                style="padding:4px 10px; border:1px solid #ddd; border-radius:4px;
-                       background:white; cursor:pointer;">➡
-            </button>
         </div>
     </div>`;
 
