@@ -267,6 +267,7 @@ async function guardarGuia(g){
 
 // ----------------------
 // VER GUIA POR ID
+// ✅ CORREGIDO: "guia is not defined"
 // ----------------------
 async function verGuiaPorId(id){
     if(!id){ mostrarAlerta("❌ ID inválido", "error"); return; }
@@ -276,10 +277,17 @@ async function verGuiaPorId(id){
 
     const { ok, data, error } = await fetchJSON(`${API_URL}/guias/${id}`);
 
+    // ✅ Descartar respuestas obsoletas
     if(requestId !== ultimaGuiaCargada) return;
-    if(error){ mostrarAlerta(error, "error"); return; }
 
-    if(!ok || !data.ok){
+    // ✅ Error de red
+    if(error){
+        mostrarAlerta(error, "error");
+        return;
+    }
+
+    // ✅ Validar que data existe y tiene ok:true
+    if(!ok || !data || !data.ok){
         mostrarAlerta(
             data?.mensaje || `⚠️ Guía no encontrada (ID: ${id})`,
             "error"
@@ -287,19 +295,32 @@ async function verGuiaPorId(id){
         return;
     }
 
-    const g    = data;
+    // ✅ Construir objeto guia con valores por defecto seguros
     const guia = {
-        numero:        g.numero,
-        fecha_emision: g.fecha_emision,
-        hora_emision:  g.hora_emision || "",
-        remitente:     { ruc: g.remitente_ruc, razon_social: g.remitente_nombre },
-        destinatario:  { nombre: g.destinatario_nombre },
-        traslado:      { motivo: g.motivo, peso_total: g.peso_total },
-        partida:       { direccion: g.direccion_partida },
-        llegada:       { direccion: g.direccion_llegada },
-        items:         Array.isArray(g.items) ? g.items : []
+        numero:        data.numero        || "",
+        fecha_emision: data.fecha_emision || "",
+        hora_emision:  data.hora_emision  || "",
+        remitente: {
+            ruc:          data.remitente_ruc    || "-",
+            razon_social: data.remitente_nombre || "-"
+        },
+        destinatario: {
+            nombre: data.destinatario_nombre || "-"
+        },
+        traslado: {
+            motivo:     data.motivo     || "-",
+            peso_total: data.peso_total || "-"
+        },
+        partida: {
+            direccion: data.direccion_partida || ""
+        },
+        llegada: {
+            direccion: data.direccion_llegada || ""
+        },
+        items: Array.isArray(data.items) ? data.items : []
     };
 
+    // ✅ Ahora guia siempre está definido antes de llamar a mostrarGuiaBonita
     mostrarGuiaBonita(guia);
 }
 
