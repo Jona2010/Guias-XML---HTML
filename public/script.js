@@ -20,6 +20,7 @@ let pagina            = 0;
 const limite          = 10;
 let buscando          = false;
 let ultimaGuiaCargada = null;
+let hayMasPaginas = true;
 
 // ── Buscador: control de race conditions ──
 let debounceTimer      = null;   // setTimeout del debounce
@@ -363,6 +364,8 @@ async function mostrarHistorial(){
         return;
     }
 
+    hayMasPaginas = data.length === limite;
+
     const inicio = (pagina * limite) + 1;
     const fin    = inicio + data.length - 1;
 
@@ -423,6 +426,13 @@ async function mostrarHistorial(){
             </button>
             <span style="font-weight:bold;">Pág. ${pagina + 1}</span>
             <button onclick="siguientePagina()"
+                ${!hayMasPaginas ? "disabled" : ""}
+                style="padding:4px 10px; border:1px solid #ddd; border-radius:4px;
+                    background:${!hayMasPaginas ? '#f5f5f5' : 'white'};
+                    cursor:${!hayMasPaginas ? 'not-allowed' : 'pointer'};
+                    color:${!hayMasPaginas ? '#bbb' : '#333'};">
+                ➡
+            </button>
                 style="padding:4px 10px; border:1px solid #ddd; border-radius:4px;
                        background:white; cursor:pointer;">➡
             </button>
@@ -741,7 +751,11 @@ function limpiarBusqueda(){
 // ----------------------
 // PAGINACIÓN
 // ----------------------
-function siguientePagina(){ pagina++; mostrarHistorial(); }
+function siguientePagina(){
+    if(!hayMasPaginas) return; // 🔥 BLOQUEAR
+    pagina++;
+    mostrarHistorial();
+}
 function anteriorPagina(){
     if(pagina > 0){ pagina--; mostrarHistorial(); }
 }
