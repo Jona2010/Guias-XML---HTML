@@ -178,8 +178,7 @@ function mostrarGuiaBonita(g){
     let html = `
     <div class="guia-card">
         <h3>📄 ${g.numero}</h3>
-        <p><b>Fecha:</b> ${formatearFecha(g.fecha_emision)}
-           ${g.hora_emision || formatearHora(g.fecha_emision)}</p>
+        <p><b>Fecha:</b> ${formatearFecha(g.fecha_emision)} ${g.hora_emision || ""}</p>
         <p><b>Remitente:</b> ${g.remitente.razon_social} (${g.remitente.ruc})</p>
         <p><b>Destinatario:</b> ${g.destinatario.nombre}</p>
         <hr>
@@ -590,10 +589,10 @@ function resaltarTexto(texto, busqueda){
 // FECHAS
 // ----------------------
 function formatearFecha(fechaISO){
-    const fecha = new Date(fechaISO);
-    return fecha.toLocaleDateString("es-PE", {
-        day: "2-digit", month: "2-digit", year: "numeric"
-    });
+    if(!fechaISO) return "";
+
+    const [year, month, day] = fechaISO.split("-");
+    return `${day}/${month}/${year}`;
 }
 
 function formatearHora(fechaISO){

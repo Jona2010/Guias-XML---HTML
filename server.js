@@ -225,7 +225,7 @@ app.post("/guardar-guia", async (req, res) => {
 
         const guiaId = result.insertId;
 
-        for (const item of guia.items) {
+        for (const item of g.items) {
             await pool.query(`
                 INSERT INTO guia_items 
                 (guia_id, linea, codigo_bien, descripcion, cantidad, unidad)
