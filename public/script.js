@@ -218,6 +218,9 @@ function mostrarGuiaBonita(g){
                            text-align:center; font-size:13px;">
                     ${item.linea ?? idx + 1}
                 </td>
+                <td style="padding:8px;">
+                    ${item.codigo_bien || "-"}
+                </td>
                 <td style="padding:8px; border-bottom:1px solid #eee;
                            word-break:break-word; white-space:normal; font-size:13px;">
                     ${item.descripcion || "-"}

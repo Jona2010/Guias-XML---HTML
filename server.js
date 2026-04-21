@@ -112,6 +112,7 @@ app.get("/buscar", async (req, res) => {
             WHERE LOWER(g.numero)            LIKE ?
                OR LOWER(g.direccion_partida) LIKE ?
                OR LOWER(g.direccion_llegada) LIKE ?
+               OR gi.codigo_bien LIKE ?
 
             UNION
 
@@ -223,17 +224,18 @@ app.post("/guardar-guia", async (req, res) => {
 
         const guiaId = result.insertId;
 
-        for(const item of g.items){
-            await pool.query(`
-                INSERT INTO guia_items
-                (guia_id, linea, descripcion, cantidad, unidad)
-                VALUES (?,?,?,?,?)
+        for (const item of guia.items) {
+            await db.query(`
+                INSERT INTO guia_items 
+                (guia_id, linea, descripcion, cantidad, unidad, codigo_bien)
+                VALUES (?, ?, ?, ?, ?, ?)
             `, [
                 guiaId,
                 item.linea,
                 item.descripcion,
                 item.cantidad,
-                item.unidad
+                item.unidad,
+                item.codigo_bien   // 👈 NUEVO
             ]);
         }
 
