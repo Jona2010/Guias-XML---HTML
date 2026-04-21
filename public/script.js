@@ -390,7 +390,7 @@ async function mostrarHistorial(){
             : (g.destinatario_nombre || "-");
 
         html += `
-        <tr onclick="handleClickGuia(this, ${g.id})"
+        <tr onclick="seleccionarGuia(this, ${g.id})"
             style="cursor:pointer; border-bottom:1px solid #eee; font-size:12px;"
             onmouseover="this.style.background='#e3f2fd'"
             onmouseout="this.style.background='white'">
