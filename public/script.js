@@ -194,6 +194,7 @@ function mostrarGuiaBonita(g){
             <thead>
                 <tr style="background:#1976D2; color:white;">
                     <th style="padding:8px; width:8%;  text-align:center;">#</th>
+                    <th style="padding:8px; width:18%;  text-align:center;">Código de Bien</th>
                     <th style="padding:8px; width:62%; text-align:left;">Descripción</th>
                     <th style="padding:8px; width:15%; text-align:center;">Cantidad</th>
                     <th style="padding:8px; width:15%; text-align:center;">Unidad</th>
@@ -262,44 +263,6 @@ async function guardarGuia(g){
     }
 
     mostrarAlerta(`✅ Guía ${g.numero} guardada correctamente`, "success");
-}
-
-// ----------------------
-// VER GUIA POR ID
-// ----------------------
-async function verGuiaPorId(id){
-    if(!id){ mostrarAlerta("❌ ID inválido", "error"); return; }
-
-    const requestId   = Date.now();
-    ultimaGuiaCargada = requestId;
-
-    const { ok, data, error } = await fetchJSON(`${API_URL}/guias/${id}`);
-
-    if(requestId !== ultimaGuiaCargada) return;   // respuesta obsoleta
-    if(error){ mostrarAlerta(error, "error"); return; }
-
-    if(!ok || !data.ok){
-        mostrarAlerta(
-            data?.mensaje || `⚠️ Guía no encontrada (ID: ${id})`,
-            "error"
-        );
-        return;
-    }
-
-    const g    = data;
-    const guia = {
-        numero:        g.numero,
-        fecha_emision: g.fecha_emision,
-        hora_emision:  g.hora_emision || "",
-        remitente:     { ruc: g.remitente_ruc, razon_social: g.remitente_nombre },
-        destinatario:  { nombre: g.destinatario_nombre },
-        traslado:      { motivo: g.motivo, peso_total: g.peso_total },
-        partida:       { direccion: g.direccion_partida },
-        llegada:       { direccion: g.direccion_llegada },
-        items:         Array.isArray(g.items) ? g.items : []
-    };
-
-    mostrarGuiaBonita(guia);
 }
 
 // ----------------------

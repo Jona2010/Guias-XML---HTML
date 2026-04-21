@@ -163,6 +163,7 @@ app.get("/guias/:id", async (req, res) => {
                 id,
                 guia_id,
                 linea,
+                codigo_bien,
                 descripcion,
                 cantidad,
                 unidad
@@ -225,17 +226,17 @@ app.post("/guardar-guia", async (req, res) => {
         const guiaId = result.insertId;
 
         for (const item of guia.items) {
-            await db.query(`
+            await pool.query(`
                 INSERT INTO guia_items 
-                (guia_id, linea, descripcion, cantidad, unidad, codigo_bien)
+                (guia_id, linea, codigo_bien, descripcion, cantidad, unidad)
                 VALUES (?, ?, ?, ?, ?, ?)
             `, [
                 guiaId,
                 item.linea,
+                item.codigo_bien,
                 item.descripcion,
                 item.cantidad,
-                item.unidad,
-                item.codigo_bien   // 👈 NUEVO
+                item.unidad
             ]);
         }
 
