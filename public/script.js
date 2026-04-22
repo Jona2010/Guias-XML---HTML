@@ -542,7 +542,7 @@ async function filtrarGuias(){
         return;
     }
 
-    if(!data || !data.data || data.data.length === 0)
+    if(!data || !data.data || data.data.length === 0){
         contBuscador.innerHTML = `
             <div style="text-align:center; padding:20px;">
                 🔍 Sin resultados para "<strong>${texto}</strong>"

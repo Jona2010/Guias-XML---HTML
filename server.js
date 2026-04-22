@@ -101,12 +101,12 @@ app.get("/contar", async (req, res) => {
 // ----------------------
 app.get("/buscar", async (req, res) => {
     const q = (req.query.q || "").trim();
-    if (!q) return res.json([]);
+    if (!q) return res.json({ ok: true, data: [] });
 
     try {
         const termino = `%${q.toLowerCase()}%`;
 
-        // 🔹 1. Obtener guías que coinciden
+        // 🔹 1. Obtener guías
         const guias = await query(`
             SELECT DISTINCT g.*
             FROM guias g
@@ -121,13 +121,13 @@ app.get("/buscar", async (req, res) => {
         `, [termino, termino, termino, termino, termino]);
 
         if (guias.length === 0) {
-            return res.json([]);
+            return res.json({ ok: true, data: [] });
         }
 
-        // 🔹 2. Obtener IDs de las guías encontradas
+        // 🔹 2. IDs
         const ids = guias.map(g => g.id);
 
-        // 🔹 3. Traer TODOS los items de esas guías
+        // 🔹 3. Traer items
         const items = await query(`
             SELECT 
                 id,
@@ -142,7 +142,7 @@ app.get("/buscar", async (req, res) => {
             ORDER BY guia_id, CAST(linea AS UNSIGNED)
         `, ids);
 
-        // 🔹 4. Agrupar items por guía
+        // 🔹 4. Agrupar
         const itemsPorGuia = {};
         items.forEach(i => {
             if (!itemsPorGuia[i.guia_id]) {
@@ -151,12 +151,13 @@ app.get("/buscar", async (req, res) => {
             itemsPorGuia[i.guia_id].push(i);
         });
 
-        // 🔹 5. Inyectar items en cada guía
+        // 🔹 5. Armar resultado
         const resultado = guias.map(g => ({
             ...g,
             items: itemsPorGuia[g.id] || []
         }));
 
+        // 🔥 RESPUESTA FINAL CORRECTA
         res.json({
             ok: true,
             data: resultado
@@ -164,7 +165,10 @@ app.get("/buscar", async (req, res) => {
 
     } catch (err) {
         console.error("❌ Error búsqueda:", err.message);
-        res.status(500).json({ ok: false, mensaje: err.message });
+        res.status(500).json({
+            ok: false,
+            mensaje: err.message
+        });
     }
 });
 
