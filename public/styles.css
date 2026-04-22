@@ -64,12 +64,9 @@ body {
 /* ============================= */
 .container {
   display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 20px;
-
-  max-width: 100%;
-  margin: 20px 0;   /* 🔥 QUITA EL CENTRADO */
-  padding: 0 20px;
+  grid-template-columns: minmax(380px, 45%) 1fr;
+  gap: 16px;
+  padding: 16px;
 }
 
 /* ============================= */
@@ -203,9 +200,11 @@ tbody tr:hover {
 }
 
 /* 🔹 ITEMS */
-.tabla-guia td:nth-child(3) {
-  width: 18%;
-}
+.tabla-guia th:nth-child(1) { width: 15%; }
+.tabla-guia th:nth-child(2) { width: 20%; }
+.tabla-guia th:nth-child(3) { width: 20%; }
+.tabla-guia th:nth-child(4) { width: 22%; }
+.tabla-guia th:nth-child(5) { width: 23%; }
 
 /* 🔹 PARTIDA */
 .td-partida {
@@ -244,6 +243,20 @@ tbody tr:hover {
   max-height: 60px;
   overflow: hidden;
 }
+
+#historial-lista table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+#historial-lista td {
+  font-size: 12px;
+  padding: 6px;
+}
+
+#historial-lista td:nth-child(1) { width: 30%; }
+#historial-lista td:nth-child(2) { width: 45%; }
+#historial-lista td:nth-child(3) { width: 25%; }
 
 /* 🔥 ANCHOS CONTROLADOS */
 .col-guia     { width: 90px; }

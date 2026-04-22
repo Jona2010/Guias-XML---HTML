@@ -437,7 +437,9 @@ async function mostrarHistorial(){
                 ${cliente}
             </td>
             <td style="padding:7px 6px; text-align:center; color:#777;
-                       white-space:nowrap;">
+                       white-space:nowrap;
+                        overflow:hidden;
+                        text-overflow:ellipsis;">
                 ${formatearFecha(g.fecha_emision)}
             </td>
         </tr>`;
@@ -596,10 +598,10 @@ async function filtrarGuias(){
             style="cursor:pointer; border-bottom:1px solid #eee;">
             
             <td>📄 ${resaltarTexto(g.numero, texto)}</td>
-            <td>${formatearClienteHTML(g.destinatario_nombre)}</td>
+            <td class="td-cliente">${formatearClienteHTML(g.destinatario_nombre)}</td>
             <td>${itemsHTML}</td>
-            <td>🚀 ${partida}</td>
-            <td>🏁 ${llegada}</td>
+            <td class="td-partida">🚀 ${partida}</td>
+            <td class="td-llegada">🏁 ${llegada}</td>
 
         </tr>`;
     });
