@@ -190,9 +190,9 @@ tbody tr:hover {
   font-size: 13px;
   border-bottom: 1px solid #eee;
 
-  white-space: nowrap;       /* 💥 CLAVE */
-  overflow: hidden;          /* 💥 CLAVE */
-  text-overflow: ellipsis;   /* 💥 CLAVE */
+  white-space: normal;       /* 🔥 permite saltos */
+  word-break: break-word;    /* 🔥 evita desbordes */
+  line-height: 1.4;
 }
 
 /* FILAS */

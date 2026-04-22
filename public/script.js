@@ -582,13 +582,13 @@ async function filtrarGuias(){
         // 🔹 Partida separada
         const partida = g.direccion_partida &&
             g.direccion_partida.toLowerCase().includes(textoLower)
-            ? resaltarTexto(g.direccion_partida, texto)
+            ? formatearDireccionHTML(resaltarTexto(g.direccion_partida, texto))
             : `<span style="color:#ccc;">—</span>`;
 
         // 🔹 Llegada separada
         const llegada = g.direccion_llegada &&
             g.direccion_llegada.toLowerCase().includes(textoLower)
-            ? resaltarTexto(g.direccion_llegada, texto)
+            ? formatearDireccionHTML(resaltarTexto(g.direccion_llegada, texto))
             : `<span style="color:#ccc;">—</span>`;
 
         html += `
@@ -596,7 +596,7 @@ async function filtrarGuias(){
             style="cursor:pointer; border-bottom:1px solid #eee;">
             
             <td>📄 ${resaltarTexto(g.numero, texto)}</td>
-            <td>${g.destinatario_nombre || "-"}</td>
+            <td>${formatearClienteHTML(g.destinatario_nombre)}</td>
             <td>${itemsHTML}</td>
             <td>🚀 ${partida}</td>
             <td>🏁 ${llegada}</td>
@@ -890,6 +890,48 @@ function siguientePagina(){
 }
 function anteriorPagina(){
     if(pagina > 0){ pagina--; mostrarHistorial(); }
+}
+
+function formatearDireccion(texto) {
+    if (!texto) return "-";
+
+    return texto
+        .replace(/---/g, "\n")
+        .replace(/ - /g, "\n")
+        .split("\n")
+        .map(t => t.trim())
+        .filter(Boolean)
+        .join("<br>");
+}
+
+function formatearCliente(texto) {
+    if (!texto) return "-";
+
+    const palabras = texto.split(" ");
+
+    if (palabras.length <= 2) return texto;
+
+    return palabras.slice(0, 2).join(" ") + "<br>" +
+           palabras.slice(2, 4).join(" ");
+}
+
+function formatearDireccionHTML(texto) {
+    if (!texto) return "-";
+
+    return texto
+        .replace(/---/g, "<br>")
+        .replace(/ - /g, "<br>");
+}
+
+function formatearClienteHTML(texto) {
+    if (!texto) return "-";
+
+    const palabras = texto.split(" ");
+
+    if (palabras.length <= 2) return texto;
+
+    return palabras.slice(0, 2).join(" ") + "<br>" +
+           palabras.slice(2, 4).join(" ");
 }
 
 // ----------------------
