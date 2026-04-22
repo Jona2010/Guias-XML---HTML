@@ -428,9 +428,7 @@ async function mostrarHistorial(){
 
         html += `
         <tr onclick="seleccionarGuia(this, ${g.id})"
-            style="cursor:pointer; border-bottom:1px solid #eee; font-size:12px;"
-            onmouseover="this.style.background='#e3f2fd'"
-            onmouseout="this.style.background='white'">
+            style="cursor:pointer; border-bottom:1px solid #eee; font-size:12px;">
             <td style="padding:7px 6px; white-space:nowrap;
                        overflow:hidden; text-overflow:ellipsis;">
                 📄 ${g.numero}

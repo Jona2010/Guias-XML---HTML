@@ -47,22 +47,33 @@ body {
     align-items: center;
     gap: 12px;
 
-    height: 70px; /* 🔥 límite real */
-    padding: 0 20px;
+    height: 80px;
+    padding: 10px 20px;
 
     background: #1e4fa3;
     color: white;
 
-    overflow: hidden; /* 🔥 evita desbordes */
+    overflow: hidden;
+}
+
+.header img {
+    height: 100%;
+    max-height: 60px;
+    width: auto;
+    object-fit: contain;
 }
 
 /* =====================================================
    CONTENEDOR
 ===================================================== */
 .container {
-  max-width: 1200px;
-  margin: auto;
-  padding: 24px;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+
+    max-width: 1400px;
+    margin: 20px auto;
+    padding: 0 10px;
 }
 
 /* =====================================================
@@ -115,6 +126,11 @@ input[type="file"]::file-selector-button {
   padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
+}
+
+.fila-activa {
+    background: #dbeafe !important;
+    border-left: 4px solid #1976D2;
 }
 
 /* =====================================================
@@ -215,6 +231,11 @@ th, td {
   border-bottom: 1px solid #eee;
 }
 
+tr:hover {
+    background: #f1f8ff !important;
+    cursor: pointer;
+}
+
 tbody tr:nth-child(even) {
   background: #f9f9f9;
 }
@@ -236,6 +257,8 @@ input:focus {
   border-color: var(--color-primary);
   outline: none;
 }
+
+
 
 /* =====================================================
    SCROLL PERSONALIZADO
