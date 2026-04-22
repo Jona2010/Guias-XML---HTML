@@ -464,7 +464,6 @@ tbody tr:hover {
 
 /* Botón fake */
 .file-wrapper::before {
-  content: "📂 Elegir archivo";
   background: #eef3ff;
   border: 1px solid #ccd6ff;
   padding: 8px 12px;
