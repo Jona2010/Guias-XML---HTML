@@ -101,11 +101,12 @@ app.get("/contar", async (req, res) => {
 // ----------------------
 app.get("/buscar", async (req, res) => {
     const q = (req.query.q || "").trim();
-    if(!q) return res.json([]);
+    if (!q) return res.json([]);
 
     try {
         const termino = `%${q.toLowerCase()}%`;
 
+        // 🔹 1. Obtener guías que coinciden
         const guias = await query(`
             SELECT DISTINCT g.*
             FROM guias g
@@ -119,49 +120,14 @@ app.get("/buscar", async (req, res) => {
             LIMIT 50
         `, [termino, termino, termino, termino, termino]);
 
-        const rows = await query(`
-            SELECT 
-                g.*,
-                i.descripcion,
-                i.codigo_bien
-            FROM guias g
-            LEFT JOIN guia_items i ON i.guia_id = g.id
-            WHERE LOWER(g.numero)            LIKE ?
-            OR LOWER(g.direccion_partida) LIKE ?
-            OR LOWER(g.direccion_llegada) LIKE ?
-            OR LOWER(i.descripcion)       LIKE ?
-            OR LOWER(i.codigo_bien)       LIKE ?
-            ORDER BY g.id DESC
-            LIMIT 50
-        `, [termino, termino, termino, termino, termino]);
-
-        res.json(guias);
-
-    } catch(err) {
-        console.error("❌ Error búsqueda:", err.message);
-        res.status(500).json({ ok: false, mensaje: err.message });
-    }
-});
-
-// ----------------------
-// OBTENER GUÍA POR ID
-// ✅ FIX: traer items con descripcion correcta
-// ----------------------
-app.get("/guias/:id", async (req, res) => {
-    try {
-        const id = Number(req.params.id);
-
-        const guias = await query(
-            "SELECT * FROM guias WHERE id = ?", [id]
-        );
-
-        if(guias.length === 0){
-            return res.status(404).json({
-                ok: false, mensaje: "❌ Guía no encontrada"
-            });
+        if (guias.length === 0) {
+            return res.json([]);
         }
 
-        // ✅ Traer items con todos los campos
+        // 🔹 2. Obtener IDs de las guías encontradas
+        const ids = guias.map(g => g.id);
+
+        // 🔹 3. Traer TODOS los items de esas guías
         const items = await query(`
             SELECT 
                 id,
@@ -172,20 +138,29 @@ app.get("/guias/:id", async (req, res) => {
                 cantidad,
                 unidad
             FROM guia_items
-            WHERE guia_id = ?
-            ORDER BY CAST(linea AS UNSIGNED) ASC
-        `, [id]);
+            WHERE guia_id IN (${ids.map(() => "?").join(",")})
+            ORDER BY guia_id, CAST(linea AS UNSIGNED)
+        `, ids);
 
-        // ✅ Log para verificar qué trae la BD
-        console.log(`🔍 Guía ${id} → ${items.length} items`);
+        // 🔹 4. Agrupar items por guía
+        const itemsPorGuia = {};
         items.forEach(i => {
-            console.log(`   Item ${i.linea}: "${i.descripcion}"`);
+            if (!itemsPorGuia[i.guia_id]) {
+                itemsPorGuia[i.guia_id] = [];
+            }
+            itemsPorGuia[i.guia_id].push(i);
         });
 
-        res.json({ ok: true, ...guias[0], items });
+        // 🔹 5. Inyectar items en cada guía
+        const resultado = guias.map(g => ({
+            ...g,
+            items: itemsPorGuia[g.id] || []
+        }));
 
-    } catch(err) {
-        console.error("❌ Error guía:", err.message);
+        res.json(resultado);
+
+    } catch (err) {
+        console.error("❌ Error búsqueda:", err.message);
         res.status(500).json({ ok: false, mensaje: err.message });
     }
 });
