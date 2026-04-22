@@ -22,7 +22,6 @@ let buscando          = false;
 let ultimaGuiaCargada = null;
 let hayMasPaginas = true;
 let guiaSeleccionadaId = null;
-let ultimaGuiaCargada = null;
 
 // ── Buscador: control de race conditions ──
 let debounceTimer      = null;   // setTimeout del debounce
