@@ -32,6 +32,12 @@ body {
   color: var(--color-text);
 }
 
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
 /* ============================= */
 /* HEADER */
 /* ============================= */
@@ -75,6 +81,8 @@ body {
   padding: 15px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   height: fit-content;
+  position: sticky;
+  top: 20px;
 }
 
 .sidebar h3 {
@@ -168,6 +176,21 @@ tbody tr:hover {
   border-radius: 12px;
   padding: 15px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.guia-card {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.guia-card table {
+  margin-top: 10px;
+}
+
+.guia-card thead th {
+  font-weight: 600;
 }
 
 /* ============================= */

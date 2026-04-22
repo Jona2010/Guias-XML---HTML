@@ -551,14 +551,14 @@ async function filtrarGuias(){
     const textoLower = texto.toLowerCase();
 
     let html = `
-    <table style="width:100%; border-collapse:collapse;">
+    <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
         <thead>
             <tr style="background:#1976D2; color:white;">
-                <th style="padding:6px;">Guía</th>
-                <th style="padding:6px;">Cliente</th>
-                <th style="padding:6px;">Items</th>
-                <th style="padding:6px;">Partida</th>
-                <th style="padding:6px;">Llegada</th>
+                <th style="width:20%">Guía</th>
+                <th style="width:25%">Cliente</th>
+                <th style="width:20%">Items</th>
+                <th style="width:17%">Partida</th>
+                <th style="width:18%">Llegada</th>
             </tr>
         </thead>
         <tbody>

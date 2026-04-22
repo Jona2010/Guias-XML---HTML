@@ -74,19 +74,13 @@
         <div class="card-top">
             <label><strong>Seleccionar XML:</strong></label>
             <input type="file" id="xmlfile" accept=".xml">
-            <button onclick="leerGuia()">
-                <i class="fa-solid fa-upload"></i> Procesar
-            </button>
+            <button class="btn btn-primary" onclick="leerGuia()">📤 Procesar</button>
         </div>
 
         <!-- EXPORTACIONES -->
         <div class="export-buttons">
-            <button onclick="exportarExcel()">
-                <i class="fa-solid fa-file-excel"></i> Excel
-            </button>
-            <button onclick="exportarPDF()">
-                <i class="fa-solid fa-file-pdf"></i> PDF
-            </button>
+            <button class="btn btn-excel" onclick="exportarExcel()">📊 Excel</button>
+            <button class="btn btn-pdf" onclick="exportarPDF()">📄 PDF</button>
         </div>
 
         <!-- VISOR -->
