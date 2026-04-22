@@ -604,7 +604,9 @@ async function filtrarGuias(){
         <tr onclick="seleccionarGuia(this, ${g.id})"
             style="cursor:pointer; border-bottom:1px solid #eee;">
             
-            <td>📄 ${resaltarTexto(g.numero, texto)}</td>
+            <td class="td-guia">
+                📄 ${formatearNumeroGuia(g.numero)}
+            </td>
             <td class="td-cliente">${formatearClienteHTML(g.destinatario_nombre)}</td>
             <td>${itemsHTML}</td>
             <td class="td-partida">🚀 ${partida}</td>
@@ -941,6 +943,23 @@ function formatearClienteHTML(texto) {
 
     return palabras.slice(0, 2).join(" ") + "<br>" +
            palabras.slice(2, 4).join(" ");
+}
+
+function formatearNumeroGuia(numero){
+    if(!numero) return "-";
+
+    const partes = numero.split("-");
+    
+    if(partes.length === 2){
+        return `
+            <div style="line-height:1.1;">
+                <div>${partes[0]}</div>
+                <div style="font-weight:600;">${partes[1]}</div>
+            </div>
+        `;
+    }
+
+    return numero;
 }
 
 // ----------------------
