@@ -623,33 +623,113 @@ function formatearHora(fechaISO){
 // EXPORTAR EXCEL
 // ----------------------
 async function exportarExcel(){
-    const { data, error } = await fetchJSON(`${API_URL}/guias`);
-    if(error || !data || data.length === 0){
-        alert("No hay datos para exportar"); return;
+
+    const g = ultimaGuiaCargada;
+
+    if(!g){
+        alert("Primero selecciona o carga una guía");
+        return;
     }
-    const g = data[0];
+
     let rows = [
         ["GUÍA DE REMISIÓN"], [],
         ["Número:",       g.numero],
         ["Fecha:",        formatearFecha(g.fecha_emision)],
-        ["Remitente:",    g.remitente_nombre],
-        ["RUC:",          g.remitente_ruc],
-        ["Destinatario:", g.destinatario_nombre], [],
-        ["Motivo:",       g.motivo],
-        ["Peso:",         g.peso_total], [],
-        ["Partida:",      g.direccion_partida],
-        ["Llegada:",      g.direccion_llegada], [],
+        ["Remitente:",    g.remitente.razon_social],
+        ["RUC:",          g.remitente.ruc],
+        ["Destinatario:", g.destinatario.nombre], [],
+        ["Motivo:",       g.traslado.motivo],
+        ["Peso:",         g.traslado.peso_total], [],
+        ["Partida:",      g.partida.direccion],
+        ["Llegada:",      g.llegada.direccion], [],
         ["ITEMS"],
-        ["#", "Descripción", "Cantidad", "Unidad"]
+        ["#", "Código", "Descripción", "Cantidad", "Unidad"]
     ];
-    (g.items || []).forEach(i => {
-        rows.push([i.linea, i.descripcion, i.cantidad, i.unidad]);
+
+    // 🔹 Guardar posición donde empieza ITEMS
+    const filaHeaderItems = rows.length;
+
+    g.items.forEach((i, idx) => {
+        rows.push([
+            i.linea || idx + 1,
+            i.codigo_bien || "-",
+            i.descripcion,
+            i.cantidad,
+            i.unidad
+        ]);
     });
+
     let ws = XLSX.utils.aoa_to_sheet(rows);
-    ws["!cols"]   = [{wch:5},{wch:50},{wch:10},{wch:10}];
-    ws["!merges"] = [{ s:{r:0,c:0}, e:{r:0,c:3} }];
+
+    // 📏 Anchos de columna
+    ws["!cols"] = [
+        { wch: 5 },   // #
+        { wch: 20 },  // código
+        { wch: 50 },  // descripción
+        { wch: 12 },  // cantidad
+        { wch: 10 }   // unidad
+    ];
+
+    // 🔥 MERGE título
+    ws["!merges"] = [
+        { s:{r:0,c:0}, e:{r:0,c:4} }
+    ];
+
+    // 🔵 ESTILO TÍTULO
+    if(ws["A1"]){
+        ws["A1"].s = {
+            font: { bold: true, sz: 14 },
+            alignment: { horizontal: "center" }
+        };
+    }
+
+    // 🔵 ESTILO ENCABEZADO ITEMS
+    const headerRow = filaHeaderItems; // fila dinámica
+
+    ["A","B","C","D","E"].forEach(col => {
+        const cell = ws[`${col}${headerRow}`];
+        if(cell){
+            cell.s = {
+                font: { bold: true, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "1976D2" } },
+                alignment: { horizontal: "center" }
+            };
+        }
+    });
+
+    // 🔹 CENTRAR columnas específicas
+    for(let i = headerRow + 1; i <= rows.length; i++){
+        ["A","B","D","E"].forEach(col => {
+            const cell = ws[`${col}${i}`];
+            if(cell){
+                cell.s = {
+                    alignment: { horizontal: "center" }
+                };
+            }
+        });
+    }
+
+    // 🔹 BORDES (opcional pero PRO)
+    for(let i = headerRow; i <= rows.length; i++){
+        ["A","B","C","D","E"].forEach(col => {
+            const cell = ws[`${col}${i}`];
+            if(cell){
+                cell.s = {
+                    ...cell.s,
+                    border: {
+                        top:    { style: "thin" },
+                        bottom: { style: "thin" },
+                        left:   { style: "thin" },
+                        right:  { style: "thin" }
+                    }
+                };
+            }
+        });
+    }
+
     let wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Guía");
+
     XLSX.writeFile(wb, `guia_${g.numero}.xlsx`);
 }
 
