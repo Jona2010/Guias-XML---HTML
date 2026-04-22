@@ -1,297 +1,320 @@
-/* =========================
-   🔵 VARIABLES (CONSISTENCIA)
-========================= */
-:root{
-    --primary:#0d47a1;
-    --secondary:#1976d2;
-    --bg:#f4f6f9;
-    --text:#1b2d4a;
+/* =====================================================
+   RESET GLOBAL
+===================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* =========================
+/* =====================================================
+   VARIABLES (ESCALABLE + SEO/UX)
+===================================================== */
+:root {
+  --color-primary: #2F80ED;
+  --color-primary-dark: #1c60c7;
+  --color-success: #1D6F42;
+  --color-success-dark: #155c36;
+  --color-danger: #E53935;
+  --color-danger-dark: #c62828;
+  --color-bg: #f4f6f9;
+  --color-card: #ffffff;
+  --color-text: #333;
+  --color-muted: #777;
+  --border-radius: 12px;
+  --transition: all 0.2s ease;
+}
+
+/* =====================================================
    BASE
-========================= */
-body{
-    margin:0;
-    font-family:'Segoe UI', Arial, sans-serif;
-    background:var(--bg);
-    color:var(--text);
+===================================================== */
+html {
+  scroll-behavior: smooth;
 }
 
-/* =========================
-   HEADER
-========================= */
-.header{
-    background:var(--primary);
-    color:white;
-    padding:15px 25px;
-    font-size:18px;
-    font-weight:bold;
-    letter-spacing:0.5px;
-
-    display:flex;
-    align-items:center;
-    gap:12px;
-
-    box-shadow:0 2px 6px rgba(0,0,0,0.2);
+body {
+  background-color: var(--color-bg);
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  color: var(--color-text);
+  line-height: 1.6;
 }
 
-/* LOGO */
-.logo{
-    height:40px;
-    object-fit:contain;
+/* =====================================================
+   CONTENEDOR
+===================================================== */
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 24px;
 }
 
-/* =========================
-   LAYOUT
-========================= */
-.container{
-    display:grid;
-    grid-template-columns:420px 1fr;
-    height:calc(100vh - 60px);
+/* =====================================================
+   TITULOS
+===================================================== */
+h1, h2, h3 {
+  margin-bottom: 10px;
+  font-weight: 600;
 }
 
-/* =========================
-   SIDEBAR
-========================= */
-.sidebar{
-    background:white;
-    padding:15px;
-    border-right:1px solid #eee;
-    overflow-y:auto;
-    box-sizing:border-box; /* 🔥 FIX */
+p {
+  margin-bottom: 10px;
+  color: var(--color-muted);
 }
 
-.sidebar h3{
-    margin-top:0;
-    font-size:16px;
-    font-weight:600;
+/* =====================================================
+   CARD
+===================================================== */
+.card {
+  background: var(--color-card);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: var(--transition);
 }
 
-/* =========================
-   🔍 BUSCADOR PRO
-========================= */
-.buscador-wrapper{
-    position:relative;
-    width:100%;
-    margin-bottom:12px;
-    box-sizing:border-box;
-
-    /* 🎨 BONUS VISUAL */
-    background:#f8fafc;
-    padding:6px;
-    border-radius:12px;
+.card:hover {
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
 
-#buscador{
-    width:100%;
-    padding:10px 40px 10px 14px;
-    border-radius:20px;
-    border:1px solid #ddd;
-    font-size:14px;
-    outline:none;
-
-    box-sizing:border-box; /* 🔥 SOLUCIÓN PRINCIPAL */
-    transition:0.2s;
-
-    /* 🔥 OPCIONAL PRO */
-    background:white;
+/* =====================================================
+   TOP BAR
+===================================================== */
+.top-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
 }
 
-#buscador:focus{
-    border-color:#1976D2;
-    box-shadow:0 0 0 2px rgba(25,118,210,0.15);
+.top-bar label {
+  font-weight: 600;
 }
 
-#btn-limpiar{
-    position:absolute;
-    right:8px;
-    top:50%;
-    transform:translateY(-50%);
-    background:#f44336;
-    color:white;
-    border:none;
-    border-radius:50%;
-    width:22px;
-    height:22px;
-    cursor:pointer;
-    display:none;
-    font-size:12px;
-    transition:0.2s;
+input[type="file"] {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
-#btn-limpiar:hover{
-    background:#c62828;
+/* =====================================================
+   BOTONES
+===================================================== */
+.btn {
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  transition: var(--transition);
 }
 
-/* =========================
-   MAIN
-========================= */
-.main{
-    padding:20px;
-    overflow-y:auto;
+.btn:focus {
+  outline: 2px solid rgba(47,128,237,0.4);
 }
 
-/* =========================
-   🎯 CARDS (JERARQUÍA)
-========================= */
-.card,
-.card-top{
-    background:white;
-    padding:20px;
-    border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.08);
-    margin-bottom:15px;
+/* PRIMARY */
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
 }
 
-/* =========================
-   🎨 BOTONES UX
-========================= */
-button{
-    background:linear-gradient(135deg,#1976d2,#42a5f5);
-    border:none;
-    color:white;
-    padding:8px 14px;
-    border-radius:8px;
-    cursor:pointer;
-    font-size:13px;
-    transition:0.2s;
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
 }
 
-button:hover{
-    transform:translateY(-1px);
-    box-shadow:0 3px 8px rgba(0,0,0,0.2);
+/* EXCEL */
+.btn-excel {
+  background: var(--color-success);
+  color: #fff;
 }
 
-button:disabled{
-    opacity:0.5;
-    cursor:not-allowed;
-    transform:none;
-    box-shadow:none;
+.btn-excel:hover {
+  background: var(--color-success-dark);
 }
 
-/* =========================
+/* PDF */
+.btn-pdf {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.btn-pdf:hover {
+  background: var(--color-danger-dark);
+}
+
+/* DISABLED */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =====================================================
+   ACTIONS
+===================================================== */
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* =====================================================
    TABLAS
-========================= */
-table{
-    width:100%;
-    border-collapse:collapse;
+===================================================== */
+.table-container {
+  overflow-x: auto;
+  border-radius: 10px;
 }
 
-th{
-    background:var(--secondary);
-    color:white;
-    padding:10px 8px;
-    font-size:12px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
 }
 
-td{
-    padding:10px 8px;
-    border-bottom:1px solid #eee;
-    font-size:12px;
+thead {
+  background: var(--color-primary);
+  color: white;
 }
 
-/* =========================
-   🧭 HISTORIAL MEJORADO
-========================= */
-.historial-tabla{
-    border-radius:10px;
-    overflow:hidden;
-    table-layout:fixed;
+th, td {
+  padding: 12px;
+  font-size: 14px;
 }
 
-.historial-tabla tbody tr{
-    transition:0.2s;
+tbody tr:nth-child(even) {
+  background: #f9f9f9;
 }
 
-.historial-tabla tbody tr:hover{
-    background:#e3f2fd;
+tbody tr:hover {
+  background: #eef4ff;
 }
 
-.historial-tabla thead th{
-    position:sticky;
-    top:0;
-    z-index:5;
+/* =====================================================
+   INPUTS
+===================================================== */
+input, select {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
-/* =========================
-   🧠 MICROINTERACCIONES
-========================= */
-.fila-activa{
-    background:#bbdefb !important;
-    border-left:4px solid var(--secondary);
+input:focus {
+  border-color: var(--color-primary);
+  outline: none;
 }
 
-.fila-activa td{
-    font-weight:600;
+/* =====================================================
+   SCROLL PERSONALIZADO
+===================================================== */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-/* =========================
-   🧾 GUÍA (MEJOR LEGIBILIDAD)
-========================= */
-.guia-card{
-    background:#fafafa;
-    border-radius:10px;
-    padding:15px;
-    border:1px solid #eee;
-    line-height:1.6;
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
 }
 
-.card h2{
-    color:var(--primary);
+::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
 }
 
-/* =========================
-   PAGINACIÓN
-========================= */
-.paginacion{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-top:15px;
-    flex-wrap:wrap;
+/* =====================================================
+   BADGES
+===================================================== */
+.badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
 }
 
-.paginacion-info{
-    font-size:12px;
-    color:#666;
+.badge-success {
+  background: #e6f4ea;
+  color: var(--color-success);
 }
 
-/* =========================
-   PDF AREA
-========================= */
-#pdf-area{
-    background:white;
+.badge-danger {
+  background: #fdecea;
+  color: var(--color-danger);
 }
 
-#pdf-area .guia-card{
-    box-shadow:none;
-    border:1px solid #ccc;
+/* =====================================================
+   UTILIDADES
+===================================================== */
+.mt-1 { margin-top: 5px; }
+.mt-2 { margin-top: 10px; }
+.mt-3 { margin-top: 15px; }
+
+.mb-1 { margin-bottom: 5px; }
+.mb-2 { margin-bottom: 10px; }
+.mb-3 { margin-bottom: 15px; }
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+/* =====================================================
+   ANIMACIONES
+===================================================== */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
 }
 
-/* =========================
-   INPUT FILE
-========================= */
-input[type="file"]{
-    margin:10px 0;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* =========================
-   📱 RESPONSIVE PRO
-========================= */
-@media(max-width:900px){
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+@media (max-width: 768px) {
 
-    .container{
-        grid-template-columns:1fr;
-    }
+  .top-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
-    .sidebar{
-        height:280px;
-        border-right:none;
-        border-bottom:1px solid #ddd;
-    }
+  .actions {
+    flex-direction: column;
+  }
 
-    #buscador{
-        padding:12px 45px 12px 16px;
-    }
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  table {
+    font-size: 12px;
+  }
 }
+
+/* =====================================================
+   EXTRA UX (HOVER GLOBAL)
+===================================================== */
+button:hover {
+  opacity: 0.95;
+}
+
+/* =====================================================
+   SOMBRA SUAVE GLOBAL
+===================================================== */
+.shadow-sm {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* =====================================================
+   FIN (CSS ESCALABLE)
+===================================================== */
