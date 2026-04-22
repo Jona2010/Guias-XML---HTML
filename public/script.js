@@ -588,16 +588,33 @@ async function filtrarGuias(){
             ).join("")
             : `<span style="color:#ccc;">—</span>`;
 
-        // 🔹 Partida separada
-        const partida = g.direccion_partida &&
-            g.direccion_partida.toLowerCase().includes(textoLower)
-            ? formatearDireccionHTML(resaltarTexto(g.direccion_partida, texto))
+        // 🔥 Detectar si hubo match en items
+        const hayMatchItems = items.length > 0;
+
+        // 🔥 Detectar match general (guía o cliente)
+        const hayMatchGeneral =
+            (g.numero || "").toLowerCase().includes(textoLower) ||
+            (g.destinatario_nombre || "").toLowerCase().includes(textoLower);
+
+        // 🔥 (opcional pero útil)
+        const mostrarContexto = hayMatchItems || hayMatchGeneral;
+
+        // 🔹 Partida SIEMPRE si hay match (no solo si coincide texto)
+        const partida = g.direccion_partida
+            ? formatearDireccionHTML(
+                hayMatchItems
+                    ? g.direccion_partida
+                    : resaltarTexto(g.direccion_partida, texto)
+            )
             : `<span style="color:#ccc;">—</span>`;
 
-        // 🔹 Llegada separada
-        const llegada = g.direccion_llegada &&
-            g.direccion_llegada.toLowerCase().includes(textoLower)
-            ? formatearDireccionHTML(resaltarTexto(g.direccion_llegada, texto))
+        // 🔹 Llegada igual
+        const llegada = g.direccion_llegada
+            ? formatearDireccionHTML(
+                hayMatchItems
+                    ? g.direccion_llegada
+                    : resaltarTexto(g.direccion_llegada, texto)
+            )
             : `<span style="color:#ccc;">—</span>`;
 
         html += `
