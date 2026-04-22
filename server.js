@@ -253,7 +253,10 @@ app.get("/guias", async (req, res) => {
         );
 
         console.log(`📋 /guias → ${guias.length} registros (L:${limit} O:${offset})`);
-        res.json(guias);
+        res.json({
+            ok: true,
+            data: guias
+        });
 
     } catch(err) {
         console.error("❌ Error guías:", err.message);
