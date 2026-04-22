@@ -168,6 +168,53 @@ tbody tr:hover {
   color: #0d47a1;
 }
 
+/* 🔥 TABLAS CONSISTENTES */
+.tabla-guia {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* 💥 CLAVE */
+}
+
+/* HEADERS */
+.tabla-guia thead th {
+  background: #2F80ED;
+  color: #fff;
+  font-size: 13px;
+  padding: 10px;
+  text-align: left;
+}
+
+/* CELDAS */
+.tabla-guia td {
+  padding: 10px;
+  font-size: 13px;
+  border-bottom: 1px solid #eee;
+
+  white-space: nowrap;       /* 💥 CLAVE */
+  overflow: hidden;          /* 💥 CLAVE */
+  text-overflow: ellipsis;   /* 💥 CLAVE */
+}
+
+/* FILAS */
+.tabla-guia tr:hover {
+  background: #f5f9ff;
+  cursor: pointer;
+}
+
+/* FILA ACTIVA */
+.tabla-guia .fila-activa {
+  background: #e8f2ff !important;
+  font-weight: 600;
+}
+
+/* 🔥 ANCHOS CONTROLADOS */
+.col-guia     { width: 90px; }
+.col-cliente  { width: 160px; }
+.col-items    { width: 70px; text-align: center; }
+.col-partida  { width: 140px; }
+.col-llegada  { width: 140px; }
+.col-fecha    { width: 100px; text-align: center; }
+
 /* ============================= */
 /* TARJETAS */
 /* ============================= */
