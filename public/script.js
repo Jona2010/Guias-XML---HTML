@@ -574,18 +574,18 @@ async function filtrarGuias(){
         );
 
         const itemsHTML = items.length
-            ? items.slice(0,2).map(i =>
-                `<div style="
+            ? items.slice(0, 2).map(i => `
+                <div style="
                     font-size:11px;
                     line-height:1.3;
-                    max-height:32px;
-                    overflow:hidden;
-                    text-overflow:ellipsis;
-                    white-space:nowrap;
+                    background:#f0f6ff;
+                    border-radius:4px;
+                    padding:2px 4px;
+                    margin-bottom:2px;
                 ">
-                    📦 ${resaltarTexto(i.descripcion, texto)}
-                </div>`
-            ).join("")
+                    📦 ${resaltarTexto(i.descripcion || "", texto)}
+                </div>
+            `).join("")
             : `<span style="color:#ccc;">—</span>`;
 
         // 🔥 Detectar si hubo match en items
@@ -641,17 +641,22 @@ async function filtrarGuias(){
 // ----------------------
 function resaltarTexto(texto, busqueda){
     if(!busqueda || !texto) return String(texto);
-    const textoStr    = String(texto);
-    const busquedaStr = String(busqueda);
-    const posicion    = textoStr.toLowerCase().indexOf(busquedaStr.toLowerCase());
-    if(posicion === -1) return textoStr;
-    const antes    = textoStr.substring(0, posicion);
-    const coincide = textoStr.substring(posicion, posicion + busquedaStr.length);
-    const despues  = textoStr.substring(posicion + busquedaStr.length);
-    return antes +
-        '<mark style="background:#FFF176; padding:1px 2px;' +
-        'border-radius:2px; color:#000;">' +
-        coincide + '</mark>' + despues;
+
+    const textoStr = String(texto);
+
+    // 🔥 Escapar caracteres especiales (muy importante)
+    const busquedaEscapada = busqueda.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    const regex = new RegExp(`(${busquedaEscapada})`, "gi");
+
+    return textoStr.replace(regex, `
+        <mark style="
+            background:#FFF176;
+            padding:1px 2px;
+            border-radius:2px;
+            color:#000;
+        ">$1</mark>
+    `);
 }
 
 // ----------------------
