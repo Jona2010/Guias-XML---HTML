@@ -943,12 +943,53 @@ function formatearCliente(texto) {
            palabras.slice(2, 4).join(" ");
 }
 
-function formatearDireccionHTML(texto) {
-    if (!texto) return "-";
+function formatearDireccionHTML(direccion) {
+    if (!direccion) return `<span style="color:#ccc;">—</span>`;
 
-    return texto
-        .replace(/---/g, "<br>")
-        .replace(/ - /g, "<br>");
+    // 🔹 Normalizar texto
+    direccion = direccion.replace(/\s+/g, " ").trim();
+
+    // 🔹 Detectar parte final (REGIÓN - PROVINCIA - DISTRITO)
+    const matchRegion = direccion.match(/([A-ZÁÉÍÓÚÑ\s]+-\s*[A-ZÁÉÍÓÚÑ\s]+-\s*[A-ZÁÉÍÓÚÑ\s]+)$/i);
+
+    let region = "";
+    let base = direccion;
+
+    if (matchRegion) {
+        region = matchRegion[1].trim();
+        base = direccion.replace(matchRegion[1], "").trim();
+    }
+
+    // 🔹 Separar en bloques más legibles
+    // (por longitud aproximada o cortes naturales)
+    let partes = [];
+
+    if (base.length > 45) {
+        // cortar en palabras, no en medio
+        const palabras = base.split(" ");
+        let linea = "";
+
+        palabras.forEach(p => {
+            if ((linea + " " + p).length > 45) {
+                partes.push(linea.trim());
+                linea = p;
+            } else {
+                linea += " " + p;
+            }
+        });
+
+        if (linea) partes.push(linea.trim());
+    } else {
+        partes = [base];
+    }
+
+    // 🔹 Construir HTML
+    return `
+        <div style="line-height:1.3">
+            ${partes.map(p => `<div>${p}</div>`).join("")}
+            ${region ? `<div style="color:#555">${region}</div>` : ""}
+        </div>
+    `;
 }
 
 function formatearClienteHTML(texto) {
