@@ -59,6 +59,7 @@ body{
     padding:15px;
     border-right:1px solid #eee;
     overflow-y:auto;
+    box-sizing:border-box; /* 🔥 FIX */
 }
 
 .sidebar h3{
@@ -72,7 +73,14 @@ body{
 ========================= */
 .buscador-wrapper{
     position:relative;
+    width:100%;
     margin-bottom:12px;
+    box-sizing:border-box;
+
+    /* 🎨 BONUS VISUAL */
+    background:#f8fafc;
+    padding:6px;
+    border-radius:12px;
 }
 
 #buscador{
@@ -81,11 +89,17 @@ body{
     border-radius:20px;
     border:1px solid #ddd;
     font-size:14px;
+    outline:none;
+
+    box-sizing:border-box; /* 🔥 SOLUCIÓN PRINCIPAL */
     transition:0.2s;
+
+    /* 🔥 OPCIONAL PRO */
+    background:white;
 }
 
 #buscador:focus{
-    border-color:var(--secondary);
+    border-color:#1976D2;
     box-shadow:0 0 0 2px rgba(25,118,210,0.15);
 }
 
