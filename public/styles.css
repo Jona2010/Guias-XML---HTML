@@ -42,6 +42,20 @@ body {
   min-height: 100vh;
 }
 
+.header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    height: 70px; /* 🔥 límite real */
+    padding: 0 20px;
+
+    background: #1e4fa3;
+    color: white;
+
+    overflow: hidden; /* 🔥 evita desbordes */
+}
+
 /* =====================================================
    CONTENEDOR
 ===================================================== */
