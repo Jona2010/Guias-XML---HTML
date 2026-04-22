@@ -22,6 +22,7 @@ let buscando          = false;
 let ultimaGuiaCargada = null;
 let hayMasPaginas = true;
 let guiaSeleccionadaId = null;
+let ultimaGuiaCargada = null;
 
 // ── Buscador: control de race conditions ──
 let debounceTimer      = null;   // setTimeout del debounce
@@ -220,7 +221,8 @@ function mostrarGuiaBonita(g){
                            text-align:center; font-size:13px;">
                     ${item.linea ?? idx + 1}
                 </td>
-                <td style="padding:8px;">
+                <td style="padding:8px; border-bottom:1px solid #eee;
+                           word-break:break-word; white-space:normal; font-size:13px;">
                     ${item.codigo_bien || "-"}
                 </td>
                 <td style="padding:8px; border-bottom:1px solid #eee;
@@ -271,23 +273,26 @@ async function guardarGuia(g){
 // ✅ CORREGIDO: "guia is not defined"
 // ----------------------
 async function verGuiaPorId(id){
-    if(!id){ mostrarAlerta("❌ ID inválido", "error"); return; }
+    if(!id){ 
+        mostrarAlerta("❌ ID inválido", "error"); 
+        return; 
+    }
 
-    const requestId   = Date.now();
-    ultimaGuiaCargada = requestId;
+    const requestId = Date.now();
+
+    // 🔴 NUEVA variable para control (NO usar ultimaGuiaCargada aquí)
+    verGuiaPorId._lastRequestId = requestId;
 
     const { ok, data, error } = await fetchJSON(`${API_URL}/guias/${id}`);
 
-    // ✅ Descartar respuestas obsoletas
-    if(requestId !== ultimaGuiaCargada) return;
+    // ✅ evitar respuestas viejas
+    if(requestId !== verGuiaPorId._lastRequestId) return;
 
-    // ✅ Error de red
     if(error){
         mostrarAlerta(error, "error");
         return;
     }
 
-    // ✅ Validar que data existe y tiene ok:true
     if(!ok || !data || !data.ok){
         mostrarAlerta(
             data?.mensaje || `⚠️ Guía no encontrada (ID: ${id})`,
@@ -296,7 +301,6 @@ async function verGuiaPorId(id){
         return;
     }
 
-    // ✅ Construir objeto guia con valores por defecto seguros
     const guia = {
         numero:        data.numero        || "",
         fecha_emision: data.fecha_emision || "",
@@ -321,8 +325,11 @@ async function verGuiaPorId(id){
         items: Array.isArray(data.items) ? data.items : []
     };
 
-    // ✅ Ahora guia siempre está definido antes de llamar a mostrarGuiaBonita
+    // ✅ mostrar
     mostrarGuiaBonita(guia);
+
+    // 🔥 GUARDAR LA GUÍA REAL (PARA EXPORTAR)
+    ultimaGuiaCargada = guia;
 }
 
 // ----------------------
@@ -674,7 +681,8 @@ async function exportarPDF(){
         pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
     }
-    pdf.save("guia_sunat.pdf");
+    
+    pdf.save(`guia_${ultimaGuiaCargada.numero}.pdf`);
 }
 
 // ----------------------
