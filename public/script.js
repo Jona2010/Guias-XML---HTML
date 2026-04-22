@@ -569,16 +569,19 @@ async function filtrarGuias(){
     data.forEach(g => {
 
         // 🔹 Items separados
-        const items = (g.items || []).filter(i =>
-            (i.descripcion || "").toLowerCase().includes(textoLower)
-        );
-
         const itemsHTML = items.length
             ? items.slice(0,2).map(i =>
-                `<div style="font-size:11px;">
+                `<div style="
+                    font-size:11px;
+                    line-height:1.3;
+                    max-height:32px;
+                    overflow:hidden;
+                    text-overflow:ellipsis;
+                    white-space:nowrap;
+                ">
                     📦 ${resaltarTexto(i.descripcion, texto)}
                 </div>`
-              ).join("")
+            ).join("")
             : `<span style="color:#ccc;">—</span>`;
 
         // 🔹 Partida separada
