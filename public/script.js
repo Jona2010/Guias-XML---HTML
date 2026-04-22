@@ -215,28 +215,59 @@ function mostrarGuiaBonita(g){
         g.items.forEach((item, idx) => {
             const bg = idx % 2 === 0 ? "#ffffff" : "#f5f5f5";
             html += `
-            <tr style="background:${bg};">
+            <tr style="background:${bg};"
+                onmouseover="this.style.background='#f1f8ff'"
+                onmouseout="this.style.background='${bg}'">
+
                 <td style="padding:8px; border-bottom:1px solid #eee;
-                           text-align:center; font-size:13px;">
+                        text-align:center; font-size:13px; vertical-align:middle;">
                     ${item.linea ?? idx + 1}
                 </td>
-                <td style="padding:8px; border-bottom:1px solid #eee;
-                           word-break:break-word; white-space:normal; font-size:13px;">
-                    ${item.codigo_bien || "-"}
+
+                <td style="
+                    padding:8px;
+                    border-bottom:1px solid #eee;
+                    border-right:1px solid #eee;
+                    background:#fafafa;
+                    vertical-align:middle;
+                ">
+                    <span style="
+                        font-family:monospace;
+                        font-size:11px;
+                        color:#1a237e;
+                        background:#eef3ff;
+                        padding:3px 6px;
+                        border-radius:6px;
+                        border:1px solid #d6e0ff;
+                        display:inline-block;
+                        word-break:break-all;
+                    ">
+                        ${item.codigo_bien || "-"}
+                    </span>
                 </td>
-                <td style="padding:8px; border-bottom:1px solid #eee;
-                           word-break:break-word; white-space:normal; font-size:13px;">
+
+                <td style="
+                    padding:8px;
+                    border-bottom:1px solid #eee;
+                    font-size:13px;
+                    color:#222;
+                    font-weight:500;
+                    vertical-align:middle;
+                ">
                     ${item.descripcion || "-"}
                 </td>
+
                 <td style="padding:8px; border-bottom:1px solid #eee;
-                           text-align:center; font-size:13px;">
+                        text-align:center; font-size:13px; vertical-align:middle;">
                     ${item.cantidad || "-"}
                 </td>
+
                 <td style="padding:8px; border-bottom:1px solid #eee;
-                           text-align:center; font-size:13px;">
+                        text-align:center; font-size:13px; vertical-align:middle;">
                     ${item.unidad || "-"}
                 </td>
-            </tr>`;
+
+            </tr>`
         });
     }
 
