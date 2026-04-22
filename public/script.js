@@ -569,11 +569,20 @@ async function filtrarGuias(){
     data.forEach(g => {
 
         // 🔹 Items separados
-        const textoNorm = normalizarTexto(texto);
+        function limpiarTexto(t) {
+            return (t || "")
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+        }
 
-        const items = (g.items || []).filter(i =>
-            normalizarTexto(i.descripcion).includes(textoNorm)
-        );
+        const textoLimpio = limpiarTexto(texto);
+
+        const items = (g.items || []).filter(i => {
+            const desc = limpiarTexto(i.descripcion);
+
+            return desc.includes(textoLimpio) || textoLimpio.includes(desc);
+        });
 
         const itemsHTML = items.length
             ? items.slice(0, 2).map(i => `
@@ -999,13 +1008,19 @@ function formatearDireccionHTML(direccion) {
 function formatearClienteHTML(nombre) {
     if (!nombre) return `<span style="color:#ccc;">—</span>`;
 
-    const partes = nombre.split(" ");
+    nombre = nombre.replace(/\s+/g, " ").trim();
 
-    let linea1 = partes.slice(0, 2).join(" ");
-    let linea2 = partes.slice(2).join(" ");
+    const palabras = nombre.split(" ");
+
+    let linea1 = palabras.slice(0, 2).join(" ");
+    let linea2 = palabras.slice(2).join(" ");
 
     return `
-        <div style="line-height:1.3;">
+        <div style="
+            line-height:1.2;
+            white-space:normal;
+            word-break:break-word;
+        ">
             <div>${linea1}</div>
             ${linea2 ? `<div>${linea2}</div>` : ""}
         </div>

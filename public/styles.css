@@ -231,8 +231,9 @@ tbody tr:hover {
 
 /* 🔹 CLIENTE */
 .td-cliente {
-  width: 20%;
+  white-space: normal !important;
   word-break: break-word;
+  max-width: 140px;
 }
 
 .col-items {
