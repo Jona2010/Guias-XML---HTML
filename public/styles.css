@@ -414,6 +414,66 @@ tbody tr:hover {
   margin-top: 10px;
 }
 
+/* =========================
+   UPLOAD BAR
+========================= */
+.upload-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+  margin-bottom: 15px;
+  justify-content: space-between;
+}
+
+.upload-label {
+  font-weight: 600;
+  color: #333;
+}
+
+/* =========================
+   FILE INPUT CUSTOM
+========================= */
+.file-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-wrapper input[type="file"] {
+  display: none;
+}
+
+/* Botón fake */
+.file-wrapper::before {
+  content: "📂 Elegir archivo";
+  background: #eef3ff;
+  border: 1px solid #ccd6ff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s;
+}
+
+.file-wrapper:hover::before {
+  background: #dfe8ff;
+}
+
+/* Nombre archivo */
+#file-name {
+  font-size: 13px;
+  color: #555;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ============================= */
 /* RESPONSIVE */
 /* ============================= */

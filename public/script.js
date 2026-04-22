@@ -1086,3 +1086,16 @@ document.addEventListener("DOMContentLoaded", () => {
 document.getElementById("buscador").addEventListener("input", filtrarGuias);
 document.getElementById("filtro-anio").addEventListener("change", filtrarGuias);
 document.getElementById("filtro-mes").addEventListener("change", filtrarGuias);
+
+function initUpload() {
+    const inputFile = document.getElementById("xmlfile");
+
+    if (!inputFile) return;
+
+    inputFile.addEventListener("change", function () {
+        const fileName = this.files[0]?.name || "Ningún archivo seleccionado";
+        document.getElementById("file-name").textContent = fileName;
+    });
+}
+
+document.addEventListener("DOMContentLoaded", initUpload);
