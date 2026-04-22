@@ -22,6 +22,7 @@ let buscando          = false;
 let ultimaGuiaCargada = null;
 let hayMasPaginas = true;
 let guiaSeleccionadaId = null;
+const lista = data.data;
 
 // ── Buscador: control de race conditions ──
 let debounceTimer      = null;   // setTimeout del debounce
@@ -400,7 +401,7 @@ async function mostrarHistorial(){
         return;
     }
 
-    hayMasPaginas = data.length === limite;
+    hayMasPaginas = data.data.length === limite;
 
     const inicio = (pagina * limite) + 1;
     const fin    = inicio + data.length - 1;
@@ -417,7 +418,7 @@ async function mostrarHistorial(){
         <tbody>
     `;
 
-    data.forEach(g => {
+    lista.forEach(g => {
 
         // ✅ FIX: truncar con ellipsis en JS
         const cliente = (g.destinatario_nombre || "-").length > 20
@@ -566,7 +567,7 @@ async function filtrarGuias(){
         <tbody>
         `;
 
-    data.forEach(g => {
+    lista.forEach(g => {
 
         // 🔹 Items separados
         function limpiarTexto(t) {
