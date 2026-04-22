@@ -22,7 +22,6 @@ let buscando          = false;
 let ultimaGuiaCargada = null;
 let hayMasPaginas = true;
 let guiaSeleccionadaId = null;
-const lista = data.data;
 
 // ── Buscador: control de race conditions ──
 let debounceTimer      = null;   // setTimeout del debounce
@@ -299,7 +298,7 @@ async function guardarGuia(g){
 
 // ----------------------
 // VER GUIA POR ID
-// ✅ CORREGIDO: "guia is not defined"
+// ✅ CORREGIDO TOTAL (estructura data.data)
 // ----------------------
 async function verGuiaPorId(id){
     if(!id){ 
@@ -309,12 +308,12 @@ async function verGuiaPorId(id){
 
     const requestId = Date.now();
 
-    // 🔴 NUEVA variable para control (NO usar ultimaGuiaCargada aquí)
+    // 🔴 Control de concurrencia
     verGuiaPorId._lastRequestId = requestId;
 
     const { ok, data, error } = await fetchJSON(`${API_URL}/guias/${id}`);
 
-    // ✅ evitar respuestas viejas
+    // ✅ Evitar respuestas viejas
     if(requestId !== verGuiaPorId._lastRequestId) return;
 
     if(error){
@@ -322,7 +321,7 @@ async function verGuiaPorId(id){
         return;
     }
 
-    if(!ok || !data || !data.ok){
+    if(!ok || !data || !data.ok || !data.data){
         mostrarAlerta(
             data?.mensaje || `⚠️ Guía no encontrada (ID: ${id})`,
             "error"
@@ -330,34 +329,37 @@ async function verGuiaPorId(id){
         return;
     }
 
+    // 🔥 FIX CLAVE: acceder a data.data
+    const g = data.data;
+
     const guia = {
-        numero:        data.numero        || "",
-        fecha_emision: data.fecha_emision || "",
-        hora_emision:  data.hora_emision  || "",
+        numero:        g.numero        || "",
+        fecha_emision: g.fecha_emision || "",
+        hora_emision:  g.hora_emision  || "",
         remitente: {
-            ruc:          data.remitente_ruc    || "-",
-            razon_social: data.remitente_nombre || "-"
+            ruc:          g.remitente_ruc    || "-",
+            razon_social: g.remitente_nombre || "-"
         },
         destinatario: {
-            nombre: data.destinatario_nombre || "-"
+            nombre: g.destinatario_nombre || "-"
         },
         traslado: {
-            motivo:     data.motivo     || "-",
-            peso_total: data.peso_total || "-"
+            motivo:     g.motivo     || "-",
+            peso_total: g.peso_total || "-"
         },
         partida: {
-            direccion: data.direccion_partida || ""
+            direccion: g.direccion_partida || ""
         },
         llegada: {
-            direccion: data.direccion_llegada || ""
+            direccion: g.direccion_llegada || ""
         },
-        items: Array.isArray(data.items) ? data.items : []
+        items: Array.isArray(g.items) ? g.items : []
     };
 
-    // ✅ mostrar
+    // ✅ Mostrar en UI
     mostrarGuiaBonita(guia);
 
-    // 🔥 GUARDAR LA GUÍA REAL (PARA EXPORTAR)
+    // 🔥 Guardar para exportar
     ultimaGuiaCargada = guia;
 }
 
@@ -404,7 +406,7 @@ async function mostrarHistorial(){
     hayMasPaginas = data.data.length === limite;
 
     const inicio = (pagina * limite) + 1;
-    const fin    = inicio + data.length - 1;
+    const fin = inicio + data.data.length - 1;
 
     let html = `
     <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
@@ -417,6 +419,8 @@ async function mostrarHistorial(){
         </thead>
         <tbody>
     `;
+
+    const lista = data.data;
 
     lista.forEach(g => {
 
@@ -566,6 +570,8 @@ async function filtrarGuias(){
         </thead>
         <tbody>
         `;
+
+    const lista = data.data;
 
     lista.forEach(g => {
 
