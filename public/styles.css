@@ -37,8 +37,9 @@ html {
 body {
   background-color: var(--color-bg);
   font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-  color: var(--color-text);
+  color: var(--color-text, #333);
   line-height: 1.6;
+  min-height: 100vh;
 }
 
 /* =====================================================
@@ -93,10 +94,13 @@ p {
   font-weight: 600;
 }
 
-input[type="file"] {
-  padding: 6px;
+input[type="file"]::file-selector-button {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 6px 10px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  cursor: pointer;
 }
 
 /* =====================================================
@@ -117,6 +121,11 @@ input[type="file"] {
 
 .btn:focus {
   outline: 2px solid rgba(47,128,237,0.4);
+}
+
+.btn:focus-visible {
+  outline: 2px solid #2F80ED;
+  outline-offset: 2px;
 }
 
 /* PRIMARY */
@@ -172,6 +181,7 @@ input[type="file"] {
 .table-container {
   overflow-x: auto;
   border-radius: 10px;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -188,6 +198,7 @@ thead {
 th, td {
   padding: 12px;
   font-size: 14px;
+  border-bottom: 1px solid #eee;
 }
 
 tbody tr:nth-child(even) {
@@ -300,7 +311,7 @@ input:focus {
 /* =====================================================
    EXTRA UX (HOVER GLOBAL)
 ===================================================== */
-button:hover {
+.btn:hover {
   opacity: 0.95;
 }
 
