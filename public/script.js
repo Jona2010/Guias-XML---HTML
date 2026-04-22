@@ -569,8 +569,10 @@ async function filtrarGuias(){
     data.forEach(g => {
 
         // 🔹 Items separados
+        const textoNorm = normalizarTexto(texto);
+
         const items = (g.items || []).filter(i =>
-            (i.descripcion || "").toLowerCase().includes(textoLower)
+            normalizarTexto(i.descripcion).includes(textoNorm)
         );
 
         const itemsHTML = items.length
@@ -583,7 +585,7 @@ async function filtrarGuias(){
                     padding:2px 4px;
                     margin-bottom:2px;
                 ">
-                    📦 ${resaltarTexto(i.descripcion || "", texto)}
+                    📦 ${resaltarTexto(i.descripcion || "", textoNorm)}
                 </div>
             `).join("")
             : `<span style="color:#ccc;">—</span>`;
@@ -1020,6 +1022,14 @@ function formatearNumeroGuia(numero){
     }
 
     return numero;
+}
+
+function normalizarTexto(t) {
+    return (t || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // quitar tildes
+        .replace(/s$/, ""); // quitar plural simple
 }
 
 // ----------------------
