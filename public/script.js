@@ -585,7 +585,7 @@ async function filtrarGuias(){
                     padding:2px 4px;
                     margin-bottom:2px;
                 ">
-                    📦 ${resaltarTexto(i.descripcion || "", textoNorm)}
+                    📦 ${resaltarTexto(i.descripcion || "", texto)}
                 </div>
             `).join("")
             : `<span style="color:#ccc;">—</span>`;
@@ -996,15 +996,20 @@ function formatearDireccionHTML(direccion) {
     `;
 }
 
-function formatearClienteHTML(texto) {
-    if (!texto) return "-";
+function formatearClienteHTML(nombre) {
+    if (!nombre) return `<span style="color:#ccc;">—</span>`;
 
-    const palabras = texto.split(" ");
+    const partes = nombre.split(" ");
 
-    if (palabras.length <= 2) return texto;
+    let linea1 = partes.slice(0, 2).join(" ");
+    let linea2 = partes.slice(2).join(" ");
 
-    return palabras.slice(0, 2).join(" ") + "<br>" +
-           palabras.slice(2, 4).join(" ");
+    return `
+        <div style="line-height:1.3;">
+            <div>${linea1}</div>
+            ${linea2 ? `<div>${linea2}</div>` : ""}
+        </div>
+    `;
 }
 
 function formatearNumeroGuia(numero){
