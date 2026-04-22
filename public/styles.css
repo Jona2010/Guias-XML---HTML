@@ -405,6 +405,20 @@ tbody tr:hover {
   cursor: not-allowed;
 }
 
+.btn-file {
+  background: #eef3ff;
+  border: 1px solid #ccd6ff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s;
+}
+
+.btn-file:hover {
+  background: #dfe8ff;
+}
+
 /* ============================= */
 /* CONTENEDOR BOTONES */
 /* ============================= */

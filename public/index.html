@@ -74,19 +74,14 @@
         <section class="guia-panel">
 
             <!-- CARGA XML (MEJORADO) -->
-            <div class="upload-bar">
+            <div class="file-wrapper">
+                <label for="xmlfile" class="btn-file">
+                    📂 Elegir archivo
+                </label>
 
-                <label class="upload-label">Seleccionar XML:</label>
+                <input type="file" id="xmlfile" accept=".xml">
 
-                <div class="file-wrapper">
-                    <input type="file" id="xmlfile" accept=".xml">
-                    <span id="file-name">Ningún archivo seleccionado</span>
-                </div>
-
-                <button class="btn btn-primary" onclick="leerGuia()">
-                    📤 Procesar
-                </button>
-
+                <span id="file-name">Ningún archivo seleccionado</span>
             </div>
 
             <!-- EXPORTACIONES -->

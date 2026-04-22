@@ -1087,15 +1087,24 @@ document.getElementById("buscador").addEventListener("input", filtrarGuias);
 document.getElementById("filtro-anio").addEventListener("change", filtrarGuias);
 document.getElementById("filtro-mes").addEventListener("change", filtrarGuias);
 
-function initUpload() {
-    const inputFile = document.getElementById("xmlfile");
+document.addEventListener("DOMContentLoaded", () => {
 
-    if (!inputFile) return;
+    const inputFile = document.getElementById("xmlfile");
+    const fileName  = document.getElementById("file-name");
+
+    if (!inputFile) {
+        console.error("❌ No se encontró #xmlfile");
+        return;
+    }
 
     inputFile.addEventListener("change", function () {
-        const fileName = this.files[0]?.name || "Ningún archivo seleccionado";
-        document.getElementById("file-name").textContent = fileName;
-    });
-}
+        const nombre = this.files[0]?.name || "Ningún archivo seleccionado";
 
-document.addEventListener("DOMContentLoaded", initUpload);
+        if (fileName) {
+            fileName.textContent = nombre;
+        }
+
+        console.log("📂 Archivo seleccionado:", nombre);
+    });
+
+});
