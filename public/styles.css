@@ -1,147 +1,178 @@
-/* =====================================================
-   RESET GLOBAL
-===================================================== */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-/* =====================================================
-   VARIABLES (ESCALABLE + SEO/UX)
-===================================================== */
+/* ============================= */
+/* VARIABLES (BASE SISTEMA) */
+/* ============================= */
 :root {
-  --color-primary: #2F80ED;
-  --color-primary-dark: #1c60c7;
-  --color-success: #1D6F42;
-  --color-success-dark: #155c36;
-  --color-danger: #E53935;
-  --color-danger-dark: #c62828;
-  --color-bg: #f4f6f9;
+  --color-primary: #1976D2;
+  --color-primary-dark: #1565c0;
+
+  --color-success: #2e7d32;
+  --color-success-dark: #1b5e20;
+
+  --color-danger: #c62828;
+  --color-danger-dark: #8e0000;
+
+  --color-bg: #f5f7fa;
   --color-card: #ffffff;
-  --color-text: #333;
-  --color-muted: #777;
-  --border-radius: 12px;
+  --color-text: #1e293b;
+
   --transition: all 0.2s ease;
 }
 
-/* =====================================================
-   BASE
-===================================================== */
-html {
-  scroll-behavior: smooth;
+/* ============================= */
+/* RESET */
+/* ============================= */
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background-color: var(--color-bg);
-  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-  color: var(--color-text, #333);
-  line-height: 1.6;
-  min-height: 100vh;
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
+/* ============================= */
+/* HEADER */
+/* ============================= */
 .header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 
-    height: 80px;
-    padding: 10px 20px;
+  height: 80px;
+  padding: 10px 20px;
 
-    background: #1e4fa3;
-    color: white;
-
-    overflow: hidden;
+  background: var(--color-primary);
+  color: white;
 }
 
 .header img {
-    height: 100%;
-    max-height: 60px;
-    width: auto;
-    object-fit: contain;
+  max-height: 60px;
+  height: 100%;
+  object-fit: contain;
 }
 
-/* =====================================================
-   CONTENEDOR
-===================================================== */
+/* ============================= */
+/* LAYOUT */
+/* ============================= */
 .container {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 20px;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
 
-    max-width: 1400px;
-    margin: 20px auto;
-    padding: 0 10px;
+  max-width: 1400px;
+  margin: 20px auto;
+  padding: 0 10px;
 }
 
-/* =====================================================
-   TITULOS
-===================================================== */
-h1, h2, h3 {
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-
-p {
-  margin-bottom: 10px;
-  color: var(--color-muted);
-}
-
-/* =====================================================
-   CARD
-===================================================== */
-.card {
+/* ============================= */
+/* SIDEBAR */
+/* ============================= */
+.sidebar {
   background: var(--color-card);
-  border-radius: var(--border-radius);
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transition: var(--transition);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  height: fit-content;
 }
 
-.card:hover {
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+.sidebar h3 {
+  margin-bottom: 12px;
 }
 
-/* =====================================================
-   TOP BAR
-===================================================== */
-.top-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
+/* ============================= */
+/* BUSCADOR */
+/* ============================= */
+.buscador-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 10px;
 }
 
-.top-bar label {
-  font-weight: 600;
+.buscador-wrapper input {
+  width: 100%;
+  padding: 10px 36px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 13px;
+  outline: none;
 }
 
-input[type="file"]::file-selector-button {
-  background: var(--color-primary);
-  color: white;
+.buscador-wrapper input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(25,118,210,0.15);
+}
+
+.buscador-wrapper::before {
+  content: "🔍";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#btn-limpiar {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   border: none;
-  padding: 6px 10px;
-  border-radius: 6px;
+  background: transparent;
   cursor: pointer;
 }
 
+/* ============================= */
+/* TABLA */
+/* ============================= */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead tr {
+  background: var(--color-primary);
+  color: white;
+}
+
+th, td {
+  padding: 8px;
+  font-size: 13px;
+}
+
+tbody tr {
+  transition: var(--transition);
+}
+
+tbody tr:hover {
+  background: #f1f8ff;
+  cursor: pointer;
+}
+
+/* FILA ACTIVA */
 .fila-activa {
-    background: #e3f2fd !important;
-    border-left: 4px solid #1976D2;
-    font-weight: 600;
+  background: #e3f2fd !important;
+  border-left: 4px solid var(--color-primary);
 }
 
 .fila-activa td {
-    font-weight: 600;
-    color: #0d47a1;
+  font-weight: 600;
+  color: #0d47a1;
 }
 
-/* =====================================================
-   BOTONES
-===================================================== */
+/* ============================= */
+/* TARJETAS */
+/* ============================= */
+.card {
+  background: var(--color-card);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* ============================= */
+/* BOTONES (🔥 TU SISTEMA) */
+/* ============================= */
 .btn {
   border: none;
   padding: 10px 16px;
@@ -201,219 +232,20 @@ input[type="file"]::file-selector-button {
   cursor: not-allowed;
 }
 
-/* =====================================================
-   ACTIONS
-===================================================== */
-.actions {
+/* ============================= */
+/* CONTENEDOR BOTONES */
+/* ============================= */
+.export-buttons {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   margin-top: 10px;
-  flex-wrap: wrap;
 }
 
-/* =====================================================
-   TABLAS
-===================================================== */
-.table-container {
-  overflow-x: auto;
-  border-radius: 10px;
-  -webkit-overflow-scrolling: touch;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-}
-
-thead {
-  background: var(--color-primary);
-  color: white;
-}
-
-th, td {
-  padding: 12px;
-  font-size: 14px;
-  border-bottom: 1px solid #eee;
-}
-
-tbody tr {
-    transition: all 0.2s ease;
-}
-
-tbody tr:hover {
-    background: #f1f8ff;
-    cursor: pointer;
-}
-
-tbody tr:nth-child(even) {
-  background: #f9f9f9;
-}
-
-/* =====================================================
-   INPUTS
-===================================================== */
-input, select {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-input:focus {
-  border-color: var(--color-primary);
-  outline: none;
-}
-
-
-
-/* =====================================================
-   SCROLL PERSONALIZADO
-===================================================== */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #aaa;
-}
-
-/* =====================================================
-   BUSCADOR
-===================================================== */
-.buscador-wrapper {
-    position: relative;
-    width: 100%;
-    margin-bottom: 10px;
-}
-
-.buscador-wrapper input {
-    width: 100%;
-    padding: 10px 36px 10px 36px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    font-size: 13px;
-    outline: none;
-    box-sizing: border-box;
-}
-
-.buscador-wrapper input:focus {
-    border-color: #1976D2;
-    box-shadow: 0 0 0 2px rgba(25,118,210,0.15);
-}
-
-.buscador-wrapper::before {
-    content: "🔍";
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 14px;
-}
-
-#btn-limpiar {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font-size: 14px;
-    color: #999;
-}
-
-/* =====================================================
-   BADGES
-===================================================== */
-.badge {
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-}
-
-.badge-success {
-  background: #e6f4ea;
-  color: var(--color-success);
-}
-
-.badge-danger {
-  background: #fdecea;
-  color: var(--color-danger);
-}
-
-/* =====================================================
-   UTILIDADES
-===================================================== */
-.mt-1 { margin-top: 5px; }
-.mt-2 { margin-top: 10px; }
-.mt-3 { margin-top: 15px; }
-
-.mb-1 { margin-bottom: 5px; }
-.mb-2 { margin-bottom: 10px; }
-.mb-3 { margin-bottom: 15px; }
-
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-
-/* =====================================================
-   ANIMACIONES
-===================================================== */
-.fade-in {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* =====================================================
-   RESPONSIVE
-===================================================== */
-@media (max-width: 768px) {
-
-  .top-bar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .actions {
-    flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  table {
-    font-size: 12px;
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+@media (max-width: 900px) {
+  .container {
+    grid-template-columns: 1fr;
   }
 }
-
-/* =====================================================
-   EXTRA UX (HOVER GLOBAL)
-===================================================== */
-.btn:hover {
-  opacity: 0.95;
-}
-
-/* =====================================================
-   SOMBRA SUAVE GLOBAL
-===================================================== */
-.shadow-sm {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-.shadow-md {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-/* =====================================================
-   FIN (CSS ESCALABLE)
-===================================================== */
