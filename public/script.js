@@ -215,9 +215,7 @@ function mostrarGuiaBonita(g){
         g.items.forEach((item, idx) => {
             const bg = idx % 2 === 0 ? "#ffffff" : "#f5f5f5";
             html += `
-            <tr style="background:${bg};"
-                onmouseover="this.style.background='#f1f8ff'"
-                onmouseout="this.style.background='${bg}'">
+            <tr style="background:${bg};">
 
                 <td style="padding:8px; border-bottom:1px solid #eee;
                         text-align:center; font-size:13px; vertical-align:middle;">

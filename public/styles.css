@@ -129,8 +129,14 @@ input[type="file"]::file-selector-button {
 }
 
 .fila-activa {
-    background: #dbeafe !important;
+    background: #e3f2fd !important;
     border-left: 4px solid #1976D2;
+    font-weight: 600;
+}
+
+.fila-activa td {
+    font-weight: 600;
+    color: #0d47a1;
 }
 
 /* =====================================================
@@ -231,17 +237,17 @@ th, td {
   border-bottom: 1px solid #eee;
 }
 
-tr:hover {
-    background: #f1f8ff !important;
+tbody tr {
+    transition: all 0.2s ease;
+}
+
+tbody tr:hover {
+    background: #f1f8ff;
     cursor: pointer;
 }
 
 tbody tr:nth-child(even) {
   background: #f9f9f9;
-}
-
-tbody tr:hover {
-  background: #eef4ff;
 }
 
 /* =====================================================
@@ -274,6 +280,51 @@ input:focus {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #aaa;
+}
+
+/* =====================================================
+   BUSCADOR
+===================================================== */
+.buscador-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.buscador-wrapper input {
+    width: 100%;
+    padding: 10px 36px 10px 36px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 13px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.buscador-wrapper input:focus {
+    border-color: #1976D2;
+    box-shadow: 0 0 0 2px rgba(25,118,210,0.15);
+}
+
+.buscador-wrapper::before {
+    content: "🔍";
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+}
+
+#btn-limpiar {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    color: #999;
 }
 
 /* =====================================================
