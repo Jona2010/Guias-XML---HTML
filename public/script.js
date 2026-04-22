@@ -1093,7 +1093,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const fileName  = document.getElementById("file-name");
 
     if (!inputFile) {
-        console.error("❌ No se encontró #xmlfile");
+        console.warn("⚠️ xmlfile no encontrado");
         return;
     }
 
@@ -1103,8 +1103,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (fileName) {
             fileName.textContent = nombre;
         }
-
-        console.log("📂 Archivo seleccionado:", nombre);
     });
 
 });
