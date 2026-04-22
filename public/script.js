@@ -584,20 +584,43 @@ async function filtrarGuias(){
             return desc.includes(textoLimpio) || textoLimpio.includes(desc);
         });
 
-        const itemsHTML = items.length
-            ? items.slice(0, 2).map(i => `
+        const todosItems = g.items || [];
+
+        const itemsMatch = todosItems.filter(i =>
+            limpiarTexto(i.descripcion).includes(textoLimpio)
+        );
+
+        // 🔥 Ordenar: primero los que coinciden
+        const itemsOrdenados = [
+            ...itemsMatch,
+            ...todosItems.filter(i => !itemsMatch.includes(i))
+        ];
+
+        // 🔥 Mostrar máximo 3
+        const itemsMostrar = itemsOrdenados.slice(0, 3);
+
+        const restantes = todosItems.length - itemsMostrar.length;
+
+        const itemsHTML = itemsMostrar.map(i => {
+            const esMatch = itemsMatch.includes(i);
+
+            return `
                 <div style="
                     font-size:11px;
                     line-height:1.3;
-                    background:#f0f6ff;
-                    border-radius:4px;
                     padding:2px 4px;
-                    margin-bottom:2px;
+                    border-radius:4px;
+                    background:${esMatch ? "#fff3cd" : "transparent"};
+                    font-weight:${esMatch ? "600" : "normal"};
                 ">
-                    📦 ${resaltarTexto(i.descripcion || "", texto)}
+                    📦 ${esMatch
+                        ? resaltarTexto(i.descripcion, texto)
+                        : i.descripcion}
                 </div>
-            `).join("")
-            : `<span style="color:#ccc;">—</span>`;
+            `;
+        }).join("") + (restantes > 0
+            ? `<div style="font-size:11px; color:#777;">+${restantes} items</div>`
+            : "");
 
         // 🔥 Detectar si hubo match en items
         const hayMatchItems = items.length > 0;

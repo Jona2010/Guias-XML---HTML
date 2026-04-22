@@ -236,6 +236,11 @@ tbody tr:hover {
   max-width: 140px;
 }
 
+/* 🔹 ITEMS */
+.td-items div {
+  margin-bottom: 2px;
+}
+
 .col-items {
   width: 140px;
 }
