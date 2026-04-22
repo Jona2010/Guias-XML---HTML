@@ -681,7 +681,8 @@ async function exportarPDF(){
         pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
     }
-    
+
+    const nombre = ultimaGuiaCargada?.numero || "sin_numero";
     pdf.save(`guia_${ultimaGuiaCargada.numero}.pdf`);
 }
 
