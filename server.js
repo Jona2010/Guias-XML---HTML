@@ -265,6 +265,56 @@ app.get("/guias", async (req, res) => {
 });
 
 // ----------------------
+// OBTENER GUÍA POR ID
+// 🔥 FIX CRÍTICO
+// ----------------------
+app.get("/guias/:id", async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+
+        const guias = await query(
+            "SELECT * FROM guias WHERE id = ?", [id]
+        );
+
+        if(guias.length === 0){
+            return res.status(404).json({
+                ok: false,
+                mensaje: "❌ Guía no encontrada"
+            });
+        }
+
+        const items = await query(`
+            SELECT 
+                id,
+                guia_id,
+                linea,
+                codigo_bien,
+                descripcion,
+                cantidad,
+                unidad
+            FROM guia_items
+            WHERE guia_id = ?
+            ORDER BY CAST(linea AS UNSIGNED) ASC
+        `, [id]);
+
+        res.json({
+            ok: true,
+            data: {
+                ...guias[0],
+                items
+            }
+        });
+
+    } catch(err) {
+        console.error("❌ Error guía:", err.message);
+        res.status(500).json({
+            ok: false,
+            mensaje: err.message
+        });
+    }
+});
+
+// ----------------------
 // FALLBACK FRONTEND
 // ----------------------
 app.use((req, res) => {
