@@ -462,17 +462,6 @@ tbody tr:hover {
   display: none;
 }
 
-/* Botón fake */
-.file-wrapper::before {
-  background: #eef3ff;
-  border: 1px solid #ccd6ff;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: 0.2s;
-}
-
 .file-wrapper:hover::before {
   background: #dfe8ff;
 }
