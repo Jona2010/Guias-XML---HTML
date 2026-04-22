@@ -284,6 +284,12 @@ tbody tr:hover {
   overflow: hidden;
 }
 
+.td-partida div,
+.td-llegada div {
+  white-space: normal !important;
+  word-break: break-word;
+}
+
 #historial-lista table {
   width: 100%;
   table-layout: fixed;

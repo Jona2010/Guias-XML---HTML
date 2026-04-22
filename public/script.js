@@ -946,10 +946,9 @@ function formatearCliente(texto) {
 function formatearDireccionHTML(direccion) {
     if (!direccion) return `<span style="color:#ccc;">—</span>`;
 
-    // 🔹 Normalizar texto
     direccion = direccion.replace(/\s+/g, " ").trim();
 
-    // 🔹 Detectar parte final (REGIÓN - PROVINCIA - DISTRITO)
+    // 🔹 Separar región final (AREQUIPA - AREQUIPA - ...)
     const matchRegion = direccion.match(/([A-ZÁÉÍÓÚÑ\s]+-\s*[A-ZÁÉÍÓÚÑ\s]+-\s*[A-ZÁÉÍÓÚÑ\s]+)$/i);
 
     let region = "";
@@ -960,34 +959,32 @@ function formatearDireccionHTML(direccion) {
         base = direccion.replace(matchRegion[1], "").trim();
     }
 
-    // 🔹 Separar en bloques más legibles
-    // (por longitud aproximada o cortes naturales)
+    // 🔹 Cortes inteligentes por palabras clave
+    const cortes = ["NRO.", "KM", "URB.", "MZ.", "LT.", "INT.", "AV.", "CAL.", "CAR."];
+
     let partes = [];
+    let texto = base;
 
-    if (base.length > 45) {
-        // cortar en palabras, no en medio
-        const palabras = base.split(" ");
-        let linea = "";
-
-        palabras.forEach(p => {
-            if ((linea + " " + p).length > 45) {
-                partes.push(linea.trim());
-                linea = p;
-            } else {
-                linea += " " + p;
+    cortes.forEach(corte => {
+        if (texto.includes(corte)) {
+            const split = texto.split(corte);
+            if (split.length > 1) {
+                partes.push(split[0].trim());
+                texto = corte + split.slice(1).join(corte);
             }
-        });
+        }
+    });
 
-        if (linea) partes.push(linea.trim());
-    } else {
-        partes = [base];
-    }
+    partes.push(texto.trim());
+
+    // 🔹 Limpiar vacíos
+    partes = partes.filter(p => p.length > 0);
 
     // 🔹 Construir HTML
     return `
-        <div style="line-height:1.3">
+        <div style="line-height:1.3;">
             ${partes.map(p => `<div>${p}</div>`).join("")}
-            ${region ? `<div style="color:#555">${region}</div>` : ""}
+            ${region ? `<div style="color:#555;">${region}</div>` : ""}
         </div>
     `;
 }
@@ -1051,6 +1048,6 @@ document.addEventListener("DOMContentLoaded", () => {
     mostrarHistorial();
 });
 
-document.getElementById("buscador").addEventListener("input", filtrarHistorial);
-document.getElementById("filtro-anio").addEventListener("change", filtrarHistorial);
-document.getElementById("filtro-mes").addEventListener("change", filtrarHistorial);
+document.getElementById("buscador").addEventListener("input", filtrarGuias);
+document.getElementById("filtro-anio").addEventListener("change", filtrarGuias);
+document.getElementById("filtro-mes").addEventListener("change", filtrarGuias);
