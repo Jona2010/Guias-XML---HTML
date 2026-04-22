@@ -39,59 +39,80 @@
 
 <div class="container">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <div class="main-layout">
 
-        <h3><i class="fa-solid fa-folder"></i> Historial</h3>
+        <!-- 🔹 HISTORIAL (40%) -->
+        <aside class="card historial-panel">
 
-        <!-- ✅ BUSCADOR -->
-        <div class="buscador-wrapper">
-            <input
-                id="buscador"
-                type="text"
-                placeholder="Buscar por número de guía o item..."
-                autocomplete="off"
-            >
-            <button
-                id="btn-limpiar"
-                onclick="limpiarBusqueda()"
-                title="Limpiar búsqueda"
-            >✖</button>
-        </div>
+            <h3><i class="fa-solid fa-folder"></i> Historial</h3>
 
-        <!-- ✅ HISTORIAL NORMAL — visible por defecto -->
-        <div id="historial-lista"></div>
-
-        <!-- ✅ RESULTADOS BÚSQUEDA — oculto por defecto -->
-        <div id="historial-busqueda" style="display:none;"></div>
-
-    </aside>
-
-    <!-- MAIN -->
-    <section class="main">
-
-        <!-- CARGA XML -->
-        <div class="card-top">
-            <label><strong>Seleccionar XML:</strong></label>
-            <input type="file" id="xmlfile" accept=".xml">
-            <button class="btn btn-primary" onclick="leerGuia()">📤 Procesar</button>
-        </div>
-
-        <!-- EXPORTACIONES -->
-        <div class="export-buttons">
-            <button class="btn btn-excel" onclick="exportarExcel()">📊 Excel</button>
-            <button class="btn btn-pdf" onclick="exportarPDF()">📄 PDF</button>
-        </div>
-
-        <!-- VISOR -->
-        <div class="card">
-            <h2><i class="fa-solid fa-file"></i> Vista de Guía</h2>
-            <div id="pdf-area">
-                <div id="salida"></div>
+            <!-- BUSCADOR -->
+            <div class="buscador-wrapper">
+                <input
+                    id="buscador"
+                    type="text"
+                    placeholder="Buscar por número de guía o item..."
+                    autocomplete="off"
+                >
+                <button
+                    id="btn-limpiar"
+                    onclick="limpiarBusqueda()"
+                    title="Limpiar búsqueda"
+                >✖</button>
             </div>
-        </div>
 
-    </section>
+            <!-- 🔥 FILTROS NUEVOS -->
+            <div class="filters">
+                <select id="filtro-anio">
+                    <option value="">Año</option>
+                </select>
+
+                <select id="filtro-mes">
+                    <option value="">Mes</option>
+                </select>
+
+                <input type="text" placeholder="Origen">
+                <input type="text" placeholder="Destino">
+
+                <button class="btn btn-primary" onclick="filtrarHistorial()">Filtrar</button>
+            </div>
+
+            <!-- HISTORIAL -->
+            <div id="historial-lista"></div>
+
+            <!-- RESULTADOS BÚSQUEDA -->
+            <div id="historial-busqueda" style="display:none;"></div>
+
+        </aside>
+
+
+        <!-- 🔹 VISTA GUÍA (60%) -->
+        <section class="guia-panel">
+
+            <!-- CARGA XML -->
+            <div class="card-top">
+                <label><strong>Seleccionar XML:</strong></label>
+                <input type="file" id="xmlfile" accept=".xml">
+                <button class="btn btn-primary" onclick="leerGuia()">📤 Procesar</button>
+            </div>
+
+            <!-- EXPORTACIONES -->
+            <div class="export-buttons">
+                <button class="btn btn-excel" onclick="exportarExcel()">📊 Excel</button>
+                <button class="btn btn-pdf" onclick="exportarPDF()">📄 PDF</button>
+            </div>
+
+            <!-- VISOR -->
+            <div class="card">
+                <h2><i class="fa-solid fa-file"></i> Vista de Guía</h2>
+                <div id="pdf-area">
+                    <div id="salida"></div>
+                </div>
+            </div>
+
+        </section>
+
+    </div>
 
 </div>
 

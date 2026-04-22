@@ -32,12 +32,6 @@ body {
   color: var(--color-text);
 }
 
-.main {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
 /* ============================= */
 /* HEADER */
 /* ============================= */
@@ -63,16 +57,37 @@ body {
 /* LAYOUT */
 /* ============================= */
 .container {
-  display: grid;
-  grid-template-columns: minmax(380px, 45%) 1fr;
-  gap: 16px;
-  padding: 16px;
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* =====================================================
+   LAYOUT PRINCIPAL (40% HISTORIAL / 60% GUÍAS)
+===================================================== */
+.main-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* Historial */
+.historial-panel {
+  flex: 0 0 40%;
+  max-width: 40%;
+}
+
+/* Guía */
+.guia-panel {
+  flex: 0 0 60%;
+  max-width: 60%;
 }
 
 /* ============================= */
 /* SIDEBAR */
 /* ============================= */
-.sidebar {
+.sidebar,
+.historial-panel {
   background: var(--color-card);
   border-radius: 12px;
   padding: 15px;
@@ -151,6 +166,25 @@ tbody tr {
 
 tbody tr:hover {
   background: #f1f8ff;
+  cursor: pointer;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+  flex-wrap: wrap;
+}
+
+.filters input,
+.filters select {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 13px;
+}
+
+.filters select {
   cursor: pointer;
 }
 
@@ -379,5 +413,15 @@ tbody tr:hover {
 @media (max-width: 900px) {
   .container {
     grid-template-columns: 1fr;
+  }
+
+  .main-layout {
+  flex-direction: column;
+    }
+
+  .historial-panel,
+  .guia-panel {
+    max-width: 100%;
+    flex: 100%;
   }
 }
