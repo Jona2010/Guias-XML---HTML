@@ -419,6 +419,11 @@ tbody tr:hover {
   background: #dfe8ff;
 }
 
+.btn-procesar {
+  padding: 8px 16px;
+  font-weight: 600;
+}
+
 /* ============================= */
 /* CONTENEDOR BOTONES */
 /* ============================= */
