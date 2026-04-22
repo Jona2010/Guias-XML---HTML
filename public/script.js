@@ -569,6 +569,10 @@ async function filtrarGuias(){
     data.forEach(g => {
 
         // 🔹 Items separados
+        const items = (g.items || []).filter(i =>
+            (i.descripcion || "").toLowerCase().includes(textoLower)
+        );
+
         const itemsHTML = items.length
             ? items.slice(0,2).map(i =>
                 `<div style="
