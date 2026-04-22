@@ -1083,10 +1083,6 @@ document.addEventListener("DOMContentLoaded", () => {
     mostrarHistorial();
 });
 
-document.getElementById("buscador").addEventListener("input", filtrarGuias);
-document.getElementById("filtro-anio").addEventListener("change", filtrarGuias);
-document.getElementById("filtro-mes").addEventListener("change", filtrarGuias);
-
 document.addEventListener("DOMContentLoaded", () => {
 
     const inputFile = document.getElementById("xmlfile");
