@@ -18,6 +18,11 @@ body{
     font-size:18px;
     font-weight:bold;
     letter-spacing:0.5px;
+
+    /*LOGO*/
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 /* =========================
@@ -297,6 +302,12 @@ input[type="file"]{
 tr:hover {
     background: #e3f2fd;
     transition: 0.2s;
+}
+
+/* 🔥 LOGO */
+.logo {
+    height: 40px;
+    object-fit: contain;
 }
 
 /* =========================
