@@ -417,7 +417,7 @@ async function mostrarHistorial(){
         <tbody>
     `;
 
-    data.data.forEach(g => {
+    data.forEach(g => {
 
         // ✅ FIX: truncar con ellipsis en JS
         const cliente = (g.destinatario_nombre || "-").length > 20
@@ -566,7 +566,7 @@ async function filtrarGuias(){
         <tbody>
         `;
 
-    data.data.forEach(g => {
+    data.forEach(g => {
 
         // 🔹 Items separados
         function limpiarTexto(t) {
