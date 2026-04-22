@@ -157,7 +157,10 @@ app.get("/buscar", async (req, res) => {
             items: itemsPorGuia[g.id] || []
         }));
 
-        res.json(resultado);
+        res.json({
+            ok: true,
+            data: resultado
+        });
 
     } catch (err) {
         console.error("❌ Error búsqueda:", err.message);

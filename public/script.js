@@ -417,7 +417,7 @@ async function mostrarHistorial(){
         <tbody>
     `;
 
-    data.forEach(g => {
+    data.data.forEach(g => {
 
         // ✅ FIX: truncar con ellipsis en JS
         const cliente = (g.destinatario_nombre || "-").length > 20
@@ -542,7 +542,7 @@ async function filtrarGuias(){
         return;
     }
 
-    if(!data || data.length === 0){
+    if(!data || !data.data || data.data.length === 0)
         contBuscador.innerHTML = `
             <div style="text-align:center; padding:20px;">
                 🔍 Sin resultados para "<strong>${texto}</strong>"
@@ -566,7 +566,7 @@ async function filtrarGuias(){
         <tbody>
         `;
 
-    data.forEach(g => {
+    data.data.forEach(g => {
 
         // 🔹 Items separados
         function limpiarTexto(t) {
