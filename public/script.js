@@ -437,7 +437,7 @@ async function mostrarHistorial(){
                 📄 ${g.numero}
             </td>
             <td style="padding:7px 6px; color:#555;
-                       overflow:hidden; text-overflow:ellipsis;"
+                       overflow:hidden;"
                 title="${g.destinatario_nombre || ''}">
                 ${cliente}
             </td>
