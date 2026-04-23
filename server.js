@@ -315,6 +315,44 @@ app.get("/guias/:id", async (req, res) => {
 });
 
 // ----------------------
+// BUSCAR POR FECHA
+// ----------------------
+app.get("/buscar-por-fecha", async (req, res) => {
+
+    const { desde, hasta } = req.query;
+
+    if(!desde || !hasta){
+        return res.json({
+            ok: false,
+            mensaje: "Fechas inválidas"
+        });
+    }
+
+    try {
+
+        const result = await pool.query(`
+            SELECT *
+            FROM guias
+            WHERE fecha_emision BETWEEN $1 AND $2
+            ORDER BY fecha_emision DESC
+        `, [desde, hasta]);
+
+        res.json({
+            ok: true,
+            data: result.rows
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        res.json({
+            ok: false,
+            mensaje: "Error en el servidor"
+        });
+    }
+});
+
+// ----------------------
 // FALLBACK FRONTEND
 // ----------------------
 app.use((req, res) => {

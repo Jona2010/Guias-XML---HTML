@@ -1091,6 +1091,61 @@ function normalizarTexto(t) {
         .replace(/s$/, ""); // quitar plural simple
 }
 
+async function filtrarPorFecha(){
+
+    const desde = document.getElementById("fecha-desde").value;
+    const hasta = document.getElementById("fecha-hasta").value;
+
+    if(!desde || !hasta){
+        mostrarAlerta("Selecciona ambas fechas", "error");
+        return;
+    }
+
+    const contHistorial = document.getElementById("historial-lista");
+    const contBuscador  = document.getElementById("historial-busqueda");
+
+    contHistorial.style.display = "none";
+    contBuscador.style.display  = "block";
+
+    contBuscador.innerHTML = `
+        <div style="text-align:center; padding:20px;">
+            📅 Filtrando desde <b>${desde}</b> hasta <b>${hasta}</b>
+        </div>
+    `;
+
+    const { data, error } = await fetchJSON(
+        `${API_URL}/buscar-por-fecha?desde=${desde}&hasta=${hasta}`
+    );
+
+    if(error){
+        contBuscador.innerHTML = `<p style="color:red">${error}</p>`;
+        return;
+    }
+
+    if(!data || !data.data || data.data.length === 0){
+        contBuscador.innerHTML = `
+            <div style="text-align:center; padding:20px;">
+                Sin resultados en ese rango
+            </div>
+        `;
+        return;
+    }
+
+    // 🔥 reutiliza tu render existente
+    renderResultadosBusqueda(data.data, "");
+}
+
+function limpiarFiltroFecha(){
+
+    document.getElementById("fecha-desde").value = "";
+    document.getElementById("fecha-hasta").value = "";
+
+    document.getElementById("historial-busqueda").style.display = "none";
+    document.getElementById("historial-lista").style.display = "block";
+
+    mostrarHistorial();
+}
+
 // ----------------------
 // INIT
 // ----------------------
@@ -1141,3 +1196,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 });
+
+document.getElementById("fecha-desde")
+    .addEventListener("change", filtrarPorFecha);
+
+document.getElementById("fecha-hasta")
+    .addEventListener("change", filtrarPorFecha);
