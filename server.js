@@ -321,25 +321,19 @@ app.get("/buscar-por-fecha", async (req, res) => {
 
     const { desde, hasta } = req.query;
 
-    if(!desde || !hasta){
-        return res.json({
-            ok: false,
-            mensaje: "Fechas inválidas"
-        });
-    }
-
     try {
 
-        const result = await pool.query(`
+        const [rows] = await pool.query(`
             SELECT *
             FROM guias
-            WHERE fecha_emision BETWEEN $1 AND $2
+            WHERE fecha_emision >= ?
+            AND fecha_emision < DATE_ADD(?, INTERVAL 1 DAY)
             ORDER BY fecha_emision DESC
         `, [desde, hasta]);
 
         res.json({
             ok: true,
-            data: result.rows
+            data: rows
         });
 
     } catch (error) {
@@ -347,7 +341,7 @@ app.get("/buscar-por-fecha", async (req, res) => {
 
         res.json({
             ok: false,
-            mensaje: "Error en el servidor"
+            mensaje: "Error en servidor"
         });
     }
 });
