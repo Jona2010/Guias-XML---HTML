@@ -425,7 +425,9 @@ async function mostrarHistorial(){
     lista.forEach(g => {
 
         // ✅ FIX: truncar con ellipsis en JS
-        const clienteHTML = formatearClienteHTML(g.destinatario_nombre);
+        const cliente = formatearClienteHTML((g.destinatario_nombre || "-").length > 20
+            ? (g.destinatario_nombre || "-").substring(0, 20) + "..."
+            : (g.destinatario_nombre || "-"));
 
         html += `
         <tr onclick="seleccionarGuia(this, ${g.id})"
@@ -434,7 +436,8 @@ async function mostrarHistorial(){
                        overflow:hidden; text-overflow:ellipsis;">
                 📄 ${g.numero}
             </td>
-            <td style="padding:7px 6px; color:#555; overflow:hidden; text-overflow:ellipsis;"
+            <td style="padding:7px 6px; color:#555;
+                       overflow:hidden; text-overflow:ellipsis;"
                 title="${g.destinatario_nombre || ''}">
                 ${cliente}
             </td>
