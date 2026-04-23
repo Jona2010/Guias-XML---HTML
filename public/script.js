@@ -425,9 +425,7 @@ async function mostrarHistorial(){
     lista.forEach(g => {
 
         // ✅ FIX: truncar con ellipsis en JS
-        const cliente = (g.destinatario_nombre || "-").length > 20
-            ? (g.destinatario_nombre || "-").substring(0, 20) + "..."
-            : (g.destinatario_nombre || "-");
+        const clienteHTML = formatearClienteHTML(g.destinatario_nombre);
 
         html += `
         <tr onclick="seleccionarGuia(this, ${g.id})"
@@ -436,8 +434,7 @@ async function mostrarHistorial(){
                        overflow:hidden; text-overflow:ellipsis;">
                 📄 ${g.numero}
             </td>
-            <td style="padding:7px 6px; color:#555; white-space:nowrap;
-                       overflow:hidden; text-overflow:ellipsis;"
+            <td style="padding:7px 6px; color:#555; overflow:hidden; text-overflow:ellipsis;"
                 title="${g.destinatario_nombre || ''}">
                 ${cliente}
             </td>
@@ -1042,17 +1039,28 @@ function formatearClienteHTML(nombre) {
 
     const palabras = nombre.split(" ");
 
-    let linea1 = palabras.slice(0, 2).join(" ");
-    let linea2 = palabras.slice(2).join(" ");
+    // 🔹 Si es corto → 1 línea
+    if (palabras.length <= 2) {
+        return `
+            <div style="line-height:1.2;">
+                ${nombre}
+            </div>
+        `;
+    }
+
+    // 🔹 Dividir en 2 líneas balanceadas
+    const mitad = Math.ceil(palabras.length / 2);
+
+    const linea1 = palabras.slice(0, mitad).join(" ");
+    const linea2 = palabras.slice(mitad).join(" ");
 
     return `
         <div style="
             line-height:1.2;
-            white-space:normal;
             word-break:break-word;
         ">
             <div>${linea1}</div>
-            ${linea2 ? `<div>${linea2}</div>` : ""}
+            <div>${linea2}</div>
         </div>
     `;
 }
