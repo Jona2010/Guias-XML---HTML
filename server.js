@@ -331,6 +331,9 @@ app.get("/buscar-por-fecha", async (req, res) => {
             ORDER BY fecha_emision DESC
         `, [desde, hasta]);
 
+        console.log("🔎 FILTRO:", desde, hasta);
+        console.log("📦 RESULTADOS:", rows.length);
+
         res.json({
             ok: true,
             data: rows

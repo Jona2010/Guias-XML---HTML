@@ -1091,6 +1091,48 @@ function normalizarTexto(t) {
         .replace(/s$/, ""); // quitar plural simple
 }
 
+function mostrarResultadosFecha(lista){
+
+    const cont = document.getElementById("historial-busqueda");
+
+    let html = `
+    <table style="width:100%; border-collapse:collapse;">
+        <thead>
+            <tr style="background:#1976D2; color:white;">
+                <th style="padding:8px;">N° Guía</th>
+                <th style="padding:8px;">Cliente</th>
+                <th style="padding:8px;">Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
+
+    lista.forEach(g => {
+
+        html += `
+        <tr onclick="seleccionarGuia(this, ${g.id})"
+            style="cursor:pointer; border-bottom:1px solid #eee;">
+
+            <td style="padding:6px;">
+                📄 ${g.numero}
+            </td>
+
+            <td style="padding:6px;">
+                ${formatearClienteHTML(g.destinatario_nombre)}
+            </td>
+
+            <td style="padding:6px; text-align:center;">
+                ${formatearFecha(g.fecha_emision)}
+            </td>
+
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+
+    cont.innerHTML = html;
+}
+
 async function filtrarPorFecha(){
 
     const desde = document.getElementById("fecha-desde").value;
@@ -1133,7 +1175,7 @@ async function filtrarPorFecha(){
     }
 
     // 🔥 reutiliza tu render existente
-    renderResultadosBusqueda(data.data, "");
+    mostrarResultadosFecha(data.data);
 }
 
 function limpiarFiltroFecha(){
