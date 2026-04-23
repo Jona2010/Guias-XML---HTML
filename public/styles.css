@@ -102,44 +102,55 @@ body {
 }
 
 /* ============================= */
-/* BUSCADOR */
+/* 🔍 BUSCADOR + 📅 FILTRO NUEVO */
 /* ============================= */
-.buscador-wrapper {
-  position: relative;
-  width: 100%;
-  margin-bottom: 10px;
+
+.buscador-wrapper{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-bottom:12px;
 }
 
-.buscador-wrapper input {
-  width: 100%;
-  padding: 10px 36px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 13px;
-  outline: none;
+.buscador-box{
+    position:relative;
+    display:flex;
+    align-items:center;
 }
 
-.buscador-wrapper input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(25,118,210,0.15);
+.buscador-box input{
+    width:100%;
+    padding:10px 35px;
+    border:1px solid #ccc;
+    border-radius:8px;
 }
 
-.buscador-wrapper::before {
-  content: "🔍";
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+.icono-lupa{
+    position:absolute;
+    left:10px;
+    color:#888;
 }
 
-#btn-limpiar {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  border: none;
-  background: transparent;
-  cursor: pointer;
+#btn-limpiar{
+    position:absolute;
+    right:8px;
+    background:none;
+    border:none;
+    cursor:pointer;
+}
+
+.filtro-fechas{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.filtro-fechas input{
+    flex:1;
+    min-width:120px;
+    padding:8px;
+    border:1px solid #ccc;
+    border-radius:6px;
 }
 
 /* ============================= */
