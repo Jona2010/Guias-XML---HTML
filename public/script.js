@@ -1109,7 +1109,8 @@ async function filtrarPorFecha(){
 
     contBuscador.innerHTML = `
         <div style="text-align:center; padding:20px;">
-            📅 Filtrando desde <b>${desde}</b> hasta <b>${hasta}</b>
+            📅 Filtrando desde <b>${formatearFechaVisual(desde)}</b> 
+            hasta <b>${formatearFechaVisual(hasta)}</b>
         </div>
     `;
 
@@ -1144,6 +1145,13 @@ function limpiarFiltroFecha(){
     document.getElementById("historial-lista").style.display = "block";
 
     mostrarHistorial();
+}
+
+function formatearFechaVisual(fechaISO){
+    if(!fechaISO) return "";
+
+    const [anio, mes, dia] = fechaISO.split("-");
+    return `${dia}/${mes}/${anio}`;
 }
 
 // ----------------------
