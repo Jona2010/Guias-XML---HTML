@@ -1227,6 +1227,37 @@ document.addEventListener("DOMContentLoaded", () => {
     mostrarHistorial();
 });
 
+// =======================
+// 📅 FIX INPUT DATE MOBILE
+// =======================
+document.querySelectorAll('input[type="date"]').forEach(input => {
+
+    // Estado inicial
+    if(!input.value){
+        input.classList.add("empty-date");
+    }
+
+    input.addEventListener("focus", function(){
+        // Abre el calendario automáticamente (si el navegador lo soporta)
+        if(this.showPicker){
+            this.showPicker();
+        }
+    });
+
+    input.addEventListener("change", function(){
+        if(this.value){
+            this.classList.remove("empty-date");
+        }
+    });
+
+    input.addEventListener("blur", function(){
+        if(!this.value){
+            this.classList.add("empty-date");
+        }
+    });
+
+});
+
 document.addEventListener("DOMContentLoaded", () => {
 
     const inputFile = document.getElementById("xmlfile");
