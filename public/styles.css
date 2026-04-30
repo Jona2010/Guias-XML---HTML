@@ -800,3 +800,77 @@ button{
 .buscador-box input{
     padding-left:35px;
 }
+
+/* =========================
+🔍 BUSCADOR + BOTONES ALINEADOS (PRO)
+========================= */
+
+/* CONTENEDOR BUSCADOR */
+.buscador-box{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+/* INPUT BUSCADOR */
+.buscador-box input{
+    flex:1;
+    height:45px;
+    padding-left:35px;
+}
+
+/* ICONO LUPA */
+.icono-lupa{
+    position:absolute;
+    left:10px;
+    top:50%;
+    transform:translateY(-50%);
+}
+
+/* CONTENEDOR FECHAS */
+.filtro-fechas{
+    display:flex;
+    gap:8px;
+    align-items:center;
+}
+
+/* INPUT FECHAS */
+.filtro-fechas input{
+    flex:1;
+    height:45px;
+    min-width:0;
+}
+
+/* BOTÓN BUSCAR */
+.btn-filtrar{
+    width:45px !important;
+    height:45px;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+}
+
+/* BOTÓN LIMPIAR */
+.btn-limpiar-fecha{
+    width:45px !important;
+    height:45px;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+}
+
+/* 🔥 MOBILE OPTIMIZADO */
+@media (max-width:600px){
+
+    .filtro-fechas{
+        flex-direction:row;
+    }
+
+    .buscador-box{
+        gap:6px;
+    }
+}
