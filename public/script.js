@@ -1199,6 +1199,9 @@ function formatearFechaVisual(fechaISO){
 // ----------------------
 // INIT
 // ----------------------
+// ----------------------
+// INIT
+// ----------------------
 document.addEventListener("DOMContentLoaded", () => {
     const btnLimpiar   = document.getElementById("btn-limpiar");
     const contBuscador = document.getElementById("historial-busqueda");
@@ -1206,7 +1209,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if(btnLimpiar)   btnLimpiar.style.display   = "none";
     if(contBuscador) contBuscador.style.display = "none";
 
-    // 🔥 👉 AGREGA ESTO AQUÍ
+    // 🔍 BUSCADOR
     const inputBuscador = document.getElementById("buscador");
 
     if(inputBuscador){
@@ -1222,40 +1225,32 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 🔚 FIN DEL AGREGADO
+    // =======================
+    // 📱 FIX FECHA SOLO MOBILE
+    // =======================
+    if(window.innerWidth <= 600){
+        document.querySelectorAll('input[type="date"]').forEach(input => {
 
-    mostrarHistorial();
-});
+            if(!input.value){
+                input.classList.add("empty-date");
+            }
 
-// =======================
-// 📅 FIX INPUT DATE MOBILE
-// =======================
-document.querySelectorAll('input[type="date"]').forEach(input => {
+            input.addEventListener("change", function(){
+                if(this.value){
+                    this.classList.remove("empty-date");
+                }
+            });
 
-    // Estado inicial
-    if(!input.value){
-        input.classList.add("empty-date");
+            input.addEventListener("blur", function(){
+                if(!this.value){
+                    this.classList.add("empty-date");
+                }
+            });
+
+        });
     }
 
-    input.addEventListener("focus", function(){
-        // Abre el calendario automáticamente (si el navegador lo soporta)
-        if(this.showPicker){
-            this.showPicker();
-        }
-    });
-
-    input.addEventListener("change", function(){
-        if(this.value){
-            this.classList.remove("empty-date");
-        }
-    });
-
-    input.addEventListener("blur", function(){
-        if(!this.value){
-            this.classList.add("empty-date");
-        }
-    });
-
+    mostrarHistorial();
 });
 
 document.addEventListener("DOMContentLoaded", () => {

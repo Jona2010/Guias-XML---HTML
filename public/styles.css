@@ -700,16 +700,6 @@ input[type="date"]::-webkit-datetime-edit{
 }
 
 /* =========================
-📅 PLACEHOLDER FECHA VISUAL
-========================= */
-input[type="date"].empty-date::before{
-    content: "dd/mm/aaaa";
-    color:#999;
-    position:absolute;
-    left:12px;
-}
-
-/* =========================
 📅 CONTENEDOR FECHAS
 ========================= */
 .filtro-fechas{
@@ -740,7 +730,6 @@ input[type="date"]{
     background:#fff;
     color:#333;
     font-size:14px;
-    position:relative;
 }
 
 /* 🔥 Placeholder visible */
@@ -884,4 +873,32 @@ button{
     .buscador-box{
         gap:6px;
     }
+}
+
+/* =========================
+📱 FIX FECHA SOLO MOBILE
+========================= */
+@media (max-width:600px){
+
+    input[type="date"]{
+        position:relative;
+        color:transparent; /* oculta texto original */
+    }
+
+    input[type="date"].empty-date::before{
+        content:"dd/mm/aaaa";
+        color:#999;
+        position:absolute;
+        left:12px;
+        top:50%;
+        transform:translateY(-50%);
+        font-size:14px;
+        pointer-events:none;
+    }
+
+    /* cuando ya hay fecha → mostrar normal */
+    input[type="date"]:not(.empty-date){
+        color:#333;
+    }
+
 }
