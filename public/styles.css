@@ -582,9 +582,17 @@ BOTONES
 /* ----------------------
 INPUTS Y BOTONES
 ---------------------- */
-input, button{
+/* INPUTS FULL WIDTH */
+input{
     width:100%;
     padding:8px;
+    font-size:14px;
+}
+
+/* BOTONES CONTROLADOS */
+button{
+    width:auto;
+    padding:8px 12px;
     font-size:14px;
 }
 
@@ -670,4 +678,43 @@ th, td{
         font-size:12px;
         padding:6px;
     }
+}
+
+/* =========================
+🔥 FIX INPUT DATE MOBILE
+========================= */
+input[type="date"]{
+    width:100%;
+    min-height:40px;
+    padding:8px;
+    background:white;
+    color:#333;
+}
+
+/* =========================
+📅 FILTRO FECHAS
+========================= */
+.filtro-fechas{
+    display:flex;
+    gap:10px;
+}
+
+/* MOBILE */
+@media (max-width: 600px){
+    .filtro-fechas{
+        flex-direction:column;
+    }
+}
+
+/* =========================
+🔍 BUSCADOR PRO
+========================= */
+.buscador-box{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.buscador-box input{
+    flex:1;
 }
