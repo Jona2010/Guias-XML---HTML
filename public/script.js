@@ -609,20 +609,18 @@ async function filtrarGuias(){
         const itemsHTML = itemsMostrar.map(i => {
             const esMatch = itemsMatch.includes(i);
 
-            return `
-                <div style="
-                    font-size:11px;
-                    line-height:1.3;
-                    padding:2px 4px;
-                    border-radius:4px;
-                    background:${esMatch ? "#fff3cd" : "transparent"};
-                    font-weight:${esMatch ? "600" : "normal"};
-                ">
-                    📦 ${esMatch
-                        ? resaltarTexto(i.descripcion, texto)
-                        : i.descripcion}
-                </div>
-            `;
+            return `📦 ${
+                esMatch
+                    ? `<span style="
+                        background:#fff3cd;
+                        padding:2px 4px;
+                        border-radius:4px;
+                        font-weight:600;
+                    ">
+                        ${resaltarTexto(i.descripcion, texto)}
+                    </span>`
+                    : i.descripcion
+            }`;
         }).join("") + (restantes > 0
             ? `<div style="font-size:11px; color:#777;">+${restantes} items</div>`
             : "");
@@ -664,7 +662,7 @@ async function filtrarGuias(){
                 📄 ${formatearNumeroGuia(g.numero)}
             </td>
             <td class="td-cliente">${formatearClienteHTML(g.destinatario_nombre)}</td>
-            <td>${itemsHTML}</td>
+            <td class="td-items">${itemsHTML}</td>
             <td class="td-partida">🚀 ${partida}</td>
             <td class="td-llegada">🏁 ${llegada}</td>
 
@@ -1068,19 +1066,7 @@ function formatearClienteHTML(nombre) {
 
 function formatearNumeroGuia(numero){
     if(!numero) return "-";
-
-    const partes = numero.split("-");
-    
-    if(partes.length === 2){
-        return `
-            <div style="line-height:1.1;">
-                <div>${partes[0]}</div>
-                <div style="font-weight:600;">${partes[1]}</div>
-            </div>
-        `;
-    }
-
-    return numero;
+    return numero; // 🔥 sin dividir
 }
 
 function normalizarTexto(t) {
