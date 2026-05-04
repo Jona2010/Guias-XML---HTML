@@ -233,11 +233,10 @@ tbody tr:hover {
   font-size: 13px;
   vertical-align: top;
   border-bottom: 1px solid #eee;
-  word-break: break-word;
 
-  white-space: nowrap;       /* 💥 CLAVE */
-  overflow: hidden;          /* 💥 CLAVE */
-  text-overflow: ellipsis;   /* 💥 CLAVE */
+  white-space: normal;        /* 🔥 FIX */
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* 🔹 CLIENTE */
