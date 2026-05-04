@@ -862,6 +862,13 @@ button{
     flex-shrink:0;
 }
 
+@media (max-width: 600px){
+  .tabla-guia {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
 /* 🔥 MOBILE OPTIMIZADO */
 @media (max-width:600px){
 
