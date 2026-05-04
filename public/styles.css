@@ -613,7 +613,7 @@ BUSCADOR
 /* ----------------------
 TABLAS
 ---------------------- */
-table{
+.tabla-scroll {
     width:100%;
     border-collapse:collapse;
     display:block;
@@ -677,6 +677,13 @@ th, td{
         font-size:12px;
         padding:6px;
     }
+}
+
+@media (max-width:600px){
+  .tabla-scroll {
+    display: block;
+    overflow-x: auto;
+  }
 }
 
 /* =========================
