@@ -191,7 +191,7 @@ function mostrarGuiaBonita(g){
         <p><b>📍 Punto de llegada:</b> ${g.llegada?.direccion  || "No disponible"}</p>
         <hr>
         <h4>📦 Items (${g.items.length})</h4>
-        <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+        table style="width:100%; border-collapse:collapse;"
             <thead>
                 <tr style="background:#1976D2; color:white;">
                     <th style="padding:8px; width:8%;  text-align:center;">#</th>
@@ -409,7 +409,7 @@ async function mostrarHistorial(){
     const fin = inicio + data.data.length - 1;
 
     let html = `
-    <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+    <table style="width:100%; border-collapse:collapse;">
         <thead>
             <tr style="background:#1976D2; color:white; font-size:12px;">
                 <th style="padding:8px 6px; width:38%; text-align:left;">N° Guía</th>
