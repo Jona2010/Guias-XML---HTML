@@ -20,13 +20,13 @@ let pagina            = 0;
 const limite          = 10;
 let buscando          = false;
 let ultimaGuiaCargada = null;
-let hayMasPaginas = true;
+let hayMasPaginas     = true;
 let guiaSeleccionadaId = null;
 
 // ── Buscador: control de race conditions ──
-let debounceTimer      = null;   // setTimeout del debounce
-let busquedaController = null;   // AbortController del fetch activo
-let tokenBusqueda      = 0;      // incrementa con cada búsqueda nueva
+let debounceTimer      = null;
+let busquedaController = null;
+let tokenBusqueda      = 0;
 
 // ----------------------
 // HELPERS XML
@@ -48,7 +48,6 @@ function attr(parent, ns, tag, att){
 
 // ----------------------
 // FETCH JSON SEGURO
-// Con soporte para AbortController
 // ----------------------
 async function fetchJSON(url, options = {}){
     try {
@@ -66,7 +65,6 @@ async function fetchJSON(url, options = {}){
         return { ok: res.ok, status: res.status, data, error: null };
 
     } catch(err){
-        // Si fue cancelado por AbortController, devolvemos señal especial
         if(err.name === "AbortError"){
             return { ok: false, status: 0, data: null, error: "__ABORTED__" };
         }
@@ -122,20 +120,16 @@ async function leerGuia(){
             const l        = lineas[i];
             const itemNode = first(l, UBL.cac, "Item");
 
-            // 🔥 NUEVO: obtener código de bien
             let codigoBien = "";
 
-            // 1. SellersItemIdentification
             const seller = first(itemNode, UBL.cac, "SellersItemIdentification");
             codigoBien = val(seller, UBL.cbc, "ID");
 
-            // 2. fallback Buyers
             if(!codigoBien){
                 const buyer = first(itemNode, UBL.cac, "BuyersItemIdentification");
                 codigoBien = val(buyer, UBL.cbc, "ID");
             }
 
-            // 3. fallback Standard
             if(!codigoBien){
                 const standard = first(itemNode, UBL.cac, "StandardItemIdentification");
                 codigoBien = val(standard, UBL.cbc, "ID");
@@ -157,7 +151,7 @@ async function leerGuia(){
 
             guia.items.push({
                 linea:       val(l, UBL.cbc, "ID"),
-                codigo_bien: codigoBien || null,   // 👈 NUEVO
+                codigo_bien: codigoBien || null,
                 descripcion: descripcion,
                 cantidad:    val(l, UBL.cbc, "DeliveredQuantity"),
                 unidad:      attr(l, UBL.cbc, "DeliveredQuantity", "unitCode")
@@ -191,37 +185,35 @@ function mostrarGuiaBonita(g){
         <p><b>📍 Punto de llegada:</b> ${g.llegada?.direccion  || "No disponible"}</p>
         <hr>
         <h4>📦 Items (${g.items.length})</h4>
-        table style="width:100%; border-collapse:collapse;"
+        <table style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr style="background:#1976D2; color:white;">
                     <th style="padding:8px; width:8%;  text-align:center;">#</th>
                     <th style="padding:8px; width:18%;  text-align:center;">Código de Bien</th>
                     <th style="padding:8px; width:62%; text-align:left;">Descripción</th>
-                    <th style="padding:8px; width:15%; text-align:center;">Cantidad</th>
-                    <th style="padding:8px; width:15%; text-align:center;">Unidad</th>
+                    <th style="padding:8px; width:12%; text-align:center;">Cantidad</th>
+                    <th style="padding:8px; width:10%; text-align:center;">Unidad</th>
                 </tr>
             </thead>
             <tbody>`;
 
     if(g.items.length === 0){
         html += `
-        <tr>
-            <td colspan="4"
-                style="padding:20px; text-align:center; color:#999;">
-                No hay items registrados
-            </td>
-        </tr>`;
+            <tr>
+                <td colspan="5"
+                    style="padding:20px; text-align:center; color:#999;">
+                    No hay items registrados
+                </td>
+            </tr>`;
     } else {
         g.items.forEach((item, idx) => {
             const bg = idx % 2 === 0 ? "#ffffff" : "#f5f5f5";
             html += `
             <tr style="background:${bg};">
-
                 <td style="padding:8px; border-bottom:1px solid #eee;
                         text-align:center; font-size:13px; vertical-align:middle;">
                     ${item.linea ?? idx + 1}
                 </td>
-
                 <td style="
                     padding:8px;
                     border-bottom:1px solid #eee;
@@ -243,7 +235,6 @@ function mostrarGuiaBonita(g){
                         ${item.codigo_bien || "-"}
                     </span>
                 </td>
-
                 <td style="
                     padding:8px;
                     border-bottom:1px solid #eee;
@@ -254,17 +245,14 @@ function mostrarGuiaBonita(g){
                 ">
                     ${item.descripcion || "-"}
                 </td>
-
                 <td style="padding:8px; border-bottom:1px solid #eee;
                         text-align:center; font-size:13px; vertical-align:middle;">
                     ${item.cantidad || "-"}
                 </td>
-
                 <td style="padding:8px; border-bottom:1px solid #eee;
                         text-align:center; font-size:13px; vertical-align:middle;">
                     ${item.unidad || "-"}
                 </td>
-
             </tr>`
         });
     }
@@ -297,8 +285,7 @@ async function guardarGuia(g){
 }
 
 // ----------------------
-// VER GUIA POR ID
-// ✅ CORREGIDO TOTAL (estructura data.data)
+// VER GUIA POR ID - CORREGIDO
 // ----------------------
 async function verGuiaPorId(id){
     if(!id){ 
@@ -307,13 +294,10 @@ async function verGuiaPorId(id){
     }
 
     const requestId = Date.now();
-
-    // 🔴 Control de concurrencia
     verGuiaPorId._lastRequestId = requestId;
 
     const { ok, data, error } = await fetchJSON(`${API_URL}/guias/${id}`);
 
-    // ✅ Evitar respuestas viejas
     if(requestId !== verGuiaPorId._lastRequestId) return;
 
     if(error){
@@ -321,7 +305,8 @@ async function verGuiaPorId(id){
         return;
     }
 
-    if(!ok || !data || !data.ok || !data.data){
+    // ✅ CORRECCIÓN: La API devuelve { ok, data } donde data es la guía
+    if(!ok || !data){
         mostrarAlerta(
             data?.mensaje || `⚠️ Guía no encontrada (ID: ${id})`,
             "error"
@@ -329,8 +314,8 @@ async function verGuiaPorId(id){
         return;
     }
 
-    // 🔥 FIX CLAVE: acceder a data.data
-    const g = data.data;
+    // ✅ data ES la guía directamente (según tu backend)
+    const g = data;
 
     const guia = {
         numero:        g.numero        || "",
@@ -356,15 +341,12 @@ async function verGuiaPorId(id){
         items: Array.isArray(g.items) ? g.items : []
     };
 
-    // ✅ Mostrar en UI
     mostrarGuiaBonita(guia);
-
-    // 🔥 Guardar para exportar
     ultimaGuiaCargada = guia;
 }
 
 // ----------------------
-// HISTORIAL
+// MOSTRAR HISTORIAL - CORREGIDO
 // ----------------------
 async function mostrarHistorial(){
 
@@ -395,7 +377,8 @@ async function mostrarHistorial(){
         return;
     }
 
-    if(!data || data.length === 0){
+    // ✅ CORRECCIÓN: Verificar estructura correcta
+    if(!data || !data.data){
         contHistorial.innerHTML = `
             <p style="color:#999; text-align:center; padding:20px; font-size:13px;">
                 No hay guías registradas
@@ -403,10 +386,19 @@ async function mostrarHistorial(){
         return;
     }
 
-    hayMasPaginas = data.data.length === limite;
+    const guias = data.data;
+    hayMasPaginas = guias.length === limite;
+
+    if(guias.length === 0){
+        contHistorial.innerHTML = `
+            <p style="color:#999; text-align:center; padding:20px; font-size:13px;">
+                No hay guías registradas
+            </p>`;
+        return;
+    }
 
     const inicio = (pagina * limite) + 1;
-    const fin = inicio + data.data.length - 1;
+    const fin = inicio + guias.length - 1;
 
     let html = `
     <table style="width:100%; border-collapse:collapse;">
@@ -420,13 +412,8 @@ async function mostrarHistorial(){
         <tbody>
     `;
 
-    const lista = data.data;
-
-    lista.forEach(g => {
-
-        // ✅ FIX: truncar con ellipsis en JS
+    guias.forEach(g => {
         const cliente = formatearClienteHTML(g.destinatario_nombre);
-
         html += `
         <tr onclick="seleccionarGuia(this, ${g.id})"
             style="cursor:pointer; border-bottom:1px solid #eee; font-size:12px;">
@@ -434,15 +421,12 @@ async function mostrarHistorial(){
                        overflow:hidden; text-overflow:ellipsis;">
                 📄 ${g.numero}
             </td>
-            <td style="padding:7px 6px; color:#555;
-                       overflow:hidden;"
+            <td style="padding:7px 6px; color:#555; overflow:hidden;"
                 title="${g.destinatario_nombre || ''}">
                 ${cliente}
             </td>
             <td style="padding:7px 6px; text-align:center; color:#777;
-                       white-space:nowrap;
-                        overflow:hidden;
-                        text-overflow:ellipsis;">
+                       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                 ${formatearFecha(g.fecha_emision)}
             </td>
         </tr>`;
@@ -480,7 +464,6 @@ async function mostrarHistorial(){
 
 // ----------------------
 // BUSCADOR
-// ✅ Ahora muestra también partida/llegada en resultados
 // ----------------------
 async function filtrarGuias(){
 
@@ -490,35 +473,28 @@ async function filtrarGuias(){
     const contHistorial = document.getElementById("historial-lista");
     const contBuscador  = document.getElementById("historial-busqueda");
 
-    // 🔹 Mostrar botón limpiar
     if(btnLimpiar){
         btnLimpiar.style.display = texto ? "flex" : "none";
     }
 
-    // 🔹 Si está vacío → volver a historial
     if(!texto){
         buscando = false;
         pagina   = 0;
-
         contBuscador.style.display  = "none";
         contBuscador.innerHTML      = "";
         contHistorial.style.display = "block";
-
         await mostrarHistorial();
         return;
     }
 
     buscando = true;
 
-    // 🔴 CANCELAR búsqueda anterior
     if(busquedaController){
         busquedaController.abort();
     }
 
     busquedaController = new AbortController();
     const signal = busquedaController.signal;
-
-    // 🔴 TOKEN para evitar sobrescritura
     const currentToken = ++tokenBusqueda;
 
     contHistorial.style.display = "none";
@@ -526,7 +502,7 @@ async function filtrarGuias(){
 
     contBuscador.innerHTML = `
         <div style="text-align:center; padding:20px; color:#666;">
-            🔍 Buscando "<strong>${texto}</strong>"...
+            🔍 Buscando "<strong>${escapeHtml(texto)}</strong>"...
         </div>`;
 
     const { data, error } = await fetchJSON(
@@ -534,10 +510,7 @@ async function filtrarGuias(){
         { signal }
     );
 
-    // 🔴 IGNORAR RESPUESTAS VIEJAS
     if(currentToken !== tokenBusqueda) return;
-
-    // 🔴 IGNORAR abort
     if(error === "__ABORTED__") return;
 
     if(error){
@@ -548,7 +521,7 @@ async function filtrarGuias(){
     if(!data || !data.data || data.data.length === 0){
         contBuscador.innerHTML = `
             <div style="text-align:center; padding:20px;">
-                🔍 Sin resultados para "<strong>${texto}</strong>"
+                🔍 Sin resultados para "<strong>${escapeHtml(texto)}</strong>"
             </div>`;
         return;
     }
@@ -559,21 +532,19 @@ async function filtrarGuias(){
         <table class="tabla-guia">
         <thead>
             <tr>
-            <th class="col-guia">Guía</th>
-            <th class="col-cliente">Cliente</th>
-            <th class="col-items">Items</th>
-            <th class="col-partida">Partida</th>
-            <th class="col-llegada">Llegada</th>
+                <th class="col-guia">Guía</th>
+                <th class="col-cliente">Cliente</th>
+                <th class="col-items">Items</th>
+                <th class="col-partida">Partida</th>
+                <th class="col-llegada">Llegada</th>
             </tr>
         </thead>
         <tbody>
-        `;
+    `;
 
     const lista = data.data;
 
     lista.forEach(g => {
-
-        // 🔹 Items separados
         function limpiarTexto(t) {
             return (t || "")
                 .toLowerCase()
@@ -582,74 +553,47 @@ async function filtrarGuias(){
         }
 
         const textoLimpio = limpiarTexto(texto);
-
-        const items = (g.items || []).filter(i => {
-            const desc = limpiarTexto(i.descripcion);
-
-            return desc.includes(textoLimpio) || textoLimpio.includes(desc);
-        });
-
         const todosItems = g.items || [];
 
         const itemsMatch = todosItems.filter(i =>
             limpiarTexto(i.descripcion).includes(textoLimpio)
         );
 
-        // 🔥 Ordenar: primero los que coinciden
         const itemsOrdenados = [
             ...itemsMatch,
             ...todosItems.filter(i => !itemsMatch.includes(i))
         ];
 
-        // 🔥 Mostrar máximo 3
         const itemsMostrar = itemsOrdenados.slice(0, 3);
-
         const restantes = todosItems.length - itemsMostrar.length;
 
         const itemsHTML = itemsMostrar.map(i => {
             const esMatch = itemsMatch.includes(i);
-
             return `📦 ${
                 esMatch
-                    ? `<span style="
-                        background:#fff3cd;
-                        padding:2px 4px;
-                        border-radius:4px;
-                        font-weight:600;
-                    ">
+                    ? `<span style="background:#fff3cd; padding:2px 4px; border-radius:4px; font-weight:600;">
                         ${resaltarTexto(i.descripcion, texto)}
                     </span>`
-                    : i.descripcion
+                    : escapeHtml(i.descripcion)
             }`;
         }).join("") + (restantes > 0
             ? `<div style="font-size:11px; color:#777;">+${restantes} items</div>`
             : "");
 
-        // 🔥 Detectar si hubo match en items
-        const hayMatchItems = items.length > 0;
+        const hayMatchItems = itemsMatch.length > 0;
 
-        // 🔥 Detectar match general (guía o cliente)
-        const hayMatchGeneral =
-            (g.numero || "").toLowerCase().includes(textoLower) ||
-            (g.destinatario_nombre || "").toLowerCase().includes(textoLower);
-
-        // 🔥 (opcional pero útil)
-        const mostrarContexto = hayMatchItems || hayMatchGeneral;
-
-        // 🔹 Partida SIEMPRE si hay match (no solo si coincide texto)
         const partida = g.direccion_partida
             ? formatearDireccionHTML(
                 hayMatchItems
-                    ? g.direccion_partida
+                    ? escapeHtml(g.direccion_partida)
                     : resaltarTexto(g.direccion_partida, texto)
             )
             : `<span style="color:#ccc;">—</span>`;
 
-        // 🔹 Llegada igual
         const llegada = g.direccion_llegada
             ? formatearDireccionHTML(
                 hayMatchItems
-                    ? g.direccion_llegada
+                    ? escapeHtml(g.direccion_llegada)
                     : resaltarTexto(g.direccion_llegada, texto)
             )
             : `<span style="color:#ccc;">—</span>`;
@@ -657,15 +601,11 @@ async function filtrarGuias(){
         html += `
         <tr onclick="seleccionarGuia(this, ${g.id})"
             style="cursor:pointer; border-bottom:1px solid #eee;">
-            
-            <td class="td-guia">
-                📄 ${formatearNumeroGuia(g.numero)}
-            </td>
+            <td class="td-guia">📄 ${escapeHtml(g.numero)}</td>
             <td class="td-cliente">${formatearClienteHTML(g.destinatario_nombre)}</td>
             <td class="td-items">${itemsHTML}</td>
             <td class="td-partida">🚀 ${partida}</td>
             <td class="td-llegada">🏁 ${llegada}</td>
-
         </tr>`;
     });
 
@@ -674,25 +614,32 @@ async function filtrarGuias(){
 }
 
 // ----------------------
-// HELPER: Resaltar texto sin regex
+// ESCAPE HTML
+// ----------------------
+function escapeHtml(str) {
+    if (!str) return "";
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+// ----------------------
+// RESALTAR TEXTO
 // ----------------------
 function resaltarTexto(texto, busqueda){
-    if(!busqueda || !texto) return String(texto);
+    if(!busqueda || !texto) return escapeHtml(String(texto));
 
     const textoStr = String(texto);
-
-    // 🔥 Escapar caracteres especiales (muy importante)
     const busquedaEscapada = busqueda.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
     const regex = new RegExp(`(${busquedaEscapada})`, "gi");
 
     return textoStr.replace(regex, `
-        <mark style="
-            background:#FFF176;
-            padding:1px 2px;
-            border-radius:2px;
-            color:#000;
-        ">$1</mark>
+        <mark style="background:#FFF176; padding:1px 2px; border-radius:2px; color:#000;">
+            $1
+        </mark>
     `);
 }
 
@@ -701,10 +648,7 @@ function resaltarTexto(texto, busqueda){
 // ----------------------
 function formatearFecha(fechaISO){
     if(!fechaISO) return "";
-
-    // 🔥 cortar solo la fecha antes de la T
     const fecha = fechaISO.split("T")[0];
-
     const [year, month, day] = fecha.split("-");
     return `${day}/${month}/${year}`;
 }
@@ -720,9 +664,7 @@ function formatearHora(fechaISO){
 // EXPORTAR EXCEL
 // ----------------------
 async function exportarExcel(){
-
     const g = ultimaGuiaCargada;
-
     if(!g){
         alert("Primero selecciona o carga una guía");
         return;
@@ -743,7 +685,6 @@ async function exportarExcel(){
         ["#", "Código", "Descripción", "Cantidad", "Unidad"]
     ];
 
-    // 🔹 Guardar posición donde empieza ITEMS
     const filaHeaderItems = rows.length;
 
     g.items.forEach((i, idx) => {
@@ -757,8 +698,6 @@ async function exportarExcel(){
     });
 
     let ws = XLSX.utils.aoa_to_sheet(rows);
-
-    // 📏 Anchos de columna
     ws["!cols"] = [
         { wch: 5 },   // #
         { wch: 20 },  // código
@@ -766,25 +705,15 @@ async function exportarExcel(){
         { wch: 12 },  // cantidad
         { wch: 10 }   // unidad
     ];
+    ws["!merges"] = [{ s:{r:0,c:0}, e:{r:0,c:4} }];
 
-    // 🔥 MERGE título
-    ws["!merges"] = [
-        { s:{r:0,c:0}, e:{r:0,c:4} }
-    ];
-
-    // 🔵 ESTILO TÍTULO
-    if(ws["A1"]){
-        ws["A1"].s = {
-            font: { bold: true, sz: 14 },
-            alignment: { horizontal: "center" }
-        };
-    }
-
-    // 🔵 ESTILO ENCABEZADO ITEMS
-    const headerRow = filaHeaderItems; // fila dinámica
+    if(ws["A1"]) ws["A1"].s = {
+        font: { bold: true, sz: 14 },
+        alignment: { horizontal: "center" }
+    };
 
     ["A","B","C","D","E"].forEach(col => {
-        const cell = ws[`${col}${headerRow}`];
+        const cell = ws[`${col}${filaHeaderItems}`];
         if(cell){
             cell.s = {
                 font: { bold: true, color: { rgb: "FFFFFF" } },
@@ -794,20 +723,16 @@ async function exportarExcel(){
         }
     });
 
-    // 🔹 CENTRAR columnas específicas
-    for(let i = headerRow + 1; i <= rows.length; i++){
+    for(let i = filaHeaderItems + 1; i <= rows.length; i++){
         ["A","B","D","E"].forEach(col => {
             const cell = ws[`${col}${i}`];
             if(cell){
-                cell.s = {
-                    alignment: { horizontal: "center" }
-                };
+                cell.s = { alignment: { horizontal: "center" } };
             }
         });
     }
 
-    // 🔹 BORDES (opcional pero PRO)
-    for(let i = headerRow; i <= rows.length; i++){
+    for(let i = filaHeaderItems; i <= rows.length; i++){
         ["A","B","C","D","E"].forEach(col => {
             const cell = ws[`${col}${i}`];
             if(cell){
@@ -826,7 +751,6 @@ async function exportarExcel(){
 
     let wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Guía");
-
     XLSX.writeFile(wb, `guia_${g.numero}.xlsx`);
 }
 
@@ -895,20 +819,6 @@ function mostrarAlerta(msg, tipo = "info"){
 }
 
 // ----------------------
-// HANDLE CLICK GUIA
-// ----------------------
-function handleClickGuia(el, id){
-    if(el.dataset.loading === "1") return;
-    el.dataset.loading = "1";
-    el.style.opacity   = "0.6";
-    verGuiaPorId(id);
-    setTimeout(() => {
-        el.dataset.loading = "0";
-        el.style.opacity   = "1";
-    }, 500);
-}
-
-// ----------------------
 // LIMPIAR BÚSQUEDA
 // ----------------------
 function limpiarBusqueda(){
@@ -932,21 +842,14 @@ function limpiarBusqueda(){
 }
 
 // ----------------------
-// RESALTADO
+// SELECCIONAR GUIA
 // ----------------------
 function seleccionarGuia(fila, id){
-
-    // 🔴 Quitar selección anterior
     document.querySelectorAll(".fila-activa").forEach(el => {
         el.classList.remove("fila-activa");
     });
-
-    // 🟢 Marcar nueva
     fila.classList.add("fila-activa");
-
     guiaSeleccionadaId = id;
-
-    // 🔥 cargar guía
     verGuiaPorId(id);
 }
 
@@ -954,43 +857,23 @@ function seleccionarGuia(fila, id){
 // PAGINACIÓN
 // ----------------------
 function siguientePagina(){
-    if(!hayMasPaginas) return; // 🔥 BLOQUEAR
+    if(!hayMasPaginas) return;
     pagina++;
     mostrarHistorial();
 }
+
 function anteriorPagina(){
     if(pagina > 0){ pagina--; mostrarHistorial(); }
 }
 
-function formatearDireccion(texto) {
-    if (!texto) return "-";
-
-    return texto
-        .replace(/---/g, "\n")
-        .replace(/ - /g, "\n")
-        .split("\n")
-        .map(t => t.trim())
-        .filter(Boolean)
-        .join("<br>");
-}
-
-function formatearCliente(texto) {
-    if (!texto) return "-";
-
-    const palabras = texto.split(" ");
-
-    if (palabras.length <= 2) return texto;
-
-    return palabras.slice(0, 2).join(" ") + "<br>" +
-           palabras.slice(2, 4).join(" ");
-}
-
+// ----------------------
+/// FORMATOS HTML
+// ----------------------
 function formatearDireccionHTML(direccion) {
     if (!direccion) return `<span style="color:#ccc;">—</span>`;
 
     direccion = direccion.replace(/\s+/g, " ").trim();
 
-    // 🔹 Separar región final (AREQUIPA - AREQUIPA - ...)
     const matchRegion = direccion.match(/([A-ZÁÉÍÓÚÑ\s]+-\s*[A-ZÁÉÍÓÚÑ\s]+-\s*[A-ZÁÉÍÓÚÑ\s]+)$/i);
 
     let region = "";
@@ -1001,7 +884,6 @@ function formatearDireccionHTML(direccion) {
         base = direccion.replace(matchRegion[1], "").trim();
     }
 
-    // 🔹 Cortes inteligentes por palabras clave
     const cortes = ["NRO.", "KM", "URB.", "MZ.", "LT.", "INT.", "AV.", "CAL.", "CAR."];
 
     let partes = [];
@@ -1018,11 +900,8 @@ function formatearDireccionHTML(direccion) {
     });
 
     partes.push(texto.trim());
-
-    // 🔹 Limpiar vacíos
     partes = partes.filter(p => p.length > 0);
 
-    // 🔹 Construir HTML
     return `
         <div style="line-height:1.3;">
             ${partes.map(p => `<div>${p}</div>`).join("")}
@@ -1035,50 +914,25 @@ function formatearClienteHTML(nombre) {
     if (!nombre) return `<span style="color:#ccc;">—</span>`;
 
     nombre = nombre.replace(/\s+/g, " ").trim();
-
     const palabras = nombre.split(" ");
 
-    // 🔹 Si es corto → 1 línea
     if (palabras.length <= 2) {
-        return `
-            <div style="line-height:1.2;">
-                ${nombre}
-            </div>
-        `;
+        return `<div style="line-height:1.2;">${escapeHtml(nombre)}</div>`;
     }
 
-    // 🔹 Dividir en 2 líneas balanceadas
     const mitad = Math.ceil(palabras.length / 2);
-
     const linea1 = palabras.slice(0, mitad).join(" ");
     const linea2 = palabras.slice(mitad).join(" ");
 
     return `
-        <div style="
-            line-height:1.2;
-            word-break:break-word;
-        ">
-            <div>${linea1}</div>
-            <div>${linea2}</div>
+        <div style="line-height:1.2; word-break:break-word;">
+            <div>${escapeHtml(linea1)}</div>
+            <div>${escapeHtml(linea2)}</div>
         </div>
     `;
 }
 
-function formatearNumeroGuia(numero){
-    if(!numero) return "-";
-    return numero; // 🔥 sin dividir
-}
-
-function normalizarTexto(t) {
-    return (t || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") // quitar tildes
-        .replace(/s$/, ""); // quitar plural simple
-}
-
 function mostrarResultadosFecha(lista){
-
     const cont = document.getElementById("historial-busqueda");
 
     let html = `
@@ -1094,33 +948,20 @@ function mostrarResultadosFecha(lista){
     `;
 
     lista.forEach(g => {
-
         html += `
         <tr onclick="seleccionarGuia(this, ${g.id})"
             style="cursor:pointer; border-bottom:1px solid #eee;">
-
-            <td style="padding:6px;">
-                📄 ${g.numero}
-            </td>
-
-            <td style="padding:6px;">
-                ${formatearClienteHTML(g.destinatario_nombre)}
-            </td>
-
-            <td style="padding:6px; text-align:center;">
-                ${formatearFecha(g.fecha_emision)}
-            </td>
-
+            <td style="padding:6px;">📄 ${escapeHtml(g.numero)}</td>
+            <td style="padding:6px;">${formatearClienteHTML(g.destinatario_nombre)}</td>
+            <td style="padding:6px; text-align:center;">${formatearFecha(g.fecha_emision)}</td>
         </tr>`;
     });
 
     html += `</tbody></table>`;
-
     cont.innerHTML = html;
 }
 
 async function filtrarPorFecha(){
-
     const desde = document.getElementById("fecha-desde").value;
     const hasta = document.getElementById("fecha-hasta").value;
 
@@ -1160,31 +1001,23 @@ async function filtrarPorFecha(){
         return;
     }
 
-    // 🔥 reutiliza tu render existente
     mostrarResultadosFecha(data.data);
 }
 
 function limpiarFiltroFecha(){
-
     document.getElementById("fecha-desde").value = "";
     document.getElementById("fecha-hasta").value = "";
-
     document.getElementById("historial-busqueda").style.display = "none";
     document.getElementById("historial-lista").style.display = "block";
-
     mostrarHistorial();
 }
 
 function formatearFechaVisual(fechaISO){
     if(!fechaISO) return "";
-
     const [anio, mes, dia] = fechaISO.split("-");
     return `${dia}/${mes}/${anio}`;
 }
 
-// ----------------------
-// INIT
-// ----------------------
 // ----------------------
 // INIT
 // ----------------------
@@ -1195,72 +1028,42 @@ document.addEventListener("DOMContentLoaded", () => {
     if(btnLimpiar)   btnLimpiar.style.display   = "none";
     if(contBuscador) contBuscador.style.display = "none";
 
-    // 🔍 BUSCADOR
     const inputBuscador = document.getElementById("buscador");
-
     if(inputBuscador){
         inputBuscador.addEventListener("input", () => {
-
-            if(debounceTimer){
-                clearTimeout(debounceTimer);
-            }
-
+            if(debounceTimer) clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 filtrarGuias();
             }, 400);
         });
     }
 
-    // =======================
-    // 📱 FIX FECHA SOLO MOBILE
-    // =======================
     if(window.innerWidth <= 600){
         document.querySelectorAll('input[type="date"]').forEach(input => {
-
-            if(!input.value){
-                input.classList.add("empty-date");
-            }
-
+            if(!input.value) input.classList.add("empty-date");
             input.addEventListener("change", function(){
-                if(this.value){
-                    this.classList.remove("empty-date");
-                }
+                if(this.value) this.classList.remove("empty-date");
             });
-
             input.addEventListener("blur", function(){
-                if(!this.value){
-                    this.classList.add("empty-date");
-                }
+                if(!this.value) this.classList.add("empty-date");
             });
-
         });
     }
-
-    mostrarHistorial();
-});
-
-document.addEventListener("DOMContentLoaded", () => {
 
     const inputFile = document.getElementById("xmlfile");
     const fileName  = document.getElementById("file-name");
 
-    if (!inputFile) {
-        console.warn("⚠️ xmlfile no encontrado");
-        return;
+    if(inputFile){
+        inputFile.addEventListener("change", function () {
+            const nombre = this.files[0]?.name || "Ningún archivo seleccionado";
+            if (fileName) fileName.textContent = nombre;
+        });
     }
 
-    inputFile.addEventListener("change", function () {
-        const nombre = this.files[0]?.name || "Ningún archivo seleccionado";
+    const fechaDesde = document.getElementById("fecha-desde");
+    const fechaHasta = document.getElementById("fecha-hasta");
+    if(fechaDesde) fechaDesde.addEventListener("change", filtrarPorFecha);
+    if(fechaHasta) fechaHasta.addEventListener("change", filtrarPorFecha);
 
-        if (fileName) {
-            fileName.textContent = nombre;
-        }
-    });
-
+    mostrarHistorial();
 });
-
-document.getElementById("fecha-desde")
-    .addEventListener("change", filtrarPorFecha);
-
-document.getElementById("fecha-hasta")
-    .addEventListener("change", filtrarPorFecha);
