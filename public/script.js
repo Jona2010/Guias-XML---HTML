@@ -287,61 +287,97 @@ async function guardarGuia(g){
 // ----------------------
 // VER GUIA POR ID - CORREGIDO
 // ----------------------
+// ----------------------
+// VER GUIA POR ID - FIX DEFINITIVO
+// ----------------------
 async function verGuiaPorId(id){
-    if(!id){ 
-        mostrarAlerta("❌ ID inválido", "error"); 
-        return; 
+
+    if(!id){
+        mostrarAlerta("❌ ID inválido", "error");
+        return;
     }
 
     const requestId = Date.now();
     verGuiaPorId._lastRequestId = requestId;
 
-    const { ok, data, error } = await fetchJSON(`${API_URL}/guias/${id}`);
+    const response = await fetchJSON(`${API_URL}/guias/${id}`);
 
     if(requestId !== verGuiaPorId._lastRequestId) return;
 
-    if(error){
-        mostrarAlerta(error, "error");
+    if(response.error){
+        mostrarAlerta(response.error, "error");
         return;
     }
 
-    // ✅ CORRECCIÓN: La API devuelve { ok, data } donde data es la guía
-    if(!ok || !data){
+    // ✅ RESPUESTA DEL BACKEND
+    const payload = response.data;
+
+    if(!payload || !payload.ok || !payload.data){
         mostrarAlerta(
-            data?.mensaje || `⚠️ Guía no encontrada (ID: ${id})`,
+            payload?.mensaje || `⚠️ Guía no encontrada (ID: ${id})`,
             "error"
         );
         return;
     }
 
-    // ✅ data ES la guía directamente (según tu backend)
-    const g = data;
+    // ✅ LA GUÍA REAL
+    const g = payload.data;
 
+    // ✅ ITEMS SOPORTA ARRAY O JSON STRING
+    let items = [];
+
+    if(Array.isArray(g.items)){
+        items = g.items;
+    }
+    else if(typeof g.items === "string"){
+        try{
+            items = JSON.parse(g.items);
+        }catch(e){
+            items = [];
+        }
+    }
+
+    // ✅ ARMAR OBJETO LIMPIO
     const guia = {
-        numero:        g.numero        || "",
+        numero: g.numero || "",
         fecha_emision: g.fecha_emision || "",
-        hora_emision:  g.hora_emision  || "",
+        hora_emision: g.hora_emision || "",
+
         remitente: {
-            ruc:          g.remitente_ruc    || "-",
+            ruc: g.remitente_ruc || "-",
             razon_social: g.remitente_nombre || "-"
         },
+
         destinatario: {
             nombre: g.destinatario_nombre || "-"
         },
+
         traslado: {
-            motivo:     g.motivo     || "-",
+            motivo: g.motivo || "-",
             peso_total: g.peso_total || "-"
         },
+
         partida: {
             direccion: g.direccion_partida || ""
         },
+
         llegada: {
             direccion: g.direccion_llegada || ""
         },
-        items: Array.isArray(g.items) ? g.items : []
+
+        items: items.map((item, idx) => ({
+            linea: item.linea || idx + 1,
+            codigo_bien: item.codigo_bien || "-",
+            descripcion: item.descripcion || "-",
+            cantidad: item.cantidad || "-",
+            unidad: item.unidad || "-"
+        }))
     };
 
+    console.log("✅ GUIA CARGADA:", guia);
+
     mostrarGuiaBonita(guia);
+
     ultimaGuiaCargada = guia;
 }
 
