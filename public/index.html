@@ -1,146 +1,114 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lector de Guías SUNAT | Profesional V3</title>
 
-<title>Lector de Guías SUNAT | Sistema Profesional</title>
-
-<!-- 🔥 FAVICON -->
 <link rel="icon" href="Logo_XML_HTML.png" type="image/png">
-
-<meta name="description" content="Sistema profesional para visualizar y exportar guías de remisión SUNAT XML a Excel y PDF.">
-<meta name="keywords" content="SUNAT, guía remisión, XML, exportar Excel, Perú">
-
+<meta name="description" content="Sistema profesional para visualizar y exportar guías de remisión SUNAT XML.">
 <link rel="stylesheet" href="styles.css">
 
-<!-- ICONOS -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-
-<!-- Excel -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-
-<!-- PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <script src="script.js" defer></script>
-
 </head>
-
 <body>
 
-<!-- HEADER -->
 <header class="header">
-    <img src="Logo_XML.png" alt="Logo" class="logo">
-    <span>Sistema de Guías de Remisión SUNAT</span>
+    <div class="header-left">
+        <img src="Logo_XML.png" alt="Logo" onerror="this.style.display='none'">
+        <div>
+            <h1>Sistema de Guías de Remisión SUNAT</h1>
+            <span class="version">v3.0</span>
+        </div>
+    </div>
 </header>
 
-<div class="container">
+<div class="app-container">
 
-    <div class="main-layout">
+    <!-- TOOLBAR SUPERIOR -->
+    <div class="top-toolbar">
+        <div class="toolbar-left">
+            <div class="file-wrapper">
+                <label for="xmlfile" class="btn-file">
+                    <i class="fa-solid fa-folder-open"></i> Seleccionar XML
+                </label>
+                <input type="file" id="xmlfile" accept=".xml">
+                <span id="file-name">Ningún archivo seleccionado</span>
+            </div>
+            <button class="btn btn-primary" onclick="leerGuia()">
+                <i class="fa-solid fa-upload"></i> Procesar
+            </button>
+        </div>
+        <div class="toolbar-right">
+            <button class="btn btn-excel" onclick="exportarExcel()">
+                <i class="fa-solid fa-file-excel"></i> Excel
+            </button>
+            <button class="btn btn-pdf" onclick="exportarPDF()">
+                <i class="fa-solid fa-file-pdf"></i> PDF
+            </button>
+        </div>
+    </div>
 
-        <!-- 🔹 HISTORIAL (40%) -->
-        <aside class="card historial-panel">
+    <!-- WORKSPACE -->
+    <div class="workspace">
 
-            <h3><i class="fa-solid fa-folder"></i> Historial</h3>
-
-            <!-- 🔍 BUSCADOR + 📅 FILTRO -->
-            <div class="buscador-wrapper">
-
-                <!-- 🔍 BUSCADOR -->
-                <div class="buscador-box">
-                    <span class="icono-lupa">🔍</span>
-
-                    <input
-                        id="buscador"
-                        type="text"
-                        placeholder="Buscar por número de guía o item..."
-                        autocomplete="off"
-                    >
-
-                    <button
-                        id="btn-limpiar"
-                        onclick="limpiarBusqueda()"
-                        title="Limpiar búsqueda"
-                    >✖</button>
-                </div>
-
-                <!-- 📅 FILTRO DE FECHAS -->
-                <div class="filtro-fechas">
-
-                    <input type="date" id="fecha-desde">
-                    <input type="date" id="fecha-hasta">
-
-                    <button class="btn-filtrar" onclick="filtrarPorFecha()">🔍</button>
-                    <button class="btn-limpiar-fecha" onclick="limpiarFiltroFecha()">✖</button>
-
-                </div>
-
+        <!-- HISTORIAL -->
+        <aside class="historial-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial</h2>
+                <small>Últimas guías</small>
             </div>
 
-            <!-- HISTORIAL -->
-            <div id="historial-lista"></div>
+            <div class="buscador-wrapper">
+                <div class="search-toolbar">
+                    <span class="icono-lupa"><i class="fa-solid fa-search"></i></span>
+                    <input id="buscador" type="text" placeholder="Buscar guía, cliente o producto..." autocomplete="off">
+                    <button id="btn-limpiar" onclick="limpiarBusqueda()" title="Limpiar">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
 
-            <!-- RESULTADOS BÚSQUEDA -->
-            <div id="historial-busqueda" style="display:none;"></div>
+                <div class="filtro-fechas">
+                    <input type="date" id="fecha-desde" title="Fecha desde">
+                    <input type="date" id="fecha-hasta" title="Fecha hasta">
+                    <button class="btn-icon" onclick="filtrarPorFecha()" title="Filtrar">
+                        <i class="fa-solid fa-filter"></i>
+                    </button>
+                    <button class="btn-icon" onclick="limpiarFiltroFecha()" title="Limpiar filtros">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+            </div>
 
+            <div id="historial-lista" class="results-container"></div>
+            <div id="historial-busqueda" class="results-container" style="display:none;"></div>
         </aside>
 
-
-        <!-- 🔹 VISTA GUÍA (60%) -->
-        <section class="guia-panel">
-
-            <!-- CARGA XML (MEJORADO) -->
-            <div class="upload-bar">
-
-                <div class="file-wrapper">
-                    <label for="xmlfile" class="btn-file">
-                        📂 Elegir archivo
-                    </label>
-
-                    <input type="file" id="xmlfile" accept=".xml">
-
-                    <span id="file-name">Ningún archivo seleccionado</span>
+        <!-- VISOR -->
+        <section class="viewer-panel">
+            <div class="viewer-card">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-file-lines"></i> Vista de Guía</h2>
+                    <small>Seleccione una guía o procese un XML</small>
                 </div>
-
-                <button class="btn btn-primary btn-procesar" onclick="leerGuia()">
-                    📤 Procesar
-                </button>
-
-            </div>
-
-            <!-- EXPORTACIONES -->
-            <div class="export-buttons">
-                <button class="btn btn-excel" onclick="exportarExcel()">📊 Excel</button>
-                <button class="btn btn-pdf" onclick="exportarPDF()">📄 PDF</button>
-            </div>
-
-            <!-- VISOR -->
-            <div class="card">
-                <h2><i class="fa-solid fa-file"></i> Vista de Guía</h2>
-                <div id="pdf-area">
-                    <div id="salida"></div>
+                <div id="pdf-area" class="viewer-area">
+                    <div id="salida" class="viewer-content">
+                        <div class="empty-view">
+                            <i class="fa-regular fa-file-circle-plus"></i>
+                            <h3>No hay ninguna guía cargada</h3>
+                            <p>Seleccione una guía del historial o procese un archivo XML.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-
         </section>
 
     </div>
-
 </div>
-
-<!-- SEO JSON-LD -->
-<script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "Sistema de Guías SUNAT",
-    "applicationCategory": "BusinessApplication",
-    "operatingSystem": "Web"
-}
-</script>
 
 </body>
 </html>

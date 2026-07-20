@@ -1,370 +1,304 @@
-// ----------------------
-// CONFIG
-// ----------------------
-const API_URL = window.location.hostname === "localhost"
-    ? "http://localhost:3000"
-    : "";
+// ============================================================
+// CONFIGURACIÓN
+// ============================================================
+const API_URL = window.location.hostname === "localhost" ? "http://localhost:3000" : "";
 
-// ----------------------
-// UBL
-// ----------------------
 const UBL = {
     cbc: "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
     cac: "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
 };
 
-// ----------------------
+// ============================================================
 // VARIABLES GLOBALES
-// ----------------------
-let pagina            = 0;
-const limite          = 10;
-let buscando          = false;
+// ============================================================
+let pagina = 0;
+const limite = 10;
+let buscando = false;
 let ultimaGuiaCargada = null;
-let hayMasPaginas     = true;
+let hayMasPaginas = true;
 let guiaSeleccionadaId = null;
-
-// ── Buscador: control de race conditions ──
-let debounceTimer      = null;
+let debounceTimer = null;
 let busquedaController = null;
-let tokenBusqueda      = 0;
+let tokenBusqueda = 0;
 
-// ----------------------
+// ============================================================
 // HELPERS XML
-// ----------------------
-function first(parent, ns, tag){
-    if(!parent) return null;
+// ============================================================
+function first(parent, ns, tag) {
+    if (!parent) return null;
     return parent.getElementsByTagNameNS(ns, tag)[0] || null;
 }
-
-function val(parent, ns, tag){
+function val(parent, ns, tag) {
     const e = first(parent, ns, tag);
     return e ? e.textContent.trim() : "";
 }
-
-function attr(parent, ns, tag, att){
+function attr(parent, ns, tag, att) {
     const e = first(parent, ns, tag);
     return e ? e.getAttribute(att) || "" : "";
 }
 
-// ----------------------
-// FETCH JSON SEGURO
-// ----------------------
-async function fetchJSON(url, options = {}){
+// ============================================================
+// FETCH SEGURO
+// ============================================================
+async function fetchJSON(url, options = {}) {
     try {
-        const res         = await fetch(url, options);
+        const res = await fetch(url, options);
         const contentType = res.headers.get("content-type") || "";
-
-        if(!contentType.includes("application/json")){
-            return {
-                ok: false, status: res.status, data: null,
-                error: `Respuesta inválida (HTTP ${res.status})`
-            };
+        if (!contentType.includes("application/json")) {
+            return { ok: false, status: res.status, data: null, error: `Respuesta inválida (HTTP ${res.status})` };
         }
-
         const data = await res.json();
         return { ok: res.ok, status: res.status, data, error: null };
-
-    } catch(err){
-        if(err.name === "AbortError"){
+    } catch (err) {
+        if (err.name === "AbortError") {
             return { ok: false, status: 0, data: null, error: "__ABORTED__" };
         }
-        return {
-            ok: false, status: 0, data: null,
-            error: "❌ No se pudo conectar con el servidor."
-        };
+        return { ok: false, status: 0, data: null, error: "❌ No se pudo conectar con el servidor." };
     }
 }
 
-// ----------------------
+// ============================================================
 // LEER XML
-// ----------------------
-async function leerGuia(){
+// ============================================================
+async function leerGuia() {
     const file = document.getElementById("xmlfile").files[0];
-    if(!file){ alert("Selecciona la guía XML"); return; }
+    if (!file) { mostrarAlerta("Selecciona la guía XML", "error"); return; }
 
     const reader = new FileReader();
-    reader.onload = async function(e){
+    reader.onload = async function(e) {
         const xml = new DOMParser().parseFromString(e.target.result, "text/xml");
 
-        let guia           = {};
-        guia.numero        = val(xml, UBL.cbc, "ID");
+        let guia = {};
+        guia.numero = val(xml, UBL.cbc, "ID");
         guia.fecha_emision = val(xml, UBL.cbc, "IssueDate");
-        guia.hora_emision  = val(xml, UBL.cbc, "IssueTime");
+        guia.hora_emision = val(xml, UBL.cbc, "IssueTime");
 
-        const remitente    = first(xml, UBL.cac, "DespatchSupplierParty");
-        guia.remitente     = {
-            ruc:          val(remitente, UBL.cbc, "ID"),
+        const remitente = first(xml, UBL.cac, "DespatchSupplierParty");
+        guia.remitente = {
+            ruc: val(remitente, UBL.cbc, "ID"),
             razon_social: val(remitente, UBL.cbc, "RegistrationName")
         };
 
         const destinatario = first(xml, UBL.cac, "DeliveryCustomerParty");
-        guia.destinatario  = {
+        guia.destinatario = {
             nombre: val(destinatario, UBL.cbc, "RegistrationName")
         };
 
         const shipment = first(xml, UBL.cac, "Shipment");
-        guia.traslado  = {
-            motivo:     val(shipment, UBL.cbc, "HandlingInstructions"),
+        guia.traslado = {
+            motivo: val(shipment, UBL.cbc, "HandlingInstructions"),
             peso_total: val(shipment, UBL.cbc, "GrossWeightMeasure")
         };
 
         const deliveryAddress = first(xml, UBL.cac, "DeliveryAddress");
         const despatchAddress = first(xml, UBL.cac, "DespatchAddress");
         guia.llegada = { direccion: val(deliveryAddress, UBL.cbc, "Line") };
-        guia.partida = { direccion: val(despatchAddress,  UBL.cbc, "Line") };
+        guia.partida = { direccion: val(despatchAddress, UBL.cbc, "Line") };
 
         guia.items = [];
         const lineas = xml.getElementsByTagNameNS(UBL.cac, "DespatchLine");
 
-        for(let i = 0; i < lineas.length; i++){
-            const l        = lineas[i];
+        for (let i = 0; i < lineas.length; i++) {
+            const l = lineas[i];
             const itemNode = first(l, UBL.cac, "Item");
 
             let codigoBien = "";
-
             const seller = first(itemNode, UBL.cac, "SellersItemIdentification");
             codigoBien = val(seller, UBL.cbc, "ID");
-
-            if(!codigoBien){
+            if (!codigoBien) {
                 const buyer = first(itemNode, UBL.cac, "BuyersItemIdentification");
                 codigoBien = val(buyer, UBL.cbc, "ID");
             }
-
-            if(!codigoBien){
+            if (!codigoBien) {
                 const standard = first(itemNode, UBL.cac, "StandardItemIdentification");
                 codigoBien = val(standard, UBL.cbc, "ID");
             }
 
-            const name = itemNode ? val(itemNode, UBL.cbc, "Name")        : "";
+            const name = itemNode ? val(itemNode, UBL.cbc, "Name") : "";
             const desc = itemNode ? val(itemNode, UBL.cbc, "Description") : "";
 
             let descripcion = "";
-            if(name && !name.toLowerCase().includes("indicador")){
+            if (name && !name.toLowerCase().includes("indicador")) {
                 descripcion = name;
-            } else if(desc && !desc.toLowerCase().includes("indicador")){
+            } else if (desc && !desc.toLowerCase().includes("indicador")) {
                 descripcion = desc;
             } else {
-                descripcion = val(l, UBL.cbc, "Name")
-                           || val(l, UBL.cbc, "Description")
-                           || "Item sin descripción";
+                descripcion = val(l, UBL.cbc, "Name") || val(l, UBL.cbc, "Description") || "Item sin descripción";
             }
 
             guia.items.push({
-                linea:       val(l, UBL.cbc, "ID"),
+                linea: val(l, UBL.cbc, "ID"),
                 codigo_bien: codigoBien || null,
                 descripcion: descripcion,
-                cantidad:    val(l, UBL.cbc, "DeliveredQuantity"),
-                unidad:      attr(l, UBL.cbc, "DeliveredQuantity", "unitCode")
+                cantidad: val(l, UBL.cbc, "DeliveredQuantity"),
+                unidad: attr(l, UBL.cbc, "DeliveredQuantity", "unitCode")
             });
         }
 
         console.log(`📄 ${guia.numero} → ${guia.items.length} items`);
-
         mostrarGuiaBonita(guia);
         await guardarGuia(guia);
-        if(!buscando) await mostrarHistorial();
+        if (!buscando) await mostrarHistorial();
     };
     reader.readAsText(file);
 }
 
-// ----------------------
-// MOSTRAR GUIA
-// ----------------------
-function mostrarGuiaBonita(g){
+// ============================================================
+// MOSTRAR GUÍA (VERSIÓN MEJORADA)
+// ============================================================
+function mostrarGuiaBonita(g) {
     let html = `
     <div class="guia-card">
-        <h3>📄 ${g.numero}</h3>
-        <p><b>Fecha:</b> ${formatearFecha(g.fecha_emision)} ${g.hora_emision || ""}</p>
-        <p><b>Remitente:</b> ${g.remitente.razon_social} (${g.remitente.ruc})</p>
-        <p><b>Destinatario:</b> ${g.destinatario.nombre}</p>
-        <hr>
-        <p><b>🚚 Motivo de traslado:</b> ${g.traslado.motivo}</p>
-        <p><b>⚖️ Peso total:</b> ${g.traslado.peso_total}</p>
-        <hr>
-        <p><b>📍 Punto de partida:</b> ${g.partida?.direccion || "No disponible"}</p>
-        <p><b>📍 Punto de llegada:</b> ${g.llegada?.direccion  || "No disponible"}</p>
-        <hr>
-        <h4>📦 Items (${g.items.length})</h4>
-        <table style="width:100%; border-collapse:collapse;">
+        <div class="guia-header">
+            <h3>📄 ${g.numero} <small>${formatearFecha(g.fecha_emision)} ${g.hora_emision || ""}</small></h3>
+        </div>
+
+        <div class="guia-meta">
+            <div class="guia-meta-item">
+                <label>Remitente</label>
+                <span>${g.remitente.razon_social} (${g.remitente.ruc})</span>
+            </div>
+            <div class="guia-meta-item">
+                <label>Destinatario</label>
+                <span>${g.destinatario.nombre}</span>
+            </div>
+            <div class="guia-meta-item">
+                <label>Motivo de traslado</label>
+                <span>${g.traslado.motivo || "No especificado"}</span>
+            </div>
+            <div class="guia-meta-item">
+                <label>Peso total</label>
+                <span>${g.traslado.peso_total || "0"} kg</span>
+            </div>
+        </div>
+
+        <div class="guia-direcciones">
+            <div class="direccion-block">
+                <span class="icon">📍</span>
+                <div class="content">
+                    <div class="label">Punto de partida</div>
+                    <div class="direccion-texto">${g.partida?.direccion || "No disponible"}</div>
+                </div>
+            </div>
+            <div class="direccion-block">
+                <span class="icon">🏁</span>
+                <div class="content">
+                    <div class="label">Punto de llegada</div>
+                    <div class="direccion-texto">${g.llegada?.direccion || "No disponible"}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="guia-items-title">
+            <i class="fa-solid fa-box"></i> Items (${g.items.length})
+        </div>
+        <table class="tabla-items">
             <thead>
-                <tr style="background:#1976D2; color:white;">
-                    <th style="padding:8px; width:8%;  text-align:center;">#</th>
-                    <th style="padding:8px; width:18%;  text-align:center;">Código de Bien</th>
-                    <th style="padding:8px; width:62%; text-align:left;">Descripción</th>
-                    <th style="padding:8px; width:12%; text-align:center;">Cantidad</th>
-                    <th style="padding:8px; width:10%; text-align:center;">Unidad</th>
+                <tr>
+                    <th style="width:8%;">#</th>
+                    <th style="width:18%;">Código de Bien</th>
+                    <th style="width:48%;">Descripción</th>
+                    <th style="width:12%;">Cantidad</th>
+                    <th style="width:14%;">Unidad</th>
                 </tr>
             </thead>
             <tbody>`;
 
-    if(g.items.length === 0){
-        html += `
-            <tr>
-                <td colspan="5"
-                    style="padding:20px; text-align:center; color:#999;">
-                    No hay items registrados
-                </td>
-            </tr>`;
+    if (g.items.length === 0) {
+        html += `<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">No hay items registrados</td></tr>`;
     } else {
         g.items.forEach((item, idx) => {
-            const bg = idx % 2 === 0 ? "#ffffff" : "#f5f5f5";
+            const bg = idx % 2 === 0 ? "#ffffff" : "#f9fafb";
             html += `
             <tr style="background:${bg};">
-                <td style="padding:8px; border-bottom:1px solid #eee;
-                        text-align:center; font-size:13px; vertical-align:middle;">
-                    ${item.linea ?? idx + 1}
+                <td style="text-align:center;">${item.linea ?? idx + 1}</td>
+                <td>
+                    <span class="codigo-bien">${item.codigo_bien || "-"}</span>
                 </td>
-                <td style="
-                    padding:8px;
-                    border-bottom:1px solid #eee;
-                    border-right:1px solid #eee;
-                    background:#fafafa;
-                    vertical-align:middle;
-                ">
-                    <span style="
-                        font-family:monospace;
-                        font-size:11px;
-                        color:#1a237e;
-                        background:#eef3ff;
-                        padding:3px 6px;
-                        border-radius:6px;
-                        border:1px solid #d6e0ff;
-                        display:inline-block;
-                        word-break:break-all;
-                    ">
-                        ${item.codigo_bien || "-"}
-                    </span>
-                </td>
-                <td style="
-                    padding:8px;
-                    border-bottom:1px solid #eee;
-                    font-size:13px;
-                    color:#222;
-                    font-weight:500;
-                    vertical-align:middle;
-                ">
-                    ${item.descripcion || "-"}
-                </td>
-                <td style="padding:8px; border-bottom:1px solid #eee;
-                        text-align:center; font-size:13px; vertical-align:middle;">
-                    ${item.cantidad || "-"}
-                </td>
-                <td style="padding:8px; border-bottom:1px solid #eee;
-                        text-align:center; font-size:13px; vertical-align:middle;">
-                    ${item.unidad || "-"}
-                </td>
-            </tr>`
+                <td>${item.descripcion || "-"}</td>
+                <td style="text-align:center;">${item.cantidad || "-"}</td>
+                <td style="text-align:center;">${item.unidad || "-"}</td>
+            </tr>`;
         });
     }
 
     html += `</tbody></table></div>`;
     document.getElementById("salida").innerHTML = html;
+    ultimaGuiaCargada = g;
 }
 
-// ----------------------
+// ============================================================
 // GUARDAR EN BD
-// ----------------------
-async function guardarGuia(g){
+// ============================================================
+async function guardarGuia(g) {
     const { data, error } = await fetchJSON(`${API_URL}/guardar-guia`, {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(g)
+        body: JSON.stringify(g)
     });
 
-    if(error){ mostrarAlerta(error, "error"); return; }
+    if (error) { mostrarAlerta(error, "error"); return; }
 
-    if(!data.ok){
-        mostrarAlerta(
-            data.mensaje || `⚠️ La guía ${g.numero} ya fue procesada`,
-            "error"
-        );
+    if (!data.ok) {
+        mostrarAlerta(data.mensaje || `⚠️ La guía ${g.numero} ya fue procesada`, "error");
         return;
     }
 
     mostrarAlerta(`✅ Guía ${g.numero} guardada correctamente`, "success");
 }
 
-// ----------------------
-// VER GUIA POR ID - CORREGIDO
-// ----------------------
-// ----------------------
-// VER GUIA POR ID - FIX DEFINITIVO
-// ----------------------
-async function verGuiaPorId(id){
-
-    if(!id){
-        mostrarAlerta("❌ ID inválido", "error");
-        return;
-    }
+// ============================================================
+// VER GUIA POR ID
+// ============================================================
+async function verGuiaPorId(id) {
+    if (!id) { mostrarAlerta("❌ ID inválido", "error"); return; }
 
     const requestId = Date.now();
     verGuiaPorId._lastRequestId = requestId;
 
     const response = await fetchJSON(`${API_URL}/guias/${id}`);
 
-    if(requestId !== verGuiaPorId._lastRequestId) return;
+    if (requestId !== verGuiaPorId._lastRequestId) return;
 
-    if(response.error){
-        mostrarAlerta(response.error, "error");
-        return;
-    }
+    if (response.error) { mostrarAlerta(response.error, "error"); return; }
 
-    // ✅ RESPUESTA DEL BACKEND
     const payload = response.data;
 
-    if(!payload || !payload.ok || !payload.data){
-        mostrarAlerta(
-            payload?.mensaje || `⚠️ Guía no encontrada (ID: ${id})`,
-            "error"
-        );
+    if (!payload || !payload.ok || !payload.data) {
+        mostrarAlerta(payload?.mensaje || `⚠️ Guía no encontrada (ID: ${id})`, "error");
         return;
     }
 
-    // ✅ LA GUÍA REAL
     const g = payload.data;
 
-    // ✅ ITEMS SOPORTA ARRAY O JSON STRING
     let items = [];
-
-    if(Array.isArray(g.items)){
+    if (Array.isArray(g.items)) {
         items = g.items;
-    }
-    else if(typeof g.items === "string"){
-        try{
-            items = JSON.parse(g.items);
-        }catch(e){
-            items = [];
-        }
+    } else if (typeof g.items === "string") {
+        try { items = JSON.parse(g.items); } catch (e) { items = []; }
     }
 
-    // ✅ ARMAR OBJETO LIMPIO
     const guia = {
         numero: g.numero || "",
         fecha_emision: g.fecha_emision || "",
         hora_emision: g.hora_emision || "",
-
         remitente: {
             ruc: g.remitente_ruc || "-",
             razon_social: g.remitente_nombre || "-"
         },
-
         destinatario: {
             nombre: g.destinatario_nombre || "-"
         },
-
         traslado: {
             motivo: g.motivo || "-",
             peso_total: g.peso_total || "-"
         },
-
         partida: {
             direccion: g.direccion_partida || ""
         },
-
         llegada: {
             direccion: g.direccion_llegada || ""
         },
-
         items: items.map((item, idx) => ({
             linea: item.linea || idx + 1,
             codigo_bien: item.codigo_bien || "-",
@@ -374,62 +308,44 @@ async function verGuiaPorId(id){
         }))
     };
 
-    console.log("✅ GUIA CARGADA:", guia);
-
     mostrarGuiaBonita(guia);
-
-    ultimaGuiaCargada = guia;
 }
 
-// ----------------------
-// MOSTRAR HISTORIAL - CORREGIDO
-// ----------------------
-async function mostrarHistorial(){
-
+// ============================================================
+// MOSTRAR HISTORIAL
+// ============================================================
+async function mostrarHistorial() {
     const textoBuscador = document.getElementById("buscador").value.trim();
-    if(textoBuscador) return;
+    if (textoBuscador) return;
 
     buscando = false;
 
     const contHistorial = document.getElementById("historial-lista");
-    const contBuscador  = document.getElementById("historial-busqueda");
+    const contBuscador = document.getElementById("historial-busqueda");
 
     contHistorial.style.display = "block";
-    contBuscador.style.display  = "none";
-    contBuscador.innerHTML      = "";
+    contBuscador.style.display = "none";
+    contBuscador.innerHTML = "";
 
-    contHistorial.innerHTML = `
-        <p style="color:#999; text-align:center; padding:10px; font-size:13px;">
-            Cargando...
-        </p>`;
+    contHistorial.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Cargando...</p></div>`;
 
-    const { data, error } = await fetchJSON(
-        `${API_URL}/guias?limit=${limite}&offset=${pagina * limite}`
-    );
+    const { data, error } = await fetchJSON(`${API_URL}/guias?limit=${limite}&offset=${pagina * limite}`);
 
-    if(error){
-        contHistorial.innerHTML = `
-            <p style="color:red; font-size:13px; padding:10px;">${error}</p>`;
+    if (error) {
+        contHistorial.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>${error}</p></div>`;
         return;
     }
 
-    // ✅ CORRECCIÓN: Verificar estructura correcta
-    if(!data || !data.data){
-        contHistorial.innerHTML = `
-            <p style="color:#999; text-align:center; padding:20px; font-size:13px;">
-                No hay guías registradas
-            </p>`;
+    if (!data || !data.data) {
+        contHistorial.innerHTML = `<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No hay guías registradas</p></div>`;
         return;
     }
 
     const guias = data.data;
     hayMasPaginas = guias.length === limite;
 
-    if(guias.length === 0){
-        contHistorial.innerHTML = `
-            <p style="color:#999; text-align:center; padding:20px; font-size:13px;">
-                No hay guías registradas
-            </p>`;
+    if (guias.length === 0) {
+        contHistorial.innerHTML = `<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No hay guías registradas</p></div>`;
         return;
     }
 
@@ -437,60 +353,39 @@ async function mostrarHistorial(){
     const fin = inicio + guias.length - 1;
 
     let html = `
-    <table style="width:100%; border-collapse:collapse;">
+    <table class="historial-tabla">
         <thead>
-            <tr style="background:#1976D2; color:white; font-size:12px;">
-                <th style="padding:8px 6px; width:38%; text-align:left;">N° Guía</th>
-                <th style="padding:8px 6px; width:38%; text-align:left;">Cliente</th>
-                <th style="padding:8px 6px; width:24%; text-align:center;">Fecha</th>
+            <tr>
+                <th style="width:35%;">N° Guía</th>
+                <th style="width:40%;">Cliente</th>
+                <th style="width:25%;">Fecha</th>
             </tr>
         </thead>
         <tbody>
     `;
 
     guias.forEach(g => {
-        const cliente = formatearClienteHTML(g.destinatario_nombre);
+        const cliente = g.destinatario_nombre || "—";
         html += `
-        <tr onclick="seleccionarGuia(this, ${g.id})"
-            style="cursor:pointer; border-bottom:1px solid #eee; font-size:12px;">
-            <td style="padding:7px 6px; white-space:nowrap;
-                       overflow:hidden; text-overflow:ellipsis;">
-                📄 ${g.numero}
-            </td>
-            <td style="padding:7px 6px; color:#555; overflow:hidden;"
-                title="${g.destinatario_nombre || ''}">
-                ${cliente}
-            </td>
-            <td style="padding:7px 6px; text-align:center; color:#777;
-                       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                ${formatearFecha(g.fecha_emision)}
-            </td>
+        <tr onclick="seleccionarGuia(this, ${g.id})">
+            <td><span class="guia-numero">📄 ${g.numero}</span></td>
+            <td><span class="guia-cliente" title="${cliente}">${cliente}</span></td>
+            <td><span class="guia-fecha">${formatearFecha(g.fecha_emision)}</span></td>
         </tr>`;
     });
 
     html += `
         </tbody>
     </table>
-    <div style="display:flex; justify-content:space-between; align-items:center;
-                padding:8px 4px; margin-top:6px; font-size:12px; color:#888;
-                border-top:1px solid #eee;">
+    <div class="paginacion">
         <span>Mostrando ${inicio}–${fin}</span>
-        <div style="display:flex; gap:6px; align-items:center;">
-            <button onclick="anteriorPagina()"
-                ${pagina === 0 ? "disabled" : ""}
-                style="padding:4px 10px; border:1px solid #ddd; border-radius:4px;
-                       background:${pagina === 0 ? '#f5f5f5' : 'white'};
-                       cursor:${pagina === 0 ? 'not-allowed' : 'pointer'};
-                       color:${pagina === 0 ? '#bbb' : '#333'};">⬅
+        <div style="display:flex;gap:4px;">
+            <button class="btn-icon" onclick="anteriorPagina()" ${pagina === 0 ? "disabled" : ""}>
+                <i class="fa-solid fa-chevron-left"></i>
             </button>
-            <span style="font-weight:bold;">Pág. ${pagina + 1}</span>
-            <button onclick="siguientePagina()"
-                ${!hayMasPaginas ? "disabled" : ""}
-                style="padding:4px 10px; border:1px solid #ddd; border-radius:4px;
-                    background:${!hayMasPaginas ? '#f5f5f5' : 'white'};
-                    cursor:${!hayMasPaginas ? 'not-allowed' : 'pointer'};
-                    color:${!hayMasPaginas ? '#bbb' : '#333'};">
-                ➡
+            <span style="font-size:12px;padding:0 6px;">Pág. ${pagina + 1}</span>
+            <button class="btn-icon" onclick="siguientePagina()" ${!hayMasPaginas ? "disabled" : ""}>
+                <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
     </div>`;
@@ -498,26 +393,26 @@ async function mostrarHistorial(){
     contHistorial.innerHTML = html;
 }
 
-// ----------------------
+// ============================================================
 // BUSCADOR
-// ----------------------
-async function filtrarGuias(){
+// ============================================================
+async function filtrarGuias() {
+    const input = document.getElementById("buscador");
+    const texto = input.value.trim();
 
-    const input         = document.getElementById("buscador");
-    const texto         = input.value.trim();
-    const btnLimpiar    = document.getElementById("btn-limpiar");
+    const btnLimpiar = document.getElementById("btn-limpiar");
     const contHistorial = document.getElementById("historial-lista");
-    const contBuscador  = document.getElementById("historial-busqueda");
+    const contBuscador = document.getElementById("historial-busqueda");
 
-    if(btnLimpiar){
+    if (btnLimpiar) {
         btnLimpiar.style.display = texto ? "flex" : "none";
     }
 
-    if(!texto){
+    if (!texto) {
         buscando = false;
-        pagina   = 0;
-        contBuscador.style.display  = "none";
-        contBuscador.innerHTML      = "";
+        pagina = 0;
+        contBuscador.style.display = "none";
+        contBuscador.innerHTML = "";
         contHistorial.style.display = "block";
         await mostrarHistorial();
         return;
@@ -525,133 +420,80 @@ async function filtrarGuias(){
 
     buscando = true;
 
-    if(busquedaController){
+    if (busquedaController) {
         busquedaController.abort();
     }
 
     busquedaController = new AbortController();
     const signal = busquedaController.signal;
-    const currentToken = ++tokenBusqueda;
+    const token = ++tokenBusqueda;
 
     contHistorial.style.display = "none";
-    contBuscador.style.display  = "block";
+    contBuscador.style.display = "block";
 
     contBuscador.innerHTML = `
-        <div style="text-align:center; padding:20px; color:#666;">
-            🔍 Buscando "<strong>${escapeHtml(texto)}</strong>"...
-        </div>`;
-
-    const { data, error } = await fetchJSON(
-        `${API_URL}/buscar?q=${encodeURIComponent(texto)}`,
-        { signal }
-    );
-
-    if(currentToken !== tokenBusqueda) return;
-    if(error === "__ABORTED__") return;
-
-    if(error){
-        contBuscador.innerHTML = `<p style="color:red">${error}</p>`;
-        return;
-    }
-
-    if(!data || !data.data || data.data.length === 0){
-        contBuscador.innerHTML = `
-            <div style="text-align:center; padding:20px;">
-                🔍 Sin resultados para "<strong>${escapeHtml(texto)}</strong>"
-            </div>`;
-        return;
-    }
-
-    const textoLower = texto.toLowerCase();
-
-    let html = `
-        <table class="tabla-guia">
-        <thead>
-            <tr>
-                <th class="col-guia">Guía</th>
-                <th class="col-cliente">Cliente</th>
-                <th class="col-items">Items</th>
-                <th class="col-partida">Partida</th>
-                <th class="col-llegada">Llegada</th>
-            </tr>
-        </thead>
-        <tbody>
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Buscando <strong>"${escapeHtml(texto)}"</strong></p>
+        </div>
     `;
 
-    const lista = data.data;
+    const { data, error } = await fetchJSON(`${API_URL}/buscar?q=${encodeURIComponent(texto)}`, { signal });
 
-    lista.forEach(g => {
-        function limpiarTexto(t) {
-            return (t || "")
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "");
-        }
+    if (token !== tokenBusqueda) return;
+    if (error === "__ABORTED__") return;
 
-        const textoLimpio = limpiarTexto(texto);
-        const todosItems = g.items || [];
+    if (error) {
+        contBuscador.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>${error}</p></div>`;
+        return;
+    }
 
-        const itemsMatch = todosItems.filter(i =>
-            limpiarTexto(i.descripcion).includes(textoLimpio)
-        );
+    if (!data || !data.data || data.data.length === 0) {
+        contBuscador.innerHTML = `
+            <div class="empty-state">
+                <i class="fa-regular fa-face-frown"></i>
+                <p>No encontramos resultados para <strong>"${escapeHtml(texto)}"</strong></p>
+            </div>
+        `;
+        return;
+    }
 
-        const itemsOrdenados = [
-            ...itemsMatch,
-            ...todosItems.filter(i => !itemsMatch.includes(i))
-        ];
+    // Ordenar por relevancia
+    const resultados = data.data
+        .map(g => ({ ...g, __score: calcularRelevancia(g, texto) }))
+        .sort((a, b) => b.__score - a.__score);
 
-        const itemsMostrar = itemsOrdenados.slice(0, 3);
-        const restantes = todosItems.length - itemsMostrar.length;
-
-        const itemsHTML = itemsMostrar.map(i => {
-            const esMatch = itemsMatch.includes(i);
-            return `📦 ${
-                esMatch
-                    ? `<span style="background:#fff3cd; padding:2px 4px; border-radius:4px; font-weight:600;">
-                        ${resaltarTexto(i.descripcion, texto)}
-                    </span>`
-                    : escapeHtml(i.descripcion)
-            }`;
-        }).join("") + (restantes > 0
-            ? `<div style="font-size:11px; color:#777;">+${restantes} items</div>`
-            : "");
-
-        const hayMatchItems = itemsMatch.length > 0;
-
-        const partida = g.direccion_partida
-            ? formatearDireccionHTML(
-                hayMatchItems
-                    ? escapeHtml(g.direccion_partida)
-                    : resaltarTexto(g.direccion_partida, texto)
-            )
-            : `<span style="color:#ccc;">—</span>`;
-
-        const llegada = g.direccion_llegada
-            ? formatearDireccionHTML(
-                hayMatchItems
-                    ? escapeHtml(g.direccion_llegada)
-                    : resaltarTexto(g.direccion_llegada, texto)
-            )
-            : `<span style="color:#ccc;">—</span>`;
-
-        html += `
-        <tr onclick="seleccionarGuia(this, ${g.id})"
-            style="cursor:pointer; border-bottom:1px solid #eee;">
-            <td class="td-guia">📄 ${escapeHtml(g.numero)}</td>
-            <td class="td-cliente">${formatearClienteHTML(g.destinatario_nombre)}</td>
-            <td class="td-items">${itemsHTML}</td>
-            <td class="td-partida">🚀 ${partida}</td>
-            <td class="td-llegada">🏁 ${llegada}</td>
-        </tr>`;
-    });
-
-    html += `</tbody></table>`;
-    contBuscador.innerHTML = html;
+    renderResultadosBusqueda(resultados, texto);
 }
 
-// ----------------------
-// ESCAPE HTML
-// ----------------------
+function calcularRelevancia(g, texto) {
+    const palabras = normalizarTexto(texto).split(" ").filter(p => p.length > 0);
+    let score = 0;
+
+    palabras.forEach(p => {
+        if (normalizarTexto(g.numero).includes(p)) score += 100;
+        if (normalizarTexto(g.destinatario_nombre).includes(p)) score += 40;
+        if (normalizarTexto(g.direccion_partida).includes(p)) score += 25;
+        if (normalizarTexto(g.direccion_llegada).includes(p)) score += 25;
+        (g.items || []).forEach(item => {
+            if (normalizarTexto(item.descripcion).includes(p)) score += 60;
+        });
+    });
+
+    return score;
+}
+
+function normalizarTexto(texto) {
+    return (texto || "")
+        .toString()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^\w\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
 function escapeHtml(str) {
     if (!str) return "";
     return str
@@ -662,61 +504,218 @@ function escapeHtml(str) {
         .replace(/'/g, "&#39;");
 }
 
-// ----------------------
-// RESALTAR TEXTO
-// ----------------------
-function resaltarTexto(texto, busqueda){
-    if(!busqueda || !texto) return escapeHtml(String(texto));
-
+function resaltarTexto(texto, busqueda) {
+    if (!busqueda || !texto) return escapeHtml(String(texto));
     const textoStr = String(texto);
     const busquedaEscapada = busqueda.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${busquedaEscapada})`, "gi");
-
-    return textoStr.replace(regex, `
-        <mark style="background:#FFF176; padding:1px 2px; border-radius:2px; color:#000;">
-            $1
-        </mark>
-    `);
+    return textoStr.replace(regex, `<mark>$1</mark>`);
 }
 
-// ----------------------
+function renderResultadosBusqueda(resultados, texto) {
+    const contenedor = document.getElementById("historial-busqueda");
+    let html = "";
+
+    resultados.forEach(g => {
+        const palabras = normalizarTexto(texto).split(" ").filter(p => p.length > 0);
+        const itemsCoincidentes = (g.items || [])
+            .map(item => {
+                const desc = normalizarTexto(item.descripcion);
+                let coincidencias = 0;
+                palabras.forEach(p => { if (desc.includes(p)) coincidencias++; });
+                return { ...item, coincidencias };
+            })
+            .filter(item => item.coincidencias > 0)
+            .sort((a, b) => b.coincidencias - a.coincidencias);
+
+        const itemsMostrar = itemsCoincidentes.slice(0, 3);
+
+        html += `
+        <div class="search-result-card" onclick="verGuiaPorId(${g.id})">
+            <div class="search-card-header">
+                <span class="numero">📄 ${resaltarTexto(g.numero, texto)}</span>
+                <span class="fecha">${formatearFecha(g.fecha_emision)}</span>
+            </div>
+            <div class="search-client">
+                <i class="fa-regular fa-user"></i>
+                <span>${resaltarTexto(g.destinatario_nombre || "—", texto)}</span>
+            </div>
+            <div class="search-items">
+                <strong>📦 Productos encontrados (${itemsCoincidentes.length})</strong>
+                ${itemsMostrar.length > 0 ? itemsMostrar.map(item => `
+                    <div class="item-match">
+                        <i class="fa-regular fa-circle-check"></i>
+                        <span>${resaltarTexto(item.descripcion, texto)}</span>
+                    </div>
+                `).join("") : '<div style="color:#999;font-size:12px;">Sin coincidencias directas</div>'}
+                ${itemsCoincidentes.length > 3 ? `<div class="item-more">+${itemsCoincidentes.length - 3} productos más</div>` : ""}
+            </div>
+            <div class="search-address">
+                <div class="addr">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span class="text">${g.direccion_partida || "—"}</span>
+                </div>
+                <div class="addr">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                    <span class="text">${g.direccion_llegada || "—"}</span>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    contenedor.innerHTML = html;
+}
+
+// ============================================================
 // FECHAS
-// ----------------------
-function formatearFecha(fechaISO){
-    if(!fechaISO) return "";
+// ============================================================
+function formatearFecha(fechaISO) {
+    if (!fechaISO) return "";
     const fecha = fechaISO.split("T")[0];
     const [year, month, day] = fecha.split("-");
     return `${day}/${month}/${year}`;
 }
 
-function formatearHora(fechaISO){
-    const fecha = new Date(fechaISO);
-    return fecha.toLocaleTimeString("es-PE", {
-        hour: "2-digit", minute: "2-digit", second: "2-digit"
-    });
+// ============================================================
+// SELECCIONAR GUIA
+// ============================================================
+function seleccionarGuia(fila, id) {
+    document.querySelectorAll(".fila-activa").forEach(el => el.classList.remove("fila-activa"));
+    if (fila) fila.classList.add("fila-activa");
+    guiaSeleccionadaId = id;
+    verGuiaPorId(id);
 }
 
-// ----------------------
-// EXPORTAR EXCEL
-// ----------------------
-async function exportarExcel(){
-    const g = ultimaGuiaCargada;
-    if(!g){
-        alert("Primero selecciona o carga una guía");
+// ============================================================
+// PAGINACIÓN
+// ============================================================
+function siguientePagina() {
+    if (!hayMasPaginas) return;
+    pagina++;
+    mostrarHistorial();
+}
+
+function anteriorPagina() {
+    if (pagina > 0) { pagina--; mostrarHistorial(); }
+}
+
+// ============================================================
+// LIMPIAR BÚSQUEDA
+// ============================================================
+function limpiarBusqueda() {
+    const input = document.getElementById("buscador");
+    const btnLimpiar = document.getElementById("btn-limpiar");
+    const contBuscador = document.getElementById("historial-busqueda");
+    const contHistorial = document.getElementById("historial-lista");
+
+    input.value = "";
+    buscando = false;
+    pagina = 0;
+
+    if (btnLimpiar) btnLimpiar.style.display = "none";
+
+    contBuscador.style.display = "none";
+    contBuscador.innerHTML = "";
+    contHistorial.style.display = "block";
+
+    mostrarHistorial();
+    input.focus();
+}
+
+// ============================================================
+// FILTRO POR FECHA
+// ============================================================
+async function filtrarPorFecha() {
+    const desde = document.getElementById("fecha-desde").value;
+    const hasta = document.getElementById("fecha-hasta").value;
+
+    if (!desde || !hasta) {
+        mostrarAlerta("Selecciona ambas fechas", "error");
         return;
     }
 
+    const contHistorial = document.getElementById("historial-lista");
+    const contBuscador = document.getElementById("historial-busqueda");
+
+    contHistorial.style.display = "none";
+    contBuscador.style.display = "block";
+
+    contBuscador.innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Filtrando desde ${formatearFecha(desde)} hasta ${formatearFecha(hasta)}</p>
+        </div>
+    `;
+
+    const { data, error } = await fetchJSON(`${API_URL}/buscar-por-fecha?desde=${desde}&hasta=${hasta}`);
+
+    if (error) {
+        contBuscador.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>${error}</p></div>`;
+        return;
+    }
+
+    if (!data || !data.data || data.data.length === 0) {
+        contBuscador.innerHTML = `
+            <div class="empty-state">
+                <i class="fa-regular fa-calendar-xmark"></i>
+                <p>Sin resultados en ese rango</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Mostrar resultados en tabla
+    let html = `
+    <table class="historial-tabla">
+        <thead>
+            <tr>
+                <th style="width:35%;">N° Guía</th>
+                <th style="width:40%;">Cliente</th>
+                <th style="width:25%;">Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
+
+    data.data.forEach(g => {
+        html += `
+        <tr onclick="seleccionarGuia(this, ${g.id})">
+            <td><span class="guia-numero">📄 ${g.numero}</span></td>
+            <td><span class="guia-cliente">${g.destinatario_nombre || "—"}</span></td>
+            <td><span class="guia-fecha">${formatearFecha(g.fecha_emision)}</span></td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    contBuscador.innerHTML = html;
+}
+
+function limpiarFiltroFecha() {
+    document.getElementById("fecha-desde").value = "";
+    document.getElementById("fecha-hasta").value = "";
+    document.getElementById("historial-busqueda").style.display = "none";
+    document.getElementById("historial-lista").style.display = "block";
+    mostrarHistorial();
+}
+
+// ============================================================
+// EXPORTAR EXCEL
+// ============================================================
+async function exportarExcel() {
+    const g = ultimaGuiaCargada;
+    if (!g) { mostrarAlerta("Primero selecciona o carga una guía", "error"); return; }
+
     let rows = [
         ["GUÍA DE REMISIÓN"], [],
-        ["Número:",       g.numero],
-        ["Fecha:",        formatearFecha(g.fecha_emision)],
-        ["Remitente:",    g.remitente.razon_social],
-        ["RUC:",          g.remitente.ruc],
+        ["Número:", g.numero],
+        ["Fecha:", formatearFecha(g.fecha_emision)],
+        ["Remitente:", g.remitente.razon_social],
+        ["RUC:", g.remitente.ruc],
         ["Destinatario:", g.destinatario.nombre], [],
-        ["Motivo:",       g.traslado.motivo],
-        ["Peso:",         g.traslado.peso_total], [],
-        ["Partida:",      g.partida.direccion],
-        ["Llegada:",      g.llegada.direccion], [],
+        ["Motivo:", g.traslado.motivo],
+        ["Peso:", g.traslado.peso_total + " kg"], [],
+        ["Partida:", g.partida.direccion],
+        ["Llegada:", g.llegada.direccion], [],
         ["ITEMS"],
         ["#", "Código", "Descripción", "Cantidad", "Unidad"]
     ];
@@ -735,50 +734,46 @@ async function exportarExcel(){
 
     let ws = XLSX.utils.aoa_to_sheet(rows);
     ws["!cols"] = [
-        { wch: 5 },   // #
-        { wch: 20 },  // código
-        { wch: 50 },  // descripción
-        { wch: 12 },  // cantidad
-        { wch: 10 }   // unidad
+        { wch: 5 }, { wch: 20 }, { wch: 50 }, { wch: 12 }, { wch: 10 }
     ];
-    ws["!merges"] = [{ s:{r:0,c:0}, e:{r:0,c:4} }];
+    ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
 
-    if(ws["A1"]) ws["A1"].s = {
+    if (ws["A1"]) ws["A1"].s = {
         font: { bold: true, sz: 14 },
         alignment: { horizontal: "center" }
     };
 
-    ["A","B","C","D","E"].forEach(col => {
+    ["A", "B", "C", "D", "E"].forEach(col => {
         const cell = ws[`${col}${filaHeaderItems}`];
-        if(cell){
+        if (cell) {
             cell.s = {
                 font: { bold: true, color: { rgb: "FFFFFF" } },
-                fill: { fgColor: { rgb: "1976D2" } },
+                fill: { fgColor: { rgb: "0A5C8C" } },
                 alignment: { horizontal: "center" }
             };
         }
     });
 
-    for(let i = filaHeaderItems + 1; i <= rows.length; i++){
-        ["A","B","D","E"].forEach(col => {
+    for (let i = filaHeaderItems + 1; i <= rows.length; i++) {
+        ["A", "B", "D", "E"].forEach(col => {
             const cell = ws[`${col}${i}`];
-            if(cell){
+            if (cell) {
                 cell.s = { alignment: { horizontal: "center" } };
             }
         });
     }
 
-    for(let i = filaHeaderItems; i <= rows.length; i++){
-        ["A","B","C","D","E"].forEach(col => {
+    for (let i = filaHeaderItems; i <= rows.length; i++) {
+        ["A", "B", "C", "D", "E"].forEach(col => {
             const cell = ws[`${col}${i}`];
-            if(cell){
+            if (cell) {
                 cell.s = {
                     ...cell.s,
                     border: {
-                        top:    { style: "thin" },
+                        top: { style: "thin" },
                         bottom: { style: "thin" },
-                        left:   { style: "thin" },
-                        right:  { style: "thin" }
+                        left: { style: "thin" },
+                        right: { style: "thin" }
                     }
                 };
             }
@@ -788,318 +783,104 @@ async function exportarExcel(){
     let wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Guía");
     XLSX.writeFile(wb, `guia_${g.numero}.xlsx`);
+    mostrarAlerta(`✅ Excel exportado: guia_${g.numero}.xlsx`, "success");
 }
 
-// ----------------------
+// ============================================================
 // EXPORTAR PDF
-// ----------------------
-async function exportarPDF(){
+// ============================================================
+async function exportarPDF() {
     const contenido = document.getElementById("salida");
-    if(!contenido || contenido.innerText.trim().length < 50){
-        alert("Primero selecciona o carga una guía"); return;
+    if (!contenido || contenido.innerText.trim().length < 50) {
+        mostrarAlerta("Primero selecciona o carga una guía", "error");
+        return;
     }
+
     await new Promise(resolve => setTimeout(resolve, 300));
-    const canvas  = await html2canvas(contenido, { scale: 3, useCORS: true });
+    const canvas = await html2canvas(contenido, { scale: 3, useCORS: true });
     const imgData = canvas.toDataURL("image/png");
     const { jsPDF } = window.jspdf;
-    const pdf       = new jsPDF("p", "mm", "a4");
-    const pageWidth  = 210;
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = 210;
     const pageHeight = 297;
-    const imgWidth   = pageWidth;
-    const imgHeight  = canvas.height * imgWidth / canvas.width;
+    const imgWidth = pageWidth;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
     let heightLeft = imgHeight;
-    let position   = 0;
+    let position = 0;
     pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
     heightLeft -= pageHeight;
-    while(heightLeft > 0){
-        position   = heightLeft - imgHeight;
+    while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
         pdf.addPage();
         pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
     }
 
     const nombre = ultimaGuiaCargada?.numero || "sin_numero";
-    pdf.save(`guia_${ultimaGuiaCargada.numero}.pdf`);
+    pdf.save(`guia_${nombre}.pdf`);
+    mostrarAlerta(`✅ PDF exportado: guia_${nombre}.pdf`, "success");
 }
 
-// ----------------------
-// ALERTAS
-// ----------------------
-function mostrarAlerta(msg, tipo = "info"){
+// ============================================================
+// ALERTAS (TOAST)
+// ============================================================
+function mostrarAlerta(msg, tipo = "info") {
+    const existing = document.querySelector(".toast");
+    if (existing) existing.remove();
+
     const div = document.createElement("div");
-    div.innerText = msg;
-    Object.assign(div.style, {
-        position:     "fixed",
-        top:          "20px",
-        right:        "20px",
-        padding:      "14px 22px",
-        borderRadius: "10px",
-        color:        "white",
-        zIndex:       "9999",
-        fontWeight:   "bold",
-        boxShadow:    "0 4px 12px rgba(0,0,0,0.2)",
-        opacity:      "0",
-        transition:   "all 0.4s ease",
-        background:   tipo === "error" ? "#d32f2f" : "#2e7d32"
-    });
+    div.className = `toast ${tipo}`;
+    div.textContent = msg;
     document.body.appendChild(div);
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+        div.classList.add("show");
+    });
+
     setTimeout(() => {
-        div.style.opacity   = "1";
-        div.style.transform = "translateY(0)";
-    }, 50);
-    setTimeout(() => {
-        div.style.opacity   = "0";
-        div.style.transform = "translateY(-10px)";
+        div.classList.remove("show");
         setTimeout(() => div.remove(), 400);
-    }, 3000);
+    }, 4000);
 }
 
-// ----------------------
-// LIMPIAR BÚSQUEDA
-// ----------------------
-function limpiarBusqueda(){
-    const input         = document.getElementById("buscador");
-    const btnLimpiar    = document.getElementById("btn-limpiar");
-    const contBuscador  = document.getElementById("historial-busqueda");
-    const contHistorial = document.getElementById("historial-lista");
-
-    input.value = "";
-    buscando    = false;
-    pagina      = 0;
-
-    if(btnLimpiar) btnLimpiar.style.display = "none";
-
-    contBuscador.style.display  = "none";
-    contBuscador.innerHTML      = "";
-    contHistorial.style.display = "block";
-
-    mostrarHistorial();
-    input.focus();
-}
-
-// ----------------------
-// SELECCIONAR GUIA
-// ----------------------
-function seleccionarGuia(fila, id){
-    document.querySelectorAll(".fila-activa").forEach(el => {
-        el.classList.remove("fila-activa");
-    });
-    fila.classList.add("fila-activa");
-    guiaSeleccionadaId = id;
-    verGuiaPorId(id);
-}
-
-// ----------------------
-// PAGINACIÓN
-// ----------------------
-function siguientePagina(){
-    if(!hayMasPaginas) return;
-    pagina++;
-    mostrarHistorial();
-}
-
-function anteriorPagina(){
-    if(pagina > 0){ pagina--; mostrarHistorial(); }
-}
-
-// ----------------------
-/// FORMATOS HTML
-// ----------------------
-function formatearDireccionHTML(direccion) {
-    if (!direccion) return `<span style="color:#ccc;">—</span>`;
-
-    direccion = direccion.replace(/\s+/g, " ").trim();
-
-    const matchRegion = direccion.match(/([A-ZÁÉÍÓÚÑ\s]+-\s*[A-ZÁÉÍÓÚÑ\s]+-\s*[A-ZÁÉÍÓÚÑ\s]+)$/i);
-
-    let region = "";
-    let base = direccion;
-
-    if (matchRegion) {
-        region = matchRegion[1].trim();
-        base = direccion.replace(matchRegion[1], "").trim();
-    }
-
-    const cortes = ["NRO.", "KM", "URB.", "MZ.", "LT.", "INT.", "AV.", "CAL.", "CAR."];
-
-    let partes = [];
-    let texto = base;
-
-    cortes.forEach(corte => {
-        if (texto.includes(corte)) {
-            const split = texto.split(corte);
-            if (split.length > 1) {
-                partes.push(split[0].trim());
-                texto = corte + split.slice(1).join(corte);
-            }
-        }
-    });
-
-    partes.push(texto.trim());
-    partes = partes.filter(p => p.length > 0);
-
-    return `
-        <div style="line-height:1.3;">
-            ${partes.map(p => `<div>${p}</div>`).join("")}
-            ${region ? `<div style="color:#555;">${region}</div>` : ""}
-        </div>
-    `;
-}
-
-function formatearClienteHTML(nombre) {
-    if (!nombre) return `<span style="color:#ccc;">—</span>`;
-
-    nombre = nombre.replace(/\s+/g, " ").trim();
-    const palabras = nombre.split(" ");
-
-    if (palabras.length <= 2) {
-        return `<div style="line-height:1.2;">${escapeHtml(nombre)}</div>`;
-    }
-
-    const mitad = Math.ceil(palabras.length / 2);
-    const linea1 = palabras.slice(0, mitad).join(" ");
-    const linea2 = palabras.slice(mitad).join(" ");
-
-    return `
-        <div style="line-height:1.2; word-break:break-word;">
-            <div>${escapeHtml(linea1)}</div>
-            <div>${escapeHtml(linea2)}</div>
-        </div>
-    `;
-}
-
-function mostrarResultadosFecha(lista){
-    const cont = document.getElementById("historial-busqueda");
-
-    let html = `
-    <table style="width:100%; border-collapse:collapse;">
-        <thead>
-            <tr style="background:#1976D2; color:white;">
-                <th style="padding:8px;">N° Guía</th>
-                <th style="padding:8px;">Cliente</th>
-                <th style="padding:8px;">Fecha</th>
-            </tr>
-        </thead>
-        <tbody>
-    `;
-
-    lista.forEach(g => {
-        html += `
-        <tr onclick="seleccionarGuia(this, ${g.id})"
-            style="cursor:pointer; border-bottom:1px solid #eee;">
-            <td style="padding:6px;">📄 ${escapeHtml(g.numero)}</td>
-            <td style="padding:6px;">${formatearClienteHTML(g.destinatario_nombre)}</td>
-            <td style="padding:6px; text-align:center;">${formatearFecha(g.fecha_emision)}</td>
-        </tr>`;
-    });
-
-    html += `</tbody></table>`;
-    cont.innerHTML = html;
-}
-
-async function filtrarPorFecha(){
-    const desde = document.getElementById("fecha-desde").value;
-    const hasta = document.getElementById("fecha-hasta").value;
-
-    if(!desde || !hasta){
-        mostrarAlerta("Selecciona ambas fechas", "error");
-        return;
-    }
-
-    const contHistorial = document.getElementById("historial-lista");
-    const contBuscador  = document.getElementById("historial-busqueda");
-
-    contHistorial.style.display = "none";
-    contBuscador.style.display  = "block";
-
-    contBuscador.innerHTML = `
-        <div style="text-align:center; padding:20px;">
-            📅 Filtrando desde <b>${formatearFechaVisual(desde)}</b> 
-            hasta <b>${formatearFechaVisual(hasta)}</b>
-        </div>
-    `;
-
-    const { data, error } = await fetchJSON(
-        `${API_URL}/buscar-por-fecha?desde=${desde}&hasta=${hasta}`
-    );
-
-    if(error){
-        contBuscador.innerHTML = `<p style="color:red">${error}</p>`;
-        return;
-    }
-
-    if(!data || !data.data || data.data.length === 0){
-        contBuscador.innerHTML = `
-            <div style="text-align:center; padding:20px;">
-                Sin resultados en ese rango
-            </div>
-        `;
-        return;
-    }
-
-    mostrarResultadosFecha(data.data);
-}
-
-function limpiarFiltroFecha(){
-    document.getElementById("fecha-desde").value = "";
-    document.getElementById("fecha-hasta").value = "";
-    document.getElementById("historial-busqueda").style.display = "none";
-    document.getElementById("historial-lista").style.display = "block";
-    mostrarHistorial();
-}
-
-function formatearFechaVisual(fechaISO){
-    if(!fechaISO) return "";
-    const [anio, mes, dia] = fechaISO.split("-");
-    return `${dia}/${mes}/${anio}`;
-}
-
-// ----------------------
+// ============================================================
 // INIT
-// ----------------------
+// ============================================================
 document.addEventListener("DOMContentLoaded", () => {
-    const btnLimpiar   = document.getElementById("btn-limpiar");
+    const btnLimpiar = document.getElementById("btn-limpiar");
     const contBuscador = document.getElementById("historial-busqueda");
 
-    if(btnLimpiar)   btnLimpiar.style.display   = "none";
-    if(contBuscador) contBuscador.style.display = "none";
+    if (btnLimpiar) btnLimpiar.style.display = "none";
+    if (contBuscador) contBuscador.style.display = "none";
 
     const inputBuscador = document.getElementById("buscador");
-    if(inputBuscador){
+    if (inputBuscador) {
         inputBuscador.addEventListener("input", () => {
-            if(debounceTimer) clearTimeout(debounceTimer);
+            if (debounceTimer) clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 filtrarGuias();
             }, 400);
         });
     }
 
-    if(window.innerWidth <= 600){
-        document.querySelectorAll('input[type="date"]').forEach(input => {
-            if(!input.value) input.classList.add("empty-date");
-            input.addEventListener("change", function(){
-                if(this.value) this.classList.remove("empty-date");
-            });
-            input.addEventListener("blur", function(){
-                if(!this.value) this.classList.add("empty-date");
-            });
-        });
-    }
-
+    // Mostrar nombre del archivo seleccionado
     const inputFile = document.getElementById("xmlfile");
-    const fileName  = document.getElementById("file-name");
+    const fileName = document.getElementById("file-name");
 
-    if(inputFile){
-        inputFile.addEventListener("change", function () {
+    if (inputFile) {
+        inputFile.addEventListener("change", function() {
             const nombre = this.files[0]?.name || "Ningún archivo seleccionado";
             if (fileName) fileName.textContent = nombre;
         });
     }
 
+    // Filtro por fecha automático
     const fechaDesde = document.getElementById("fecha-desde");
     const fechaHasta = document.getElementById("fecha-hasta");
-    if(fechaDesde) fechaDesde.addEventListener("change", filtrarPorFecha);
-    if(fechaHasta) fechaHasta.addEventListener("change", filtrarPorFecha);
+    if (fechaDesde) fechaDesde.addEventListener("change", filtrarPorFecha);
+    if (fechaHasta) fechaHasta.addEventListener("change", filtrarPorFecha);
 
+    // Cargar historial inicial
     mostrarHistorial();
 });
