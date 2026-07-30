@@ -441,7 +441,7 @@ body {
 }
 .historial-tabla tr.fila-activa td {
     background: #e8f0fe;
-    border-left: 3px solid var(--primary);
+    border-bottom: 2px solid var(--primary);
 }
 .historial-tabla tr.fila-activa .guia-numero {
     color: var(--primary);
