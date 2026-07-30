@@ -412,12 +412,12 @@ async function mostrarHistorial() {
         </tbody>
     </table>
     <div class="paginacion">
-        <span>Mostrando ${inicio}–${fin}</span>
-        <div style="display:flex;gap:4px;">
+        <span>📄 Mostrando ${inicio}–${fin}</span>
+        <div class="paginacion-controls">
             <button class="btn-icon" onclick="anteriorPagina()" ${pagina === 0 ? "disabled" : ""}>
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
-            <span style="font-size:12px;padding:0 6px;">Pág. ${pagina + 1}</span>
+            <span class="pagina-actual">${pagina + 1}</span>
             <button class="btn-icon" onclick="siguientePagina()" ${!hayMasPaginas ? "disabled" : ""}>
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
