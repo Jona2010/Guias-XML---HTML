@@ -462,6 +462,8 @@ body {
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    position: relative;
+    cursor: help;
 }
 
 .guia-fecha {
@@ -976,11 +978,6 @@ mark {
 /* ============================================================
    TOOLTIP MEJORADO PARA CLIENTES
 ============================================================ */
-.guia-cliente {
-    position: relative;
-    cursor: help;
-}
-
 .guia-cliente:hover::after {
     content: attr(title);
     position: absolute;

@@ -11,11 +11,6 @@ app.use(require("cors")());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// 🔥 ENDPOINT RÁPIDO (PARA UPTIMEROBOT)
-app.get("/ping", (req, res) => {
-    res.status(200).send("OK");
-});
-
 // ----------------------
 // POOL MYSQL
 // ✅ SSL desactivado

@@ -24,7 +24,6 @@ let tokenBusqueda = 0;
 // NUEVAS VARIABLES PARA ORDENAMIENTO
 let resultadosBusqueda = [];
 let textoBusquedaActual = '';
-let ordenActual = 'fecha';
 let ordenDireccion = 'desc'; // 'asc' o 'desc'
 
 // ============================================================
@@ -499,10 +498,14 @@ async function filtrarGuias() {
         return;
     }
 
-    // Ordenar por relevancia
+    // Ordenar por número de guía (de mayor a menor por defecto)
     const resultados = data.data
         .map(g => ({ ...g, __score: calcularRelevancia(g, texto) }))
-        .sort((a, b) => b.__score - a.__score);
+        .sort((a, b) => {
+            const numA = a.numero || '';
+            const numB = b.numero || '';
+            return numB.localeCompare(numA); // Mayor a menor por defecto
+        });
 
     renderResultadosBusqueda(resultados, texto);
 }
@@ -618,44 +621,25 @@ function renderResultadosBusqueda(resultados, texto) {
 // ============================================================
 // ORDENAR RESULTADOS DE BÚSQUEDA
 // ============================================================
-function ordenarResultados(campo) {
+function ordenarResultados() {
     if (resultadosBusqueda.length === 0) return;
 
-    // Cambiar dirección si es el mismo campo
-    if (ordenActual === campo) {
-        ordenDireccion = ordenDireccion === 'asc' ? 'desc' : 'asc';
-    } else {
-        ordenActual = campo;
-        ordenDireccion = 'desc';
-    }
+    // Cambiar dirección ASC <-> DESC
+    ordenDireccion = ordenDireccion === 'asc' ? 'desc' : 'asc';
 
     // Actualizar botones
     actualizarBotonesOrden();
 
-    // Ordenar resultados
+    // Ordenar resultados por número de guía
     const resultadosOrdenados = [...resultadosBusqueda].sort((a, b) => {
-        let valorA, valorB;
-
-        switch(campo) {
-            case 'fecha':
-                valorA = new Date(a.fecha_emision);
-                valorB = new Date(b.fecha_emision);
-                break;
-            case 'cliente':
-                valorA = (a.destinatario_nombre || '').toLowerCase();
-                valorB = (b.destinatario_nombre || '').toLowerCase();
-                break;
-            case 'numero':
-                valorA = a.numero || '';
-                valorB = b.numero || '';
-                break;
-            default:
-                return 0;
+        const numA = a.numero || '';
+        const numB = b.numero || '';
+        
+        if (ordenDireccion === 'asc') {
+            return numA.localeCompare(numB); // Ascendente (menor a mayor)
+        } else {
+            return numB.localeCompare(numA); // Descendente (mayor a menor)
         }
-
-        if (valorA < valorB) return ordenDireccion === 'asc' ? -1 : 1;
-        if (valorA > valorB) return ordenDireccion === 'asc' ? 1 : -1;
-        return 0;
     });
 
     renderResultadosBusqueda(resultadosOrdenados, textoBusquedaActual);
@@ -667,18 +651,6 @@ function actualizarBotonesOrden() {
         btn.classList.remove('activo-asc', 'activo-desc');
     });
 
-    // Mapeo de campos a IDs
-    const campoMap = {
-        'fecha': 'orden-fecha-btn',
-        'cliente': 'orden-cliente-btn',
-        'numero': 'orden-numero-btn'
-    };
-
-    const btnCampo = document.getElementById(campoMap[ordenActual]);
-    if (btnCampo) {
-        btnCampo.classList.add(ordenDireccion === 'asc' ? 'activo-asc' : 'activo-desc');
-    }
-
     // Botón toggle de dirección
     const btnToggle = document.getElementById('orden-toggle-btn');
     if (btnToggle) {
@@ -686,12 +658,6 @@ function actualizarBotonesOrden() {
         btnToggle.classList.add(ordenDireccion === 'asc' ? 'activo-asc' : 'activo-desc');
         btnToggle.innerHTML = `<i class="fa-solid ${ordenDireccion === 'asc' ? 'fa-arrow-up-wide-short' : 'fa-arrow-down-wide-short'}"></i> ${ordenDireccion === 'asc' ? 'ASC' : 'DESC'}`;
     }
-}
-
-function toggleOrdenDireccion() {
-    if (resultadosBusqueda.length === 0) return;
-    ordenDireccion = ordenDireccion === 'asc' ? 'desc' : 'asc';
-    ordenarResultados(ordenActual);
 }
 
 function mostrarControlesOrdenamiento(mostrar) {
