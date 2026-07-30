@@ -21,19 +21,6 @@ let debounceTimer = null;
 let busquedaController = null;
 let tokenBusqueda = 0;
 
-// ============================================================
-// VARIABLES GLOBALES
-// ============================================================
-let pagina = 0;
-const limite = 10;
-let buscando = false;
-let ultimaGuiaCargada = null;
-let hayMasPaginas = true;
-let guiaSeleccionadaId = null;
-let debounceTimer = null;
-let busquedaController = null;
-let tokenBusqueda = 0;
-
 // NUEVAS VARIABLES PARA ORDENAMIENTO
 let resultadosBusqueda = [];
 let textoBusquedaActual = '';
