@@ -462,6 +462,7 @@ body {
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    cursor: help;  /* ← Agrega esto para indicar que hay tooltip */
 }
 
 .guia-fecha {
