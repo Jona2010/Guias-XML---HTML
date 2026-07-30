@@ -22,6 +22,25 @@ let busquedaController = null;
 let tokenBusqueda = 0;
 
 // ============================================================
+// VARIABLES GLOBALES
+// ============================================================
+let pagina = 0;
+const limite = 10;
+let buscando = false;
+let ultimaGuiaCargada = null;
+let hayMasPaginas = true;
+let guiaSeleccionadaId = null;
+let debounceTimer = null;
+let busquedaController = null;
+let tokenBusqueda = 0;
+
+// NUEVAS VARIABLES PARA ORDENAMIENTO
+let resultadosBusqueda = [];
+let textoBusquedaActual = '';
+let ordenActual = 'fecha';
+let ordenDireccion = 'desc'; // 'asc' o 'desc'
+
+// ============================================================
 // HELPERS XML
 // ============================================================
 function first(parent, ns, tag) {
@@ -448,6 +467,7 @@ async function filtrarGuias() {
         contBuscador.style.display = "none";
         contBuscador.innerHTML = "";
         contHistorial.style.display = "block";
+        mostrarControlesOrdenamiento(false); // ← AGREGAR ESTA LÍNEA
         await mostrarHistorial();
         return;
     }
@@ -547,6 +567,14 @@ function resaltarTexto(texto, busqueda) {
 }
 
 function renderResultadosBusqueda(resultados, texto) {
+    // Guardar resultados para ordenamiento
+    resultadosBusqueda = resultados;
+    textoBusquedaActual = texto;
+
+    // Mostrar controles de ordenamiento
+    mostrarControlesOrdenamiento(true);
+    actualizarBotonesOrden();
+
     const contenedor = document.getElementById("historial-busqueda");
     let html = "";
 
@@ -598,6 +626,92 @@ function renderResultadosBusqueda(resultados, texto) {
     });
 
     contenedor.innerHTML = html;
+}
+
+// ============================================================
+// ORDENAR RESULTADOS DE BÚSQUEDA
+// ============================================================
+function ordenarResultados(campo) {
+    if (resultadosBusqueda.length === 0) return;
+
+    // Cambiar dirección si es el mismo campo
+    if (ordenActual === campo) {
+        ordenDireccion = ordenDireccion === 'asc' ? 'desc' : 'asc';
+    } else {
+        ordenActual = campo;
+        ordenDireccion = 'desc';
+    }
+
+    // Actualizar botones
+    actualizarBotonesOrden();
+
+    // Ordenar resultados
+    const resultadosOrdenados = [...resultadosBusqueda].sort((a, b) => {
+        let valorA, valorB;
+
+        switch(campo) {
+            case 'fecha':
+                valorA = new Date(a.fecha_emision);
+                valorB = new Date(b.fecha_emision);
+                break;
+            case 'cliente':
+                valorA = (a.destinatario_nombre || '').toLowerCase();
+                valorB = (b.destinatario_nombre || '').toLowerCase();
+                break;
+            case 'numero':
+                valorA = a.numero || '';
+                valorB = b.numero || '';
+                break;
+            default:
+                return 0;
+        }
+
+        if (valorA < valorB) return ordenDireccion === 'asc' ? -1 : 1;
+        if (valorA > valorB) return ordenDireccion === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    renderResultadosBusqueda(resultadosOrdenados, textoBusquedaActual);
+}
+
+function actualizarBotonesOrden() {
+    // Remover clases de todos los botones
+    document.querySelectorAll('.btn-orden').forEach(btn => {
+        btn.classList.remove('activo-asc', 'activo-desc');
+    });
+
+    // Mapeo de campos a IDs
+    const campoMap = {
+        'fecha': 'orden-fecha-btn',
+        'cliente': 'orden-cliente-btn',
+        'numero': 'orden-numero-btn'
+    };
+
+    const btnCampo = document.getElementById(campoMap[ordenActual]);
+    if (btnCampo) {
+        btnCampo.classList.add(ordenDireccion === 'asc' ? 'activo-asc' : 'activo-desc');
+    }
+
+    // Botón toggle de dirección
+    const btnToggle = document.getElementById('orden-toggle-btn');
+    if (btnToggle) {
+        btnToggle.classList.remove('activo-asc', 'activo-desc');
+        btnToggle.classList.add(ordenDireccion === 'asc' ? 'activo-asc' : 'activo-desc');
+        btnToggle.innerHTML = `<i class="fa-solid ${ordenDireccion === 'asc' ? 'fa-arrow-up-wide-short' : 'fa-arrow-down-wide-short'}"></i> ${ordenDireccion === 'asc' ? 'ASC' : 'DESC'}`;
+    }
+}
+
+function toggleOrdenDireccion() {
+    if (resultadosBusqueda.length === 0) return;
+    ordenDireccion = ordenDireccion === 'asc' ? 'desc' : 'asc';
+    ordenarResultados(ordenActual);
+}
+
+function mostrarControlesOrdenamiento(mostrar) {
+    const controls = document.getElementById('orden-controls');
+    if (controls) {
+        controls.style.display = mostrar ? 'flex' : 'none';
+    }
 }
 
 // ============================================================
@@ -670,12 +784,15 @@ function limpiarBusqueda() {
     input.value = "";
     buscando = false;
     pagina = 0;
+    resultadosBusqueda = []; // ← AGREGAR ESTA LÍNEA
+    textoBusquedaActual = ''; // ← AGREGAR ESTA LÍNEA
 
     if (btnLimpiar) btnLimpiar.style.display = "none";
 
     contBuscador.style.display = "none";
     contBuscador.innerHTML = "";
     contHistorial.style.display = "block";
+    mostrarControlesOrdenamiento(false); // ← AGREGAR ESTA LÍNEA
 
     mostrarHistorial();
     input.focus();

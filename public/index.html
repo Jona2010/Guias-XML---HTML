@@ -72,6 +72,25 @@
                     </button>
                 </div>
 
+                <!-- CONTROLES DE ORDENAMIENTO (solo visible en búsqueda) -->
+                <div id="orden-controls" style="display:none; align-items:center; gap:8px; flex-wrap:wrap; padding:6px 0; border-bottom:1px solid var(--border); margin-bottom:4px;">
+                    <span style="font-size:12px; color:var(--text-secondary); font-weight:500;">
+                        <i class="fa-solid fa-arrow-up-wide-short"></i> Ordenar:
+                    </span>
+                    <button class="btn-orden" id="orden-fecha-btn" onclick="ordenarResultados('fecha')">
+                        <i class="fa-regular fa-calendar"></i> Fecha
+                    </button>
+                    <button class="btn-orden" id="orden-cliente-btn" onclick="ordenarResultados('cliente')">
+                        <i class="fa-regular fa-user"></i> Cliente
+                    </button>
+                    <button class="btn-orden" id="orden-numero-btn" onclick="ordenarResultados('numero')">
+                        <i class="fa-regular fa-hashtag"></i> N° Guía
+                    </button>
+                    <button class="btn-orden" id="orden-toggle-btn" onclick="toggleOrdenDireccion()" style="background:var(--bg); color:var(--text); border:1px solid var(--border);">
+                        <i class="fa-solid fa-arrow-down-wide-short"></i> DESC
+                    </button>
+                </div>
+
                 <div class="filtro-fechas">
                     <input type="date" id="fecha-desde" title="Fecha desde">
                     <input type="date" id="fecha-hasta" title="Fecha hasta">

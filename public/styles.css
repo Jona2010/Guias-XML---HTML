@@ -1013,3 +1013,66 @@ mark {
     z-index: 1000;
     pointer-events: none;
 }
+
+/* ============================================================
+   BOTONES DE ORDENAMIENTO
+============================================================ */
+.btn-orden {
+    padding: 4px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-orden:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+/* Activo - AZUL (orden ascendente) */
+.btn-orden.activo-asc {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(10,92,140,0.3);
+}
+
+/* Activo - ROJO (orden descendente) */
+.btn-orden.activo-desc {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+    box-shadow: 0 2px 8px rgba(217,48,37,0.3);
+}
+
+#orden-toggle-btn {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    min-width: 65px;
+    justify-content: center;
+}
+
+#orden-toggle-btn.activo-asc {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+}
+
+#orden-toggle-btn.activo-desc {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+}

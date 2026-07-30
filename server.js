@@ -355,6 +355,51 @@ app.get("/buscar-por-fecha", async (req, res) => {
 });
 
 // ----------------------
+// BUSCAR POR DIRECCIÓN
+// ----------------------
+app.get("/buscar-por-direccion", async (req, res) => {
+    const { partida, llegada } = req.query;
+
+    try {
+        let sql = `
+            SELECT g.*
+            FROM guias g
+            WHERE 1=1
+        `;
+        const params = [];
+
+        if (partida && partida.trim()) {
+            sql += ` AND LOWER(g.direccion_partida) LIKE LOWER(?)`;
+            params.push(`%${partida.trim()}%`);
+        }
+
+        if (llegada && llegada.trim()) {
+            sql += ` AND LOWER(g.direccion_llegada) LIKE LOWER(?)`;
+            params.push(`%${llegada.trim()}%`);
+        }
+
+        sql += ` ORDER BY g.fecha_emision DESC, g.hora_emision DESC LIMIT 100`;
+
+        const [rows] = await pool.query(sql, params);
+
+        console.log(`🔎 FILTRO DIRECCIÓN: partida="${partida || '—'}" llegada="${llegada || '—'}"`);
+        console.log(`📦 RESULTADOS: ${rows.length}`);
+
+        res.json({
+            ok: true,
+            data: rows
+        });
+
+    } catch (error) {
+        console.error("❌ Error en búsqueda por dirección:", error.message);
+        res.status(500).json({
+            ok: false,
+            mensaje: error.message
+        });
+    }
+});
+
+// ----------------------
 // FALLBACK FRONTEND
 // ----------------------
 app.use((req, res) => {
