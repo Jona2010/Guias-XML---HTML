@@ -668,6 +668,14 @@ function mostrarControlesOrdenamiento(mostrar) {
 }
 
 // ============================================================
+// TOGGLE ORDEN DIRECCIÓN
+// ============================================================
+function toggleOrdenDireccion() {
+    if (resultadosBusqueda.length === 0) return;
+    ordenarResultados(); // Cambia ASC <-> DESC
+}
+
+// ============================================================
 // FECHAS
 // ============================================================
 function formatearFecha(fechaISO) {
