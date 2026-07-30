@@ -309,6 +309,40 @@ async function verGuiaPorId(id) {
     };
 
     mostrarGuiaBonita(guia);
+    
+    // 🔥 NUEVA LÍNEA - Marcar la guía como seleccionada en el historial
+    actualizarGuiaSeleccionada(id);
+}
+
+// ============================================================
+// ACTUALIZAR GUÍA SELECCIONADA
+// ============================================================
+function actualizarGuiaSeleccionada(id) {
+    // Remover clase activa de todas las filas
+    document.querySelectorAll(".fila-activa").forEach(el => el.classList.remove("fila-activa"));
+    
+    // Remover estilos de cards
+    document.querySelectorAll(".search-result-card").forEach(card => {
+        card.style.borderColor = "";
+        card.style.boxShadow = "";
+        card.style.borderWidth = "1px";
+    });
+    
+    // Marcar fila en la tabla del historial
+    const filaTabla = document.querySelector(`.historial-tabla tr[data-id="${id}"]`);
+    if (filaTabla) filaTabla.classList.add("fila-activa");
+    
+    // Marcar card en resultados de búsqueda
+    const cards = document.querySelectorAll(".search-result-card");
+    cards.forEach(card => {
+        // Verificar si la card contiene el ID (usando onclick)
+        const onclickAttr = card.getAttribute("onclick");
+        if (onclickAttr && onclickAttr.includes(`seleccionarGuia(this, ${id})`)) {
+            card.style.borderColor = "var(--primary)";
+            card.style.boxShadow = "var(--shadow-hover)";
+            card.style.borderWidth = "2px";
+        }
+    });
 }
 
 // ============================================================
@@ -367,7 +401,7 @@ async function mostrarHistorial() {
     guias.forEach(g => {
         const cliente = g.destinatario_nombre || "—";
         html += `
-        <tr onclick="seleccionarGuia(this, ${g.id})">
+        <tr data-id="${g.id}" onclick="seleccionarGuia(this, ${g.id})">
             <td><span class="guia-numero">📄 ${g.numero}</span></td>
             <td><span class="guia-cliente" title="${cliente}">${cliente}</span></td>
             <td><span class="guia-fecha">${formatearFecha(g.fecha_emision)}</span></td>
@@ -531,7 +565,7 @@ function renderResultadosBusqueda(resultados, texto) {
         const itemsMostrar = itemsCoincidentes.slice(0, 3);
 
         html += `
-        <div class="search-result-card" onclick="verGuiaPorId(${g.id})">
+        <div class="search-result-card" onclick="seleccionarGuia(this, ${g.id})">
             <div class="search-card-header">
                 <span class="numero">📄 ${resaltarTexto(g.numero, texto)}</span>
                 <span class="fecha">${formatearFecha(g.fecha_emision)}</span>
@@ -580,8 +614,33 @@ function formatearFecha(fechaISO) {
 // SELECCIONAR GUIA
 // ============================================================
 function seleccionarGuia(fila, id) {
+    // 1. Remover clase activa de todo (tabla y cards)
     document.querySelectorAll(".fila-activa").forEach(el => el.classList.remove("fila-activa"));
-    if (fila) fila.classList.add("fila-activa");
+    document.querySelectorAll(".search-result-card").forEach(card => {
+        card.style.borderColor = "";
+        card.style.boxShadow = "";
+        card.style.borderWidth = "1px";
+    });
+    
+    // 2. Si es una fila de la tabla, marcarla
+    if (fila) {
+        // Si es un TR (tabla)
+        if (fila.tagName === "TR") {
+            fila.classList.add("fila-activa");
+        }
+        // Si es una card (resultado de búsqueda)
+        else if (fila.classList.contains("search-result-card")) {
+            fila.style.borderColor = "var(--primary)";
+            fila.style.boxShadow = "var(--shadow-hover)";
+            fila.style.borderWidth = "2px";
+        }
+    }
+    
+    // 3. Buscar y marcar también la fila correspondiente en la tabla
+    const filaTabla = document.querySelector(`.historial-tabla tr[data-id="${id}"]`);
+    if (filaTabla) filaTabla.classList.add("fila-activa");
+    
+    // 4. Guardar ID y cargar guía
     guiaSeleccionadaId = id;
     verGuiaPorId(id);
 }
@@ -679,7 +738,7 @@ async function filtrarPorFecha() {
 
     data.data.forEach(g => {
         html += `
-        <tr onclick="seleccionarGuia(this, ${g.id})">
+        <tr data-id="${g.id}" onclick="seleccionarGuia(this, ${g.id})">
             <td><span class="guia-numero">📄 ${g.numero}</span></td>
             <td><span class="guia-cliente">${g.destinatario_nombre || "—"}</span></td>
             <td><span class="guia-fecha">${formatearFecha(g.fecha_emision)}</span></td>
