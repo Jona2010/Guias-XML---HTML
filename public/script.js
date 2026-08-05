@@ -361,7 +361,7 @@ function actualizarGuiaSeleccionada(id) {
 }
 
 // ============================================================
-// MOSTRAR HISTORIAL
+// MOSTRAR HISTORIAL - CORREGIDO CON ORDENAMIENTO
 // ============================================================
 async function mostrarHistorial() {
     const textoBuscador = document.getElementById("buscador").value.trim();
@@ -398,8 +398,22 @@ async function mostrarHistorial() {
         return;
     }
 
+    // 🔥 CORREGIDO: Ordenar por fecha (más reciente primero) y luego por número de guía
+    const guiasOrdenadas = [...guias].sort((a, b) => {
+        const fechaA = a.fecha_emision || '';
+        const fechaB = b.fecha_emision || '';
+        
+        if (fechaA !== fechaB) {
+            return fechaB.localeCompare(fechaA);
+        }
+        
+        const numA = a.numero || '';
+        const numB = b.numero || '';
+        return numB.localeCompare(numA);
+    });
+
     const inicio = (pagina * limite) + 1;
-    const fin = inicio + guias.length - 1;
+    const fin = inicio + guiasOrdenadas.length - 1;
 
     let html = `
     <table class="historial-tabla">
@@ -413,7 +427,7 @@ async function mostrarHistorial() {
         <tbody>
     `;
 
-    guias.forEach(g => {
+    guiasOrdenadas.forEach(g => {
         const cliente = g.destinatario_nombre || "—";
         html += `
         <tr data-id="${g.id}" onclick="seleccionarGuia(this, ${g.id})">
@@ -772,7 +786,7 @@ function limpiarBusqueda() {
 }
 
 // ============================================================
-// FILTRO POR FECHA
+// FILTRO POR FECHA - CORREGIDO CON ORDENAMIENTO
 // ============================================================
 async function filtrarPorFecha() {
     const desde = document.getElementById("fecha-desde").value;
@@ -813,6 +827,22 @@ async function filtrarPorFecha() {
         return;
     }
 
+    // 🔥 CORREGIDO: Ordenar por fecha (más reciente primero) y luego por número de guía
+    const guiasOrdenadas = data.data.sort((a, b) => {
+        // Primero ordenar por fecha (descendente - más reciente primero)
+        const fechaA = a.fecha_emision || '';
+        const fechaB = b.fecha_emision || '';
+        
+        if (fechaA !== fechaB) {
+            return fechaB.localeCompare(fechaA);
+        }
+        
+        // Si misma fecha, ordenar por número de guía (descendente)
+        const numA = a.numero || '';
+        const numB = b.numero || '';
+        return numB.localeCompare(numA);
+    });
+
     // Mostrar resultados en tabla
     let html = `
     <table class="historial-tabla">
@@ -826,7 +856,7 @@ async function filtrarPorFecha() {
         <tbody>
     `;
 
-    data.data.forEach(g => {
+    guiasOrdenadas.forEach(g => {
         html += `
         <tr data-id="${g.id}" onclick="seleccionarGuia(this, ${g.id})">
             <td><span class="guia-numero">📄 ${g.numero}</span></td>

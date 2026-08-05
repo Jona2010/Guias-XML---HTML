@@ -385,7 +385,7 @@ body {
 }
 
 /* ============================================================
-   RESULTADOS HISTORIAL
+   RESULTADOS HISTORIAL - CORREGIDO
 ============================================================ */
 .results-container {
     flex: 1;
@@ -440,11 +440,14 @@ body {
     background: #f8faff;
 }
 
-/* 🔥 NUEVO: Estilo para fila activa en tabla */
+/* 🔥 CORREGIDO - Estilo para fila activa (solo una línea) */
+.historial-tabla tr.fila-activa {
+    background-color: #e3f2fd !important;
+}
+
 .historial-tabla tr.fila-activa td {
-    background: #e3f2fd !important;
-    border-left: 4px solid var(--primary, #0a5c8c) !important;
-    border-bottom: 2px solid var(--primary);
+    background-color: #e3f2fd !important;
+    border-bottom: 2px solid var(--primary, #0a5c8c);
 }
 
 .historial-tabla tr.fila-activa .guia-numero {
@@ -452,17 +455,16 @@ body {
     color: var(--primary, #0a5c8c);
 }
 
-/* 🔥 NUEVO: Efecto hover mejorado */
-.historial-tabla tr:hover {
-    background-color: #f5f7fa;
-    cursor: pointer;
+.historial-tabla tr.fila-activa .guia-cliente {
+    font-weight: 500;
+    color: var(--primary, #0a5c8c);
 }
 
-/* 🔥 NUEVO: Estilo para cards activas en resultados de búsqueda */
+/* 🔥 CORREGIDO - Estilo para cards activas */
 .search-result-card.activa {
-    border-color: var(--primary, #0a5c8c) !important;
+    border: 2px solid var(--primary, #0a5c8c) !important;
     box-shadow: 0 4px 12px rgba(10, 92, 140, 0.2) !important;
-    border-width: 2px !important;
+    background-color: #f8fbff !important;
 }
 
 .guia-numero {
