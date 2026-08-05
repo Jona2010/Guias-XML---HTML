@@ -315,7 +315,7 @@ async function verGuiaPorId(id) {
 
     mostrarGuiaBonita(guia);
     
-    // 🔥 NUEVA LÍNEA - Marcar la guía como seleccionada en el historial
+    // 🔥 CORREGIDO - Marcar la guía como seleccionada en el historial
     actualizarGuiaSeleccionada(id);
 }
 
@@ -333,11 +333,15 @@ function actualizarGuiaSeleccionada(id) {
         card.style.borderWidth = "1px";
     });
     
-    // Marcar fila en la tabla del historial
+    // 🔥 CORREGIDO - Buscar y marcar en la tabla del historial
     const filaTabla = document.querySelector(`.historial-tabla tr[data-id="${id}"]`);
-    if (filaTabla) filaTabla.classList.add("fila-activa");
+    if (filaTabla) {
+        filaTabla.classList.add("fila-activa");
+        // Asegurar que la fila sea visible (scroll)
+        filaTabla.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
     
-    // Marcar card en resultados de búsqueda
+    // 🔥 CORREGIDO - Marcar card en resultados de búsqueda
     const cards = document.querySelectorAll(".search-result-card");
     cards.forEach(card => {
         // Verificar si la card contiene el ID (usando onclick)
@@ -348,6 +352,12 @@ function actualizarGuiaSeleccionada(id) {
             card.style.borderWidth = "2px";
         }
     });
+    
+    // 🔥 NUEVO - Buscar también en el historial-busqueda (resultados de búsqueda en tabla)
+    const filaBusqueda = document.querySelector(`#historial-busqueda tr[data-id="${id}"]`);
+    if (filaBusqueda) {
+        filaBusqueda.classList.add("fila-activa");
+    }
 }
 
 // ============================================================
@@ -695,6 +705,7 @@ function seleccionarGuia(fila, id) {
         card.style.borderColor = "";
         card.style.boxShadow = "";
         card.style.borderWidth = "1px";
+        card.classList.remove("activa"); // 🔥 NUEVO
     });
     
     // 2. Si es una fila de la tabla, marcarla
@@ -708,6 +719,7 @@ function seleccionarGuia(fila, id) {
             fila.style.borderColor = "var(--primary)";
             fila.style.boxShadow = "var(--shadow-hover)";
             fila.style.borderWidth = "2px";
+            fila.classList.add("activa"); // 🔥 NUEVO
         }
     }
     
