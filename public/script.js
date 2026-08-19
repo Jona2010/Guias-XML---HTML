@@ -524,11 +524,19 @@ async function filtrarGuias() {
 
     // Ordenar por número de guía (de mayor a menor por defecto)
     const resultados = data.data
-        .map(g => ({ ...g, __score: calcularRelevancia(g, texto) }))
+        .map(g => ({
+            ...g,
+            __score: calcularRelevancia(g, texto)
+        }))
         .sort((a, b) => {
-            const numA = a.numero || '';
-            const numB = b.numero || '';
-            return numB.localeCompare(numA); // Mayor a menor por defecto
+            const fechaA = a.fecha_emision || "";
+            const fechaB = b.fecha_emision || "";
+
+            if (fechaA !== fechaB) {
+                return fechaB.localeCompare(fechaA);
+            }
+
+            return (b.id || 0) - (a.id || 0);
         });
 
     renderResultadosBusqueda(resultados, texto);

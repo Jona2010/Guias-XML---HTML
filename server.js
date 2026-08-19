@@ -97,39 +97,153 @@ app.get("/contar", async (req, res) => {
 
 // ----------------------
 // BUSCAR GUÍAS
-// ✅ Ahora incluye partida y llegada
+// 🔥 BÚSQUEDA COMPLETA + SIN TILDES
 // ----------------------
 app.get("/buscar", async (req, res) => {
     const q = (req.query.q || "").trim();
-    if (!q) return res.json({ ok: true, data: [] });
+
+    if (!q) {
+        return res.json({
+            ok: true,
+            data: []
+        });
+    }
 
     try {
-        const termino = `%${q.toLowerCase()}%`;
 
-        // 🔹 1. Obtener guías
+        // Normalizar la búsqueda del usuario
+        // Ejemplo:
+        // "Multímetro" → "multimetro"
+        const termino = q
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim();
+
+        const like = `%${termino}%`;
+
         const guias = await query(`
             SELECT DISTINCT g.*
             FROM guias g
-            LEFT JOIN guia_items i ON i.guia_id = g.id
-            WHERE LOWER(g.numero)            LIKE ?
-               OR LOWER(g.direccion_partida) LIKE ?
-               OR LOWER(g.direccion_llegada) LIKE ?
-               OR LOWER(i.descripcion)       LIKE ?
-               OR LOWER(i.codigo_bien)       LIKE ?
-            ORDER BY g.id DESC
-            LIMIT 50
-        `, [termino, termino, termino, termino, termino]);
+
+            LEFT JOIN guia_items i
+                ON i.guia_id = g.id
+
+            WHERE
+
+                -- NÚMERO DE GUÍA
+                REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                    LOWER(g.numero),
+                    'á','a'),
+                    'é','e'),
+                    'í','i'),
+                    'ó','o'),
+                    'ú','u'
+                ) LIKE ?
+
+                OR
+
+                -- REMITENTE
+                REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                    LOWER(g.remitente_nombre),
+                    'á','a'),
+                    'é','e'),
+                    'í','i'),
+                    'ó','o'),
+                    'ú','u'
+                ) LIKE ?
+
+                OR
+
+                -- DESTINATARIO
+                REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                    LOWER(g.destinatario_nombre),
+                    'á','a'),
+                    'é','e'),
+                    'í','i'),
+                    'ó','o'),
+                    'ú','u'
+                ) LIKE ?
+
+                OR
+
+                -- DIRECCIÓN DE PARTIDA
+                REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                    LOWER(g.direccion_partida),
+                    'á','a'),
+                    'é','e'),
+                    'í','i'),
+                    'ó','o'),
+                    'ú','u'
+                ) LIKE ?
+
+                OR
+
+                -- DIRECCIÓN DE LLEGADA
+                REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                    LOWER(g.direccion_llegada),
+                    'á','a'),
+                    'é','e'),
+                    'í','i'),
+                    'ó','o'),
+                    'ú','u'
+                ) LIKE ?
+
+                OR
+
+                -- DESCRIPCIÓN DEL PRODUCTO
+                REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                    LOWER(i.descripcion),
+                    'á','a'),
+                    'é','e'),
+                    'í','i'),
+                    'ó','o'),
+                    'ú','u'
+                ) LIKE ?
+
+                OR
+
+                -- CÓDIGO DEL BIEN
+                REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                    LOWER(i.codigo_bien),
+                    'á','a'),
+                    'é','e'),
+                    'í','i'),
+                    'ó','o'),
+                    'ú','u'
+                ) LIKE ?
+
+            ORDER BY
+                g.fecha_emision DESC,
+                g.id DESC
+
+            LIMIT 100
+
+        `, [
+            like,
+            like,
+            like,
+            like,
+            like,
+            like,
+            like
+        ]);
 
         if (guias.length === 0) {
-            return res.json({ ok: true, data: [] });
+            console.log(`🔎 /buscar "${q}" → 0 resultados`);
+
+            return res.json({
+                ok: true,
+                data: []
+            });
         }
 
-        // 🔹 2. IDs
+        // IDs encontrados
         const ids = guias.map(g => g.id);
 
-        // 🔹 3. Traer items
+        // Traer todos los items de las guías encontradas
         const items = await query(`
-            SELECT 
+            SELECT
                 id,
                 guia_id,
                 linea,
@@ -139,32 +253,42 @@ app.get("/buscar", async (req, res) => {
                 unidad
             FROM guia_items
             WHERE guia_id IN (${ids.map(() => "?").join(",")})
-            ORDER BY guia_id, CAST(linea AS UNSIGNED)
+            ORDER BY
+                guia_id,
+                CAST(linea AS UNSIGNED)
         `, ids);
 
-        // 🔹 4. Agrupar
+        // Agrupar items por guía
         const itemsPorGuia = {};
+
         items.forEach(i => {
+
             if (!itemsPorGuia[i.guia_id]) {
                 itemsPorGuia[i.guia_id] = [];
             }
+
             itemsPorGuia[i.guia_id].push(i);
         });
 
-        // 🔹 5. Armar resultado
+        // Construir resultado final
         const resultado = guias.map(g => ({
             ...g,
             items: itemsPorGuia[g.id] || []
         }));
 
-        // 🔥 RESPUESTA FINAL CORRECTA
+        console.log(
+            `🔎 /buscar "${q}" → ${resultado.length} resultados`
+        );
+
         res.json({
             ok: true,
             data: resultado
         });
 
     } catch (err) {
+
         console.error("❌ Error búsqueda:", err.message);
+
         res.status(500).json({
             ok: false,
             mensaje: err.message
