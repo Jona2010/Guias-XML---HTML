@@ -55,18 +55,58 @@ function attr(parent, ns, tag, att) {
 // ============================================================
 async function fetchJSON(url, options = {}) {
     try {
-        const res = await fetch(url, options);
-        const contentType = res.headers.get("content-type") || "";
+
+        const fetchOptions = {
+            ...options,
+            cache: "no-store",
+            headers: {
+                ...(options.headers || {}),
+                "Cache-Control": "no-cache"
+            }
+        };
+
+        const res = await fetch(url, fetchOptions);
+
+        const contentType =
+            res.headers.get("content-type") || "";
+
         if (!contentType.includes("application/json")) {
-            return { ok: false, status: res.status, data: null, error: `Respuesta inválida (HTTP ${res.status})` };
+            return {
+                ok: false,
+                status: res.status,
+                data: null,
+                error: `Respuesta inválida (HTTP ${res.status})`
+            };
         }
+
         const data = await res.json();
-        return { ok: res.ok, status: res.status, data, error: null };
+
+        return {
+            ok: res.ok,
+            status: res.status,
+            data,
+            error: null
+        };
+
     } catch (err) {
+
         if (err.name === "AbortError") {
-            return { ok: false, status: 0, data: null, error: "__ABORTED__" };
+            return {
+                ok: false,
+                status: 0,
+                data: null,
+                error: "__ABORTED__"
+            };
         }
-        return { ok: false, status: 0, data: null, error: "❌ No se pudo conectar con el servidor." };
+
+        console.error("❌ Error fetch:", err);
+
+        return {
+            ok: false,
+            status: 0,
+            data: null,
+            error: "❌ No se pudo conectar con el servidor."
+        };
     }
 }
 
@@ -1033,9 +1073,32 @@ async function buscarGuiasAvanzado() {
     if (hasta)    params.set("hasta", hasta);
 
 
-    const { data, error } = await fetchJSON(
-        `${API_URL}/buscar-avanzado?${params.toString()}`
-    );
+    const urlBusqueda =
+        `${API_URL}/buscar-avanzado?${params.toString()}&_=${Date.now()}`;
+
+    /*console.log(
+        "🔎 URL BÚSQUEDA AVANZADA:",
+        urlBusqueda
+    );*/
+
+    const {
+        data,
+        error,
+        status
+    } = await fetchJSON(urlBusqueda);
+
+    /*console.log(
+        "📦 RESPUESTA BÚSQUEDA AVANZADA:",
+        {
+            status,
+            error,
+            respuesta: data,
+            totalServidor: data?.total,
+            cantidadData: Array.isArray(data?.data)
+                ? data.data.length
+                : "NO ES ARRAY"
+        }
+    );*/
 
 
     if (error) {
@@ -1079,7 +1142,14 @@ async function buscarGuiasAvanzado() {
 
 
     resultadosBusquedaAvanzada =
-        data.data;
+        Array.isArray(data.data)
+            ? data.data
+            : [];
+
+    /*console.log(
+        "✅ GUÍAS RECIBIDAS EN FRONTEND:",
+        resultadosBusquedaAvanzada.length
+    );*/
 
 
     // Cada nueva búsqueda elimina selección anterior
