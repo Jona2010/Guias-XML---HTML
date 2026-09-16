@@ -255,11 +255,17 @@ body {
     box-shadow: var(--shadow);
     border: 1px solid var(--border);
     padding: 20px;
+
     position: sticky;
     top: 100px;
-    max-height: calc(100vh - 140px);
+
+    height: calc(100vh - 120px);
+    max-height: calc(100vh - 120px);
+
     display: flex;
     flex-direction: column;
+
+    overflow: hidden;
 }
 
 @media (max-width: 1024px) {
@@ -479,7 +485,7 @@ body {
 ============================================================ */
 
 .panel-busqueda-avanzada {
-    padding: 14px 12px 12px;
+    padding: 10px 10px 10px;
 
     background: white;
 
@@ -517,7 +523,7 @@ body {
 
 .campo-avanzado-completo {
     width: 100%;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 
@@ -551,7 +557,7 @@ body {
     width: 100%;
     min-width: 0;
 
-    padding: 9px 10px;
+    padding: 7px 9px;
 
     border: 1px solid var(--border);
     border-radius: 7px;
@@ -613,13 +619,11 @@ body {
 
 .fila-fechas-avanzada {
     display: grid;
-    grid-template-columns:
-        minmax(0, 1fr)
-        minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
-    gap: 10px;
+    gap: 8px;
 
-    margin-bottom: 14px;
+    margin-bottom: 10px;
 }
 
 
@@ -688,9 +692,9 @@ body {
 ============================================================ */
 
 .barra-seleccion-guias {
-    margin-top: 12px;
+    margin-top: 8px;
 
-    padding: 10px 12px;
+    padding: 8px 10px;
 
     border: 1px solid #dbe4ec;
     border-radius: var(--radius-sm);
@@ -791,9 +795,9 @@ body {
 ============================================================ */
 
 .resumen-busqueda-avanzada {
-    margin-top: 10px;
+    margin-top: 8px;
 
-    padding: 10px 12px;
+    padding: 8px 10px;
 
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
@@ -1213,9 +1217,15 @@ body {
 ============================================================ */
 .results-container {
     flex: 1;
+    min-height: 0;
+
     overflow-y: auto;
-    margin-top: 12px;
+    overflow-x: hidden;
+
+    margin-top: 10px;
     border-radius: var(--radius-sm);
+
+    padding-right: 2px;
 }
 
 .results-container::-webkit-scrollbar {
@@ -1915,4 +1925,35 @@ mark {
     background: var(--danger);
     color: white;
     border-color: var(--danger);
+}
+
+/* ============================================================
+   AJUSTE DE ALTURA PARA BÚSQUEDA AVANZADA
+============================================================ */
+
+.busqueda-avanzada,
+.barra-seleccion-guias,
+.resumen-busqueda-avanzada {
+    flex-shrink: 0;
+}
+
+#historial-avanzado {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+@media (max-width: 1024px) {
+
+    .historial-panel {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+    }
+
+    #historial-avanzado {
+        max-height: 420px;
+    }
+
 }
