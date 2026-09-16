@@ -27,6 +27,14 @@ let textoBusquedaActual = '';
 let ordenDireccion = 'desc'; // 'asc' o 'desc'
 
 // ============================================================
+// BÚSQUEDA AVANZADA
+// ============================================================
+let resultadosBusquedaAvanzada = [];
+let guiasSeleccionadasAvanzadas = new Set();
+let filtrosBusquedaAvanzadaActuales = {};
+let busquedaAvanzadaActiva = false;
+
+// ============================================================
 // HELPERS XML
 // ============================================================
 function first(parent, ns, tag) {
@@ -886,6 +894,915 @@ function limpiarFiltroFecha() {
 }
 
 // ============================================================
+// BÚSQUEDA AVANZADA - ABRIR / CERRAR PANEL
+// ============================================================
+function toggleBusquedaAvanzada() {
+
+    const panel = document.getElementById("panel-busqueda-avanzada");
+    const boton = document.getElementById("btn-toggle-avanzada");
+
+    if (!panel || !boton) return;
+
+    const estaAbierto = panel.style.display !== "none";
+
+    panel.style.display = estaAbierto ? "none" : "block";
+
+    boton.classList.toggle("activo", !estaAbierto);
+}
+
+
+// ============================================================
+// BÚSQUEDA AVANZADA - EJECUTAR
+// ============================================================
+async function buscarGuiasAvanzado() {
+
+    const producto = document.getElementById("av-producto")?.value.trim() || "";
+    const partida  = document.getElementById("av-partida")?.value.trim() || "";
+    const llegada  = document.getElementById("av-llegada")?.value.trim() || "";
+    const desde    = document.getElementById("av-desde")?.value || "";
+    const hasta    = document.getElementById("av-hasta")?.value || "";
+
+    if (
+        !producto &&
+        !partida &&
+        !llegada &&
+        !desde &&
+        !hasta
+    ) {
+        mostrarAlerta(
+            "Ingresa al menos un criterio de búsqueda",
+            "error"
+        );
+        return;
+    }
+
+
+    // Validar rango de fechas
+    if (desde && hasta && desde > hasta) {
+        mostrarAlerta(
+            "La fecha desde no puede ser mayor que la fecha hasta",
+            "error"
+        );
+        return;
+    }
+
+
+    busquedaAvanzadaActiva = true;
+    buscando = true;
+
+    filtrosBusquedaAvanzadaActuales = {
+        producto,
+        partida,
+        llegada,
+        desde,
+        hasta
+    };
+
+
+    // Limpiar buscador normal visualmente
+    const buscadorNormal =
+        document.getElementById("buscador");
+
+    if (buscadorNormal) {
+        buscadorNormal.value = "";
+    }
+
+    const btnLimpiar =
+        document.getElementById("btn-limpiar");
+
+    if (btnLimpiar) {
+        btnLimpiar.style.display = "none";
+    }
+
+    mostrarControlesOrdenamiento(false);
+
+
+    // Contenedores
+    const historialNormal =
+        document.getElementById("historial-lista");
+
+    const historialBusqueda =
+        document.getElementById("historial-busqueda");
+
+    const historialAvanzado =
+        document.getElementById("historial-avanzado");
+
+    const resumen =
+        document.getElementById("resumen-busqueda-avanzada");
+
+    const barraSeleccion =
+        document.getElementById("barra-seleccion-guias");
+
+
+    if (historialNormal) {
+        historialNormal.style.display = "none";
+    }
+
+    if (historialBusqueda) {
+        historialBusqueda.style.display = "none";
+        historialBusqueda.innerHTML = "";
+    }
+
+    if (historialAvanzado) {
+        historialAvanzado.style.display = "block";
+
+        historialAvanzado.innerHTML = `
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Buscando guías...</p>
+            </div>
+        `;
+    }
+
+    if (resumen) {
+        resumen.style.display = "none";
+    }
+
+    if (barraSeleccion) {
+        barraSeleccion.style.display = "none";
+    }
+
+
+    // Construir URL
+    const params = new URLSearchParams();
+
+    if (producto) params.set("producto", producto);
+    if (partida)  params.set("partida", partida);
+    if (llegada)  params.set("llegada", llegada);
+    if (desde)    params.set("desde", desde);
+    if (hasta)    params.set("hasta", hasta);
+
+
+    const { data, error } = await fetchJSON(
+        `${API_URL}/buscar-avanzado?${params.toString()}`
+    );
+
+
+    if (error) {
+
+        historialAvanzado.innerHTML = `
+            <div class="sin-resultados-avanzados">
+
+                <i class="fa-solid fa-triangle-exclamation"></i>
+
+                <strong>Error en la búsqueda</strong>
+
+                <span>
+                    ${escapeHtml(error)}
+                </span>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    if (
+        !data ||
+        !data.ok ||
+        !Array.isArray(data.data)
+    ) {
+
+        historialAvanzado.innerHTML = `
+            <div class="sin-resultados-avanzados">
+
+                <i class="fa-solid fa-triangle-exclamation"></i>
+
+                <strong>No se pudo realizar la búsqueda</strong>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    resultadosBusquedaAvanzada =
+        data.data;
+
+
+    // Cada nueva búsqueda elimina selección anterior
+    guiasSeleccionadasAvanzadas.clear();
+
+
+    renderResultadosBusquedaAvanzada(
+        resultadosBusquedaAvanzada
+    );
+
+
+    actualizarResumenBusquedaAvanzada();
+
+
+    actualizarBarraSeleccionAvanzada();
+}
+
+
+// ============================================================
+// RENDER RESULTADOS BÚSQUEDA AVANZADA
+// ============================================================
+function renderResultadosBusquedaAvanzada(guias) {
+
+    const contenedor =
+        document.getElementById("historial-avanzado");
+
+    if (!contenedor) return;
+
+
+    if (!guias || guias.length === 0) {
+
+        contenedor.innerHTML = `
+            <div class="sin-resultados-avanzados">
+
+                <i class="fa-regular fa-folder-open"></i>
+
+                <strong>
+                    No se encontraron guías
+                </strong>
+
+                <span>
+                    Prueba cambiando alguno de los criterios.
+                </span>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    const productoBuscado =
+        filtrosBusquedaAvanzadaActuales.producto || "";
+
+
+    let html = "";
+
+
+    guias.forEach(g => {
+
+        const seleccionada =
+            guiasSeleccionadasAvanzadas.has(Number(g.id));
+
+
+        const coincidencias =
+            Array.isArray(g.items_coincidentes)
+                ? g.items_coincidentes
+                : [];
+
+
+        html += `
+
+        <div
+            class="guia-avanzada-card
+                ${seleccionada ? "seleccionada" : ""}"
+            data-id="${g.id}"
+        >
+
+            <div class="guia-avanzada-selector">
+
+                <input
+                    type="checkbox"
+                    class="checkbox-guia-avanzada"
+                    data-id="${g.id}"
+                    ${seleccionada ? "checked" : ""}
+                >
+
+
+                <div
+                    class="guia-avanzada-contenido"
+                    data-ver-guia="${g.id}"
+                >
+
+                    <div class="guia-avanzada-header">
+
+                        <span class="guia-avanzada-numero">
+                            📄 ${escapeHtml(g.numero || "Sin número")}
+                        </span>
+
+                        <span class="guia-avanzada-fecha">
+                            ${formatearFecha(g.fecha_emision)}
+                        </span>
+
+                    </div>
+
+
+                    <div class="search-client">
+
+                        <i class="fa-regular fa-user"></i>
+
+                        <span>
+                            ${escapeHtml(
+                                g.destinatario_nombre || "—"
+                            )}
+                        </span>
+
+                    </div>
+
+
+                    <div class="guia-avanzada-ruta">
+
+                        <div class="guia-avanzada-ruta-item">
+
+                            <i class="fa-solid fa-location-dot"></i>
+
+                            <span>
+                                ${escapeHtml(
+                                    g.direccion_partida || "—"
+                                )}
+                            </span>
+
+                        </div>
+
+
+                        <div class="guia-avanzada-ruta-item">
+
+                            <i class="fa-solid fa-flag-checkered"></i>
+
+                            <span>
+                                ${escapeHtml(
+                                    g.direccion_llegada || "—"
+                                )}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    ${
+                        productoBuscado
+                        ? `
+                        <div class="coincidencias-avanzadas">
+
+                            <div class="coincidencias-avanzadas-titulo">
+
+                                <i class="fa-solid fa-highlighter"></i>
+
+                                Coincidencia${
+                                    coincidencias.length !== 1
+                                        ? "s"
+                                        : ""
+                                } (${coincidencias.length})
+
+                            </div>
+
+
+                            ${
+                                coincidencias.length > 0
+
+                                ? coincidencias
+                                    .map(item => `
+
+                                        <div class="item-coincidente-avanzado">
+
+                                            <strong>
+                                                ${
+                                                    resaltarPalabrasAvanzado(
+                                                        item.descripcion || "—",
+                                                        productoBuscado
+                                                    )
+                                                }
+                                            </strong>
+
+                                            <div class="item-coincidente-meta">
+
+                                                <span>
+                                                    Cantidad:
+                                                    ${
+                                                        escapeHtml(
+                                                            String(
+                                                                item.cantidad ?? "—"
+                                                            )
+                                                        )
+                                                    }
+                                                </span>
+
+                                                <span>
+                                                    Unidad:
+                                                    ${
+                                                        escapeHtml(
+                                                            String(
+                                                                item.unidad || "—"
+                                                            )
+                                                        )
+                                                    }
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    `)
+                                    .join("")
+
+                                : `
+                                    <div
+                                        style="
+                                            color:#94a3b8;
+                                            font-size:11px;
+                                        "
+                                    >
+                                        Sin coincidencia de producto
+                                    </div>
+                                `
+                            }
+
+                        </div>
+                        `
+                        : ""
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+        `;
+    });
+
+
+    contenedor.innerHTML = html;
+
+
+    // ========================================================
+    // EVENTOS DE CHECKBOX
+    // ========================================================
+    contenedor
+        .querySelectorAll(".checkbox-guia-avanzada")
+        .forEach(checkbox => {
+
+            checkbox.addEventListener("change", event => {
+
+                event.stopPropagation();
+
+                const id =
+                    Number(event.currentTarget.dataset.id);
+
+                cambiarSeleccionGuiaAvanzada(
+                    id,
+                    event.currentTarget.checked
+                );
+
+            });
+
+        });
+
+
+    // ========================================================
+    // CLICK SOBRE INFORMACIÓN DE LA GUÍA
+    // Abre la guía en el visor
+    // ========================================================
+    contenedor
+        .querySelectorAll("[data-ver-guia]")
+        .forEach(elemento => {
+
+            elemento.addEventListener("click", () => {
+
+                const id =
+                    Number(elemento.dataset.verGuia);
+
+                verGuiaPorId(id);
+
+            });
+
+        });
+}
+
+
+// ============================================================
+// RESALTAR PALABRAS DE LA BÚSQUEDA
+// Ejemplo:
+// multimetro mestek
+// ============================================================
+function resaltarPalabrasAvanzado(texto, busqueda) {
+
+    let resultado =
+        escapeHtml(String(texto || ""));
+
+
+    const palabras =
+        normalizarTexto(busqueda)
+            .split(" ")
+            .filter(Boolean);
+
+
+    palabras.forEach(palabra => {
+
+        const escapada =
+            palabra.replace(
+                /[.*+?^${}()|[\]\\]/g,
+                "\\$&"
+            );
+
+
+        const regex =
+            new RegExp(
+                `(${escapada})`,
+                "gi"
+            );
+
+
+        resultado =
+            resultado.replace(
+                regex,
+                "<mark>$1</mark>"
+            );
+
+    });
+
+
+    return resultado;
+}
+
+
+// ============================================================
+// SELECCIONAR / DESELECCIONAR UNA GUÍA
+// ============================================================
+function cambiarSeleccionGuiaAvanzada(
+    id,
+    seleccionada
+) {
+
+    id = Number(id);
+
+
+    if (seleccionada) {
+
+        guiasSeleccionadasAvanzadas.add(id);
+
+    } else {
+
+        guiasSeleccionadasAvanzadas.delete(id);
+
+    }
+
+
+    const card =
+        document.querySelector(
+            `.guia-avanzada-card[data-id="${id}"]`
+        );
+
+
+    if (card) {
+
+        card.classList.toggle(
+            "seleccionada",
+            seleccionada
+        );
+
+    }
+
+
+    actualizarBarraSeleccionAvanzada();
+}
+
+
+// ============================================================
+// SELECCIONAR TODAS
+// ============================================================
+function seleccionarTodasGuiasAvanzadas(
+    seleccionar
+) {
+
+    guiasSeleccionadasAvanzadas.clear();
+
+
+    if (seleccionar) {
+
+        resultadosBusquedaAvanzada.forEach(g => {
+
+            guiasSeleccionadasAvanzadas.add(
+                Number(g.id)
+            );
+
+        });
+
+    }
+
+
+    document
+        .querySelectorAll(".checkbox-guia-avanzada")
+        .forEach(checkbox => {
+
+            checkbox.checked =
+                seleccionar;
+
+        });
+
+
+    document
+        .querySelectorAll(".guia-avanzada-card")
+        .forEach(card => {
+
+            card.classList.toggle(
+                "seleccionada",
+                seleccionar
+            );
+
+        });
+
+
+    actualizarBarraSeleccionAvanzada();
+}
+
+
+// ============================================================
+// ACTUALIZAR BARRA DE SELECCIÓN
+// ============================================================
+function actualizarBarraSeleccionAvanzada() {
+
+    const barra =
+        document.getElementById("barra-seleccion-guias");
+
+    const contador =
+        document.getElementById("contador-seleccionadas");
+
+    const seleccionarTodas =
+        document.getElementById("seleccionar-todas-guias");
+
+    const btnPdf =
+        document.getElementById("btn-pdf-seleccionadas");
+
+    const btnExcel =
+        document.getElementById("btn-excel-seleccionadas");
+
+
+    const total =
+        resultadosBusquedaAvanzada.length;
+
+    const seleccionadas =
+        guiasSeleccionadasAvanzadas.size;
+
+
+    if (barra) {
+
+        barra.style.display =
+            total > 0
+                ? "block"
+                : "none";
+
+    }
+
+
+    if (contador) {
+
+        contador.textContent =
+            `${seleccionadas} ${
+                seleccionadas === 1
+                    ? "seleccionada"
+                    : "seleccionadas"
+            }`;
+
+    }
+
+
+    if (seleccionarTodas) {
+
+        seleccionarTodas.checked =
+            total > 0 &&
+            seleccionadas === total;
+
+
+        seleccionarTodas.indeterminate =
+            seleccionadas > 0 &&
+            seleccionadas < total;
+
+    }
+
+
+    if (btnPdf) {
+
+        btnPdf.disabled =
+            seleccionadas === 0;
+
+    }
+
+
+    if (btnExcel) {
+
+        btnExcel.disabled =
+            seleccionadas === 0;
+
+    }
+}
+
+
+// ============================================================
+// RESUMEN DE BÚSQUEDA AVANZADA
+// ============================================================
+function actualizarResumenBusquedaAvanzada() {
+
+    const resumen =
+        document.getElementById("resumen-busqueda-avanzada");
+
+    const total =
+        document.getElementById("total-resultados-avanzados");
+
+    const criterios =
+        document.getElementById("criterios-busqueda-avanzada");
+
+
+    if (!resumen || !total || !criterios) {
+        return;
+    }
+
+
+    resumen.style.display = "block";
+
+
+    total.textContent =
+        `${resultadosBusquedaAvanzada.length} ${
+            resultadosBusquedaAvanzada.length === 1
+                ? "guía"
+                : "guías"
+        }`;
+
+
+    const filtros =
+        filtrosBusquedaAvanzadaActuales;
+
+
+    const chips = [];
+
+
+    if (filtros.producto) {
+
+        chips.push(`
+
+            <div class="criterio-avanzado-chip">
+
+                <i class="fa-solid fa-box"></i>
+
+                <span>
+                    ${escapeHtml(filtros.producto)}
+                </span>
+
+            </div>
+
+        `);
+
+    }
+
+
+    if (filtros.partida) {
+
+        chips.push(`
+
+            <div class="criterio-avanzado-chip">
+
+                <i class="fa-solid fa-location-dot"></i>
+
+                <span>
+                    ${escapeHtml(filtros.partida)}
+                </span>
+
+            </div>
+
+        `);
+
+    }
+
+
+    if (filtros.llegada) {
+
+        chips.push(`
+
+            <div class="criterio-avanzado-chip">
+
+                <i class="fa-solid fa-flag-checkered"></i>
+
+                <span>
+                    ${escapeHtml(filtros.llegada)}
+                </span>
+
+            </div>
+
+        `);
+
+    }
+
+
+    if (filtros.desde) {
+
+        chips.push(`
+
+            <div class="criterio-avanzado-chip">
+
+                <i class="fa-regular fa-calendar"></i>
+
+                <span>
+                    Desde ${formatearFecha(filtros.desde)}
+                </span>
+
+            </div>
+
+        `);
+
+    }
+
+
+    if (filtros.hasta) {
+
+        chips.push(`
+
+            <div class="criterio-avanzado-chip">
+
+                <i class="fa-regular fa-calendar-check"></i>
+
+                <span>
+                    Hasta ${formatearFecha(filtros.hasta)}
+                </span>
+
+            </div>
+
+        `);
+
+    }
+
+
+    criterios.innerHTML =
+        chips.join("");
+}
+
+
+// ============================================================
+// LIMPIAR BÚSQUEDA AVANZADA
+// ============================================================
+function limpiarBusquedaAvanzada() {
+
+    [
+        "av-producto",
+        "av-partida",
+        "av-llegada",
+        "av-desde",
+        "av-hasta"
+
+    ].forEach(id => {
+
+        const input =
+            document.getElementById(id);
+
+        if (input) {
+            input.value = "";
+        }
+
+    });
+
+
+    resultadosBusquedaAvanzada = [];
+
+    guiasSeleccionadasAvanzadas.clear();
+
+    filtrosBusquedaAvanzadaActuales = {};
+
+    busquedaAvanzadaActiva = false;
+
+    buscando = false;
+
+
+    const avanzado =
+        document.getElementById("historial-avanzado");
+
+    const resumen =
+        document.getElementById("resumen-busqueda-avanzada");
+
+    const barra =
+        document.getElementById("barra-seleccion-guias");
+
+    const normal =
+        document.getElementById("historial-lista");
+
+
+    if (avanzado) {
+
+        avanzado.innerHTML = "";
+        avanzado.style.display = "none";
+
+    }
+
+
+    if (resumen) {
+        resumen.style.display = "none";
+    }
+
+
+    if (barra) {
+        barra.style.display = "none";
+    }
+
+
+    if (normal) {
+        normal.style.display = "block";
+    }
+
+
+    pagina = 0;
+
+    mostrarHistorial();
+}
+
+// ============================================================
 // EXPORTAR EXCEL
 // ============================================================
 async function exportarExcel() {
@@ -1067,6 +1984,100 @@ document.addEventListener("DOMContentLoaded", () => {
     const fechaHasta = document.getElementById("fecha-hasta");
     if (fechaDesde) fechaDesde.addEventListener("change", filtrarPorFecha);
     if (fechaHasta) fechaHasta.addEventListener("change", filtrarPorFecha);
+
+    // ========================================================
+    // BÚSQUEDA AVANZADA
+    // ========================================================
+
+    const btnToggleAvanzada =
+        document.getElementById("btn-toggle-avanzada");
+
+    const btnBuscarAvanzado =
+        document.getElementById("btn-buscar-avanzado");
+
+    const btnLimpiarAvanzado =
+        document.getElementById("btn-limpiar-avanzado");
+
+    const seleccionarTodas =
+        document.getElementById("seleccionar-todas-guias");
+
+
+    if (btnToggleAvanzada) {
+
+        btnToggleAvanzada.addEventListener(
+            "click",
+            toggleBusquedaAvanzada
+        );
+
+    }
+
+
+    if (btnBuscarAvanzado) {
+
+        btnBuscarAvanzado.addEventListener(
+            "click",
+            buscarGuiasAvanzado
+        );
+
+    }
+
+
+    if (btnLimpiarAvanzado) {
+
+        btnLimpiarAvanzado.addEventListener(
+            "click",
+            limpiarBusquedaAvanzada
+        );
+
+    }
+
+
+    if (seleccionarTodas) {
+
+        seleccionarTodas.addEventListener(
+            "change",
+            event => {
+
+                seleccionarTodasGuiasAvanzadas(
+                    event.currentTarget.checked
+                );
+
+            }
+        );
+
+    }
+
+
+    // Enter también ejecuta la búsqueda avanzada
+    [
+        "av-producto",
+        "av-partida",
+        "av-llegada"
+
+    ].forEach(id => {
+
+        const input =
+            document.getElementById(id);
+
+        if (!input) return;
+
+
+        input.addEventListener(
+            "keydown",
+            event => {
+
+                if (event.key === "Enter") {
+
+                    event.preventDefault();
+
+                    buscarGuiasAvanzado();
+
+                }
+
+            }
+        );
+
+    });
 
     // Cargar historial inicial
     mostrarHistorial();
