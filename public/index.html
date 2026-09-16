@@ -94,6 +94,261 @@
                 </div>
             </div>
 
+            <!-- =====================================================
+                BÚSQUEDA AVANZADA
+            ====================================================== -->
+            <div class="busqueda-avanzada">
+
+                <!-- BOTÓN ABRIR / CERRAR -->
+                <button
+                    type="button"
+                    id="btn-toggle-avanzada"
+                    class="btn-toggle-avanzada"
+                >
+                    <span>
+                        <i class="fa-solid fa-sliders"></i>
+                        Búsqueda avanzada
+                    </span>
+
+                    <i
+                        id="icono-toggle-avanzada"
+                        class="fa-solid fa-chevron-down"
+                    ></i>
+                </button>
+
+
+                <!-- PANEL -->
+                <div
+                    id="panel-busqueda-avanzada"
+                    class="panel-busqueda-avanzada"
+                    style="display:none;"
+                >
+
+                    <!-- PRODUCTO -->
+                    <div class="campo-avanzado campo-avanzado-completo">
+
+                        <label for="av-producto">
+                            <i class="fa-solid fa-box"></i>
+                            Producto, herramienta o equipo
+                        </label>
+
+                        <input
+                            type="text"
+                            id="av-producto"
+                            placeholder="Ej. multimetro mestek"
+                            autocomplete="off"
+                        >
+
+                    </div>
+
+
+                    <!-- PARTIDA -->
+                    <div class="campo-avanzado campo-avanzado-completo">
+
+                        <label for="av-partida">
+                            <i class="fa-solid fa-location-dot"></i>
+                            Punto de partida
+                        </label>
+
+                        <input
+                            type="text"
+                            id="av-partida"
+                            placeholder="Ej. Malaga Grenet"
+                            autocomplete="off"
+                        >
+
+                    </div>
+
+
+                    <!-- LLEGADA -->
+                    <div class="campo-avanzado campo-avanzado-completo">
+
+                        <label for="av-llegada">
+                            <i class="fa-solid fa-location-crosshairs"></i>
+                            Punto de llegada
+                        </label>
+
+                        <input
+                            type="text"
+                            id="av-llegada"
+                            placeholder="Ej. Tinajones"
+                            autocomplete="off"
+                        >
+
+                    </div>
+
+
+                    <!-- FECHAS -->
+                    <div class="fila-fechas-avanzada">
+
+                        <div class="campo-avanzado">
+
+                            <label for="av-desde">
+                                <i class="fa-regular fa-calendar"></i>
+                                Desde
+                            </label>
+
+                            <input
+                                type="date"
+                                id="av-desde"
+                            >
+
+                        </div>
+
+
+                        <div class="campo-avanzado">
+
+                            <label for="av-hasta">
+                                <i class="fa-regular fa-calendar-check"></i>
+                                Hasta
+                            </label>
+
+                            <input
+                                type="date"
+                                id="av-hasta"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- BOTONES -->
+                    <div class="acciones-busqueda-avanzada">
+
+                        <button
+                            type="button"
+                            id="btn-buscar-avanzado"
+                            class="btn btn-primary"
+                        >
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            Buscar
+                        </button>
+
+
+                        <button
+                            type="button"
+                            id="btn-limpiar-avanzado"
+                            class="btn-limpiar-avanzado"
+                        >
+                            <i class="fa-solid fa-rotate-left"></i>
+                            Limpiar
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =====================================================
+                 BARRA DE SELECCIÓN DE RESULTADOS
+                 Aparecerá únicamente durante búsqueda avanzada
+            ====================================================== -->
+            <div
+                id="barra-seleccion-guias"
+                class="barra-seleccion-guias"
+                style="display:none;"
+            >
+
+                <div class="seleccion-superior">
+
+                    <label class="seleccionar-todas-wrapper">
+
+                        <input
+                            type="checkbox"
+                            id="seleccionar-todas-guias"
+                        >
+
+                        <span>
+                            Seleccionar todas
+                        </span>
+
+                    </label>
+
+
+                    <span
+                        id="contador-seleccionadas"
+                        class="contador-seleccionadas"
+                    >
+                        0 seleccionadas
+                    </span>
+
+                </div>
+
+
+                <div class="acciones-seleccion">
+
+                    <button
+                        type="button"
+                        id="btn-pdf-seleccionadas"
+                        class="btn btn-pdf"
+                        disabled
+                    >
+                        <i class="fa-solid fa-file-pdf"></i>
+                        PDF
+                    </button>
+
+
+                    <button
+                        type="button"
+                        id="btn-excel-seleccionadas"
+                        class="btn btn-excel"
+                        disabled
+                    >
+                        <i class="fa-solid fa-file-excel"></i>
+                        Excel
+                    </button>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =====================================================
+                 RESUMEN DE BÚSQUEDA AVANZADA
+            ====================================================== -->
+            <div
+                id="resumen-busqueda-avanzada"
+                class="resumen-busqueda-avanzada"
+                style="display:none;"
+            >
+
+                <div class="resumen-avanzado-header">
+
+                    <span>
+                        <i class="fa-solid fa-list-check"></i>
+                        Resultados
+                    </span>
+
+                    <strong id="total-resultados-avanzados">
+                        0 guías
+                    </strong>
+
+                </div>
+
+
+                <div
+                    id="criterios-busqueda-avanzada"
+                    class="criterios-busqueda-avanzada"
+                ></div>
+
+            </div>
+
+
+
+            <!-- =====================================================
+                 RESULTADOS BÚSQUEDA AVANZADA
+            ====================================================== -->
+            <div
+                id="historial-avanzado"
+                class="results-container"
+                style="display:none;"
+            ></div>
+
             <div id="historial-lista" class="results-container"></div>
             <div id="historial-busqueda" class="results-container" style="display:none;"></div>
         </aside>
