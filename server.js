@@ -11,11 +11,8 @@ app.disable("x-powered-by");
 app.use(cors());
 app.use(express.json({ limit: "5mb" }));
 
-// En local, Express sirve /public.
-// En Vercel, public/** se entrega automáticamente desde el CDN.
-if (process.env.VERCEL !== "1") {
-    app.use(express.static(path.join(__dirname, "public")));
-}
+// Servir frontend estático tanto en local como en Vercel
+app.use(express.static(path.join(__dirname, "public")));
 
 // ----------------------
 // POOL MYSQL
@@ -525,14 +522,11 @@ app.get("/buscar-por-direccion", async (req, res) => {
 });
 
 // ----------------------
-// FALLBACK FRONTEND (solo local)
-// En Vercel, public/index.html es servido por el CDN.
+// FRONTEND
 // ----------------------
-if (process.env.VERCEL !== "1") {
-    app.use((req, res) => {
-        res.sendFile(path.join(__dirname, "public", "index.html"));
-    });
-}
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 // Middleware final de errores
 app.use((err, req, res, next) => {
