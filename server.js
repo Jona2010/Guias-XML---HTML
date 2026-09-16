@@ -1,49 +1,56 @@
 require("dotenv").config();
 
 const express = require("express");
-const cors    = require("express");
-const mysql   = require("mysql2/promise");
-const path    = require("path");
+const cors = require("cors");
+const mysql = require("mysql2/promise");
+const path = require("path");
 
-const app = require("express")();
+const app = express();
 
-app.use(require("cors")());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+app.disable("x-powered-by");
+app.use(cors());
+app.use(express.json({ limit: "5mb" }));
+
+// En local, Express sirve /public.
+// En Vercel, public/** se entrega automáticamente desde el CDN.
+if (process.env.VERCEL !== "1") {
+    app.use(express.static(path.join(__dirname, "public")));
+}
 
 // ----------------------
 // POOL MYSQL
-// ✅ SSL desactivado
+// Credenciales SOLO por variables de entorno
 // ----------------------
+const requiredDbEnv = ["DB_HOST", "DB_NAME", "DB_USER", "DB_PASS"];
+const missingDbEnv = requiredDbEnv.filter((key) => !process.env[key]);
+
+if (missingDbEnv.length) {
+    console.warn(`⚠️ Faltan variables de entorno: ${missingDbEnv.join(", ")}`);
+}
+
 const pool = mysql.createPool({
-    host:     process.env.DB_HOST || "mysql.us.cloudlogin.co",
-    port:     Number(process.env.DB_PORT || 3306),
-    database: process.env.DB_NAME || "intelliall_apps",
-    user:     process.env.DB_USER || "intelliall_apps",
-    password: process.env.DB_PASS || "426896",
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT || 3306),
+    database: process.env.DB_NAME,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
     waitForConnections: true,
-    connectionLimit:    10,
-    queueLimit:         0,
-    ssl:                false,
-    // ✅ Forzar tipos numéricos correctos
-    typeCast: function(field, next){
-        if(field.type === "NEWDECIMAL" || field.type === "DECIMAL"){
-            return parseFloat(field.string());
+    connectionLimit: Number(process.env.DB_POOL_LIMIT || 5),
+    queueLimit: 0,
+    connectTimeout: 10000,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0,
+    ssl: String(process.env.DB_SSL || "false").toLowerCase() === "true"
+        ? { rejectUnauthorized: true }
+        : undefined,
+    typeCast(field, next) {
+        if (field.type === "NEWDECIMAL" || field.type === "DECIMAL") {
+            const value = field.string();
+            return value === null ? null : parseFloat(value);
         }
         return next();
     }
 });
-
-// VERIFICAR CONEXIÓN
-pool.getConnection()
-    .then(conn => {
-        console.log("✅ MySQL conectado");
-        console.log(`📦 BD: ${process.env.DB_NAME || "intelliall_apps"}`);
-        conn.release();
-    })
-    .catch(err => {
-        console.error("❌ Error MySQL:", err.message, err.code);
-    });
 
 // ----------------------
 // QUERY HELPER
@@ -55,14 +62,13 @@ async function query(sql, params = []){
 }
 
 // ----------------------
-// RUTA TEST
+// HEALTH CHECK API
 // ----------------------
-app.get("/", (req, res) => {
+app.get("/api/health", (req, res) => {
     res.json({
-        ok:      true,
-        mensaje: "🚀 API funcionando con MySQL",
-        host:    process.env.DB_HOST || "mysql.us.cloudlogin.co",
-        db:      process.env.DB_NAME || "intelliall_apps"
+        ok: true,
+        mensaje: "API de Guías SUNAT operativa",
+        entorno: process.env.VERCEL === "1" ? "vercel" : "local"
     });
 });
 
@@ -519,17 +525,30 @@ app.get("/buscar-por-direccion", async (req, res) => {
 });
 
 // ----------------------
-// FALLBACK FRONTEND
+// FALLBACK FRONTEND (solo local)
+// En Vercel, public/index.html es servido por el CDN.
 // ----------------------
-app.use((req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
+if (process.env.VERCEL !== "1") {
+    app.use((req, res) => {
+        res.sendFile(path.join(__dirname, "public", "index.html"));
+    });
+}
+
+// Middleware final de errores
+app.use((err, req, res, next) => {
+    console.error("❌ Error no controlado:", err);
+    if (res.headersSent) return next(err);
+    res.status(500).json({ ok: false, mensaje: "Error interno del servidor" });
 });
 
-// ----------------------
-// INICIAR
-// ----------------------
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Puerto: ${PORT}`);
-    console.log(`📦 Entorno: ${process.env.NODE_ENV || "development"}`);
-});
+// Vercel detecta el export CommonJS automáticamente.
+module.exports = app;
+
+// Ejecución local: npm start
+if (require.main === module) {
+    const PORT = Number(process.env.PORT || 3000);
+    app.listen(PORT, () => {
+        console.log(`🚀 http://localhost:${PORT}`);
+        console.log(`📦 Entorno: ${process.env.NODE_ENV || "development"}`);
+    });
+}
