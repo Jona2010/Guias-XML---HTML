@@ -299,6 +299,490 @@ app.get("/buscar", async (req, res) => {
     }
 });
 
+// ======================================================
+// BÚSQUEDA AVANZADA DE GUÍAS
+// Producto + partida + llegada + fechas
+//
+// Ejemplo:
+// /buscar-avanzado?producto=multimetro mestek
+//     &partida=malaga grenet
+//     &llegada=tinajones
+//
+// La búsqueda del producto trabaja por palabras:
+// "multimetro mestek"
+//     ↓
+// "multimetro" AND "mestek"
+//
+// Ambas palabras deben existir dentro del mismo item.
+// ======================================================
+app.get("/buscar-avanzado", async (req, res) => {
+
+    const producto = String(req.query.producto || "").trim();
+    const partida  = String(req.query.partida || "").trim();
+    const llegada  = String(req.query.llegada || "").trim();
+    const desde    = String(req.query.desde || "").trim();
+    const hasta    = String(req.query.hasta || "").trim();
+
+
+    // --------------------------------------------------
+    // NORMALIZAR TEXTO
+    // Ejemplo:
+    // "MULTÍMETRO MESTEK" -> "multimetro mestek"
+    // --------------------------------------------------
+    const normalizarTexto = (texto) => {
+        return String(texto || "")
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
+    };
+
+
+    // --------------------------------------------------
+    // Si no existe ningún filtro
+    // --------------------------------------------------
+    if (
+        !producto &&
+        !partida &&
+        !llegada &&
+        !desde &&
+        !hasta
+    ) {
+        return res.json({
+            ok: true,
+            data: [],
+            total: 0,
+            mensaje: "Ingrese al menos un criterio de búsqueda"
+        });
+    }
+
+
+    try {
+
+        const condiciones = [];
+        const params = [];
+
+
+        // ==================================================
+        // PRODUCTO
+        // ==================================================
+        if (producto) {
+
+            const productoNormalizado =
+                normalizarTexto(producto);
+
+            const palabrasProducto =
+                productoNormalizado
+                    .split(" ")
+                    .filter(Boolean);
+
+
+            /*
+                Se usa EXISTS para asegurarnos de que:
+
+                multimetro
+                +
+                mestek
+
+                se encuentren dentro DEL MISMO ITEM.
+
+                No queremos:
+
+                Item 1 -> multimetro
+                Item 2 -> mestek
+
+                y que el sistema considere coincidencia.
+            */
+
+            const condicionesProducto =
+                palabrasProducto.map(() => `
+
+                    REPLACE(
+                        REPLACE(
+                            REPLACE(
+                                REPLACE(
+                                    REPLACE(
+                                        LOWER(
+                                            CONCAT_WS(
+                                                ' ',
+                                                i.codigo_bien,
+                                                i.descripcion
+                                            )
+                                        ),
+                                        'á','a'
+                                    ),
+                                    'é','e'
+                                ),
+                                'í','i'
+                            ),
+                            'ó','o'
+                        ),
+                        'ú','u'
+                    ) LIKE ?
+
+                `);
+
+
+            condiciones.push(`
+
+                EXISTS (
+
+                    SELECT 1
+
+                    FROM guia_items i
+
+                    WHERE i.guia_id = g.id
+
+                    AND ${condicionesProducto.join(" AND ")}
+
+                )
+
+            `);
+
+
+            palabrasProducto.forEach(palabra => {
+                params.push(`%${palabra}%`);
+            });
+        }
+
+
+        // ==================================================
+        // PUNTO DE PARTIDA
+        // ==================================================
+        if (partida) {
+
+            const partidaNormalizada =
+                normalizarTexto(partida);
+
+            condiciones.push(`
+
+                REPLACE(
+                    REPLACE(
+                        REPLACE(
+                            REPLACE(
+                                REPLACE(
+                                    LOWER(g.direccion_partida),
+                                    'á','a'
+                                ),
+                                'é','e'
+                            ),
+                            'í','i'
+                        ),
+                        'ó','o'
+                    ),
+                    'ú','u'
+                ) LIKE ?
+
+            `);
+
+            params.push(`%${partidaNormalizada}%`);
+        }
+
+
+        // ==================================================
+        // PUNTO DE LLEGADA
+        // ==================================================
+        if (llegada) {
+
+            const llegadaNormalizada =
+                normalizarTexto(llegada);
+
+            condiciones.push(`
+
+                REPLACE(
+                    REPLACE(
+                        REPLACE(
+                            REPLACE(
+                                REPLACE(
+                                    LOWER(g.direccion_llegada),
+                                    'á','a'
+                                ),
+                                'é','e'
+                            ),
+                            'í','i'
+                        ),
+                        'ó','o'
+                    ),
+                    'ú','u'
+                ) LIKE ?
+
+            `);
+
+            params.push(`%${llegadaNormalizada}%`);
+        }
+
+
+        // ==================================================
+        // FECHA DESDE
+        // ==================================================
+        if (desde) {
+
+            condiciones.push(`
+                g.fecha_emision >= ?
+            `);
+
+            params.push(desde);
+        }
+
+
+        // ==================================================
+        // FECHA HASTA
+        // ==================================================
+        if (hasta) {
+
+            condiciones.push(`
+                g.fecha_emision < DATE_ADD(?, INTERVAL 1 DAY)
+            `);
+
+            params.push(hasta);
+        }
+
+
+        // ==================================================
+        // CONSULTAR GUÍAS
+        // ==================================================
+        const sqlGuias = `
+
+            SELECT
+                g.*
+
+            FROM guias g
+
+            WHERE
+                ${condiciones.join(" AND ")}
+
+            ORDER BY
+                g.fecha_emision DESC,
+                g.hora_emision DESC,
+                g.id DESC
+
+            LIMIT 200
+
+        `;
+
+
+        const guias =
+            await query(sqlGuias, params);
+
+
+        if (guias.length === 0) {
+
+            console.log(
+                "🔎 /buscar-avanzado → 0 resultados",
+                {
+                    producto,
+                    partida,
+                    llegada,
+                    desde,
+                    hasta
+                }
+            );
+
+            return res.json({
+                ok: true,
+                data: [],
+                total: 0,
+                filtros: {
+                    producto,
+                    partida,
+                    llegada,
+                    desde,
+                    hasta
+                }
+            });
+        }
+
+
+        // ==================================================
+        // OBTENER ITEMS DE LAS GUÍAS ENCONTRADAS
+        // ==================================================
+        const ids =
+            guias.map(g => g.id);
+
+
+        const placeholders =
+            ids.map(() => "?").join(",");
+
+
+        const items = await query(`
+
+            SELECT
+                id,
+                guia_id,
+                linea,
+                codigo_bien,
+                descripcion,
+                cantidad,
+                unidad
+
+            FROM guia_items
+
+            WHERE guia_id IN (${placeholders})
+
+            ORDER BY
+                guia_id ASC,
+                CAST(linea AS UNSIGNED) ASC
+
+        `, ids);
+
+
+        // ==================================================
+        // AGRUPAR ITEMS POR GUÍA
+        // ==================================================
+        const itemsPorGuia = {};
+
+
+        items.forEach(item => {
+
+            if (!itemsPorGuia[item.guia_id]) {
+                itemsPorGuia[item.guia_id] = [];
+            }
+
+            itemsPorGuia[item.guia_id].push(item);
+        });
+
+
+        // ==================================================
+        // PALABRAS DEL PRODUCTO
+        // Se utilizarán para identificar qué fila resaltar
+        // posteriormente en HTML / PDF.
+        // ==================================================
+        const palabrasProducto =
+            producto
+                ? normalizarTexto(producto)
+                    .split(" ")
+                    .filter(Boolean)
+                : [];
+
+
+        // ==================================================
+        // CONSTRUIR RESPUESTA FINAL
+        // ==================================================
+        const resultado =
+            guias.map(guia => {
+
+                const itemsGuia =
+                    itemsPorGuia[guia.id] || [];
+
+
+                // ------------------------------------------
+                // Encontrar exactamente los items que
+                // provocaron la coincidencia.
+                // ------------------------------------------
+                const itemsCoincidentes =
+                    producto
+                        ? itemsGuia.filter(item => {
+
+                            const textoItem =
+                                normalizarTexto(
+                                    `${item.codigo_bien || ""} ${item.descripcion || ""}`
+                                );
+
+
+                            return palabrasProducto.every(
+                                palabra =>
+                                    textoItem.includes(palabra)
+                            );
+
+                        })
+                        : [];
+
+
+                // ------------------------------------------
+                // Cantidad total encontrada
+                // ------------------------------------------
+                const cantidadCoincidente =
+                    itemsCoincidentes.reduce(
+                        (total, item) =>
+                            total +
+                            Number(item.cantidad || 0),
+                        0
+                    );
+
+
+                return {
+
+                    ...guia,
+
+                    // Todos los items de la guía
+                    items: itemsGuia,
+
+                    // Solo los productos buscados
+                    items_coincidentes:
+                        itemsCoincidentes,
+
+                    cantidad_coincidencias:
+                        itemsCoincidentes.length,
+
+                    cantidad_total_coincidente:
+                        cantidadCoincidente
+
+                };
+
+            });
+
+
+        // ==================================================
+        // RESPUESTA
+        // ==================================================
+        console.log(
+            `🔎 /buscar-avanzado → ${resultado.length} guía(s)`,
+            {
+                producto,
+                partida,
+                llegada,
+                desde,
+                hasta
+            }
+        );
+
+
+        res.json({
+
+            ok: true,
+
+            total:
+                resultado.length,
+
+            filtros: {
+                producto,
+                partida,
+                llegada,
+                desde,
+                hasta
+            },
+
+            data:
+                resultado
+
+        });
+
+
+    } catch (error) {
+
+        console.error(
+            "❌ Error /buscar-avanzado:",
+            error
+        );
+
+
+        res.status(500).json({
+
+            ok: false,
+
+            mensaje:
+                "Error al realizar la búsqueda avanzada",
+
+            error:
+                error.message
+
+        });
+
+    }
+
+});
+
 // ----------------------
 // GUARDAR GUÍA
 // ----------------------
