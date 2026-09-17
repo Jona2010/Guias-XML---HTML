@@ -4191,38 +4191,858 @@ async function exportarExcel() {
 }
 
 // ============================================================
+// HTML PARA PDF UNITARIO
+// ============================================================
+function crearHTMLGuiaUnitariaPDF(
+    g,
+    itemsPagina,
+    paginaActual,
+    totalPaginas
+) {
+
+    const items =
+        Array.isArray(itemsPagina)
+            ? itemsPagina
+            : [];
+
+
+    const filas =
+        items.map(
+            (item, index) => `
+
+                <tr>
+
+                    <td
+                        style="
+                            width:7%;
+                            padding:10px 8px;
+                            text-align:center;
+                            border:1px solid #cbd9e2;
+                        "
+                    >
+                        ${
+                            escapeHtml(
+                                String(
+                                    item.linea ??
+                                    index + 1
+                                )
+                            )
+                        }
+                    </td>
+
+
+                    <td
+                        style="
+                            width:18%;
+                            padding:10px 8px;
+                            border:1px solid #cbd9e2;
+                        "
+                    >
+                        ${
+                            escapeHtml(
+                                String(
+                                    item.codigo_bien ||
+                                    "-"
+                                )
+                            )
+                        }
+                    </td>
+
+
+                    <td
+                        style="
+                            width:49%;
+                            padding:10px;
+                            border:1px solid #cbd9e2;
+                            line-height:1.45;
+                        "
+                    >
+                        ${
+                            escapeHtml(
+                                String(
+                                    item.descripcion ||
+                                    "-"
+                                )
+                            )
+                        }
+                    </td>
+
+
+                    <td
+                        style="
+                            width:13%;
+                            padding:10px 8px;
+                            text-align:center;
+                            border:1px solid #cbd9e2;
+                        "
+                    >
+                        ${
+                            escapeHtml(
+                                String(
+                                    item.cantidad ??
+                                    "-"
+                                )
+                            )
+                        }
+                    </td>
+
+
+                    <td
+                        style="
+                            width:13%;
+                            padding:10px 8px;
+                            text-align:center;
+                            border:1px solid #cbd9e2;
+                        "
+                    >
+                        ${
+                            escapeHtml(
+                                String(
+                                    item.unidad ||
+                                    "-"
+                                )
+                            )
+                        }
+                    </td>
+
+                </tr>
+
+            `
+        )
+        .join("");
+
+
+    return `
+
+        <div
+            style="
+                width:820px;
+                background:#ffffff;
+                color:#172433;
+                font-family:Arial, sans-serif;
+                padding:25px;
+                box-sizing:border-box;
+            "
+        >
+
+
+            <!-- =================================================
+                 CABECERA
+            ================================================== -->
+
+            <div
+                style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:flex-start;
+
+                    margin-bottom:18px;
+                    padding-bottom:14px;
+
+                    border-bottom:
+                        4px solid #0877b9;
+                "
+            >
+
+
+                <div>
+
+                    <div
+                        style="
+                            color:#0877b9;
+                            font-size:26px;
+                            font-weight:800;
+                        "
+                    >
+                        GUÍA DE REMISIÓN
+                    </div>
+
+
+                    <div
+                        style="
+                            margin-top:5px;
+                            color:#172433;
+                            font-size:22px;
+                            font-weight:800;
+                        "
+                    >
+                        ${
+                            escapeHtml(
+                                g.numero ||
+                                "Sin número"
+                            )
+                        }
+                    </div>
+
+
+                    <div
+                        style="
+                            margin-top:4px;
+                            color:#64788a;
+                            font-size:12px;
+                        "
+                    >
+
+                        Fecha:
+                        ${
+                            escapeHtml(
+                                formatearFecha(
+                                    g.fecha_emision
+                                )
+                            )
+                        }
+
+                        ${
+                            g.hora_emision
+                                ? ` · ${
+                                    escapeHtml(
+                                        String(
+                                            g.hora_emision
+                                        )
+                                    )
+                                }`
+                                : ""
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    style="
+                        padding:6px 10px;
+
+                        border-radius:20px;
+
+                        background:#e8f4fa;
+                        color:#0877b9;
+
+                        font-size:11px;
+                        font-weight:700;
+                    "
+                >
+                    Página
+                    ${paginaActual}
+                    de
+                    ${totalPaginas}
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 DATOS
+            ================================================== -->
+
+            <div
+                style="
+                    display:grid;
+                    grid-template-columns:1fr 1fr;
+
+                    gap:10px;
+
+                    margin-bottom:12px;
+                "
+            >
+
+
+                <div
+                    style="
+                        padding:12px;
+
+                        border:1px solid #d5e1e8;
+                        border-radius:7px;
+
+                        background:#f4f8fa;
+                    "
+                >
+
+                    <div
+                        style="
+                            margin-bottom:3px;
+
+                            color:#597286;
+
+                            font-size:10px;
+                            font-weight:700;
+
+                            text-transform:uppercase;
+                        "
+                    >
+                        Remitente
+                    </div>
+
+
+                    <div
+                        style="
+                            font-size:13px;
+                            font-weight:700;
+                        "
+                    >
+                        ${
+                            escapeHtml(
+                                g.remitente?.razon_social ||
+                                "-"
+                            )
+                        }
+                    </div>
+
+
+                    <div
+                        style="
+                            margin-top:3px;
+
+                            color:#64788a;
+
+                            font-size:11px;
+                        "
+                    >
+                        RUC:
+                        ${
+                            escapeHtml(
+                                g.remitente?.ruc ||
+                                "-"
+                            )
+                        }
+                    </div>
+
+                </div>
+
+
+
+                <div
+                    style="
+                        padding:12px;
+
+                        border:1px solid #d5e1e8;
+                        border-radius:7px;
+
+                        background:#f4f8fa;
+                    "
+                >
+
+                    <div
+                        style="
+                            margin-bottom:3px;
+
+                            color:#597286;
+
+                            font-size:10px;
+                            font-weight:700;
+
+                            text-transform:uppercase;
+                        "
+                    >
+                        Destinatario
+                    </div>
+
+
+                    <div
+                        style="
+                            font-size:13px;
+                            font-weight:700;
+                        "
+                    >
+                        ${
+                            escapeHtml(
+                                g.destinatario?.nombre ||
+                                "-"
+                            )
+                        }
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 INFORMACIÓN ADICIONAL
+            ================================================== -->
+
+            <div
+                style="
+                    display:grid;
+                    grid-template-columns:1fr 1fr;
+
+                    gap:10px;
+
+                    margin-bottom:12px;
+                "
+            >
+
+
+                <div
+                    style="
+                        padding:10px 12px;
+
+                        border:1px solid #d5e1e8;
+                        border-radius:7px;
+
+                        background:#ffffff;
+                    "
+                >
+
+                    <strong>
+                        Motivo de traslado:
+                    </strong>
+
+                    ${
+                        escapeHtml(
+                            g.traslado?.motivo ||
+                            "-"
+                        )
+                    }
+
+                </div>
+
+
+                <div
+                    style="
+                        padding:10px 12px;
+
+                        border:1px solid #d5e1e8;
+                        border-radius:7px;
+
+                        background:#ffffff;
+                    "
+                >
+
+                    <strong>
+                        Peso total:
+                    </strong>
+
+                    ${
+                        escapeHtml(
+                            String(
+                                g.traslado?.peso_total ||
+                                "0"
+                            )
+                        )
+                    }
+                    kg
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 RUTA
+            ================================================== -->
+
+            <div
+                style="
+                    margin-bottom:15px;
+                    padding:12px;
+
+                    border:1px solid #d5e1e8;
+                    border-radius:7px;
+
+                    background:#f8fafb;
+
+                    font-size:12px;
+                "
+            >
+
+
+                <div
+                    style="
+                        margin-bottom:8px;
+                    "
+                >
+
+                    <strong
+                        style="
+                            color:#0877b9;
+                        "
+                    >
+                        Punto de partida
+                    </strong>
+
+                    <br>
+
+                    ${
+                        escapeHtml(
+                            g.partida?.direccion ||
+                            "-"
+                        )
+                    }
+
+                </div>
+
+
+                <div>
+
+                    <strong
+                        style="
+                            color:#0877b9;
+                        "
+                    >
+                        Punto de llegada
+                    </strong>
+
+                    <br>
+
+                    ${
+                        escapeHtml(
+                            g.llegada?.direccion ||
+                            "-"
+                        )
+                    }
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 ITEMS
+            ================================================== -->
+
+            <div
+                style="
+                    margin-bottom:7px;
+
+                    color:#173d55;
+
+                    font-size:14px;
+                    font-weight:800;
+                "
+            >
+                ITEMS
+            </div>
+
+
+            <table
+                style="
+                    width:100%;
+
+                    border-collapse:collapse;
+
+                    font-size:12px;
+                "
+            >
+
+
+                <thead>
+
+                    <tr
+                        style="
+                            background:#0877b9;
+                            color:#ffffff;
+                        "
+                    >
+
+                        <th
+                            style="
+                                padding:10px 8px;
+                                border:1px solid #0877b9;
+                            "
+                        >
+                            #
+                        </th>
+
+                        <th
+                            style="
+                                padding:10px 8px;
+                                border:1px solid #0877b9;
+                            "
+                        >
+                            Código
+                        </th>
+
+                        <th
+                            style="
+                                padding:10px;
+                                border:1px solid #0877b9;
+                            "
+                        >
+                            Descripción
+                        </th>
+
+                        <th
+                            style="
+                                padding:10px 8px;
+                                border:1px solid #0877b9;
+                            "
+                        >
+                            Cantidad
+                        </th>
+
+                        <th
+                            style="
+                                padding:10px 8px;
+                                border:1px solid #0877b9;
+                            "
+                        >
+                            Unidad
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    ${filas}
+
+                </tbody>
+
+            </table>
+
+
+        </div>
+    `;
+}
+
+// ============================================================
 // EXPORTAR PDF
 // ============================================================
 async function exportarPDF() {
-    const contenido = document.getElementById("salida");
-    if (!contenido || contenido.innerText.trim().length < 50) {
-        mostrarAlerta("Primero selecciona o carga una guía", "error");
+
+    const g =
+        ultimaGuiaCargada;
+
+
+    if (!g) {
+
+        mostrarAlerta(
+            "Primero selecciona o carga una guía",
+            "error"
+        );
+
         return;
     }
 
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const canvas = await html2canvas(contenido, { scale: 3, useCORS: true });
-    const imgData = canvas.toDataURL("image/png");
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pageWidth = 210;
-    const pageHeight = 297;
-    const imgWidth = pageWidth;
-    const imgHeight = canvas.height * imgWidth / canvas.width;
-    let heightLeft = imgHeight;
-    let position = 0;
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-    while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+
+    try {
+
+        mostrarAlerta(
+            "Generando PDF...",
+            "info"
+        );
+
+
+        const {
+            jsPDF
+        } =
+            window.jspdf;
+
+
+        const pdf =
+            new jsPDF(
+                "p",
+                "mm",
+                "a4"
+            );
+
+
+        const pageWidth = 210;
+        const pageHeight = 297;
+
+        const margen = 7;
+
+        const anchoUtil =
+            pageWidth -
+            margen * 2;
+
+        const altoUtil =
+            pageHeight -
+            margen * 2;
+
+
+        // ====================================================
+        // DIVIDIR ITEMS
+        // ====================================================
+        const paginas =
+            dividirItemsGuiaPDF(
+                Array.isArray(g.items)
+                    ? g.items
+                    : [],
+                12
+            );
+
+
+        // ====================================================
+        // CONTENEDOR TEMPORAL
+        // ====================================================
+        const contenedor =
+            document.createElement(
+                "div"
+            );
+
+
+        contenedor.style.position =
+            "fixed";
+
+        contenedor.style.left =
+            "-10000px";
+
+        contenedor.style.top =
+            "0";
+
+        contenedor.style.width =
+            "820px";
+
+        contenedor.style.background =
+            "#ffffff";
+
+
+        document.body.appendChild(
+            contenedor
+        );
+
+
+        // ====================================================
+        // CADA PÁGINA
+        // ====================================================
+        for (
+            let i = 0;
+            i < paginas.length;
+            i++
+        ) {
+
+            contenedor.innerHTML =
+                crearHTMLGuiaUnitariaPDF(
+                    g,
+                    paginas[i],
+                    i + 1,
+                    paginas.length
+                );
+
+
+            await new Promise(
+                resolve =>
+                    setTimeout(
+                        resolve,
+                        60
+                    )
+            );
+
+
+            const elemento =
+                contenedor.firstElementChild;
+
+
+            const canvas =
+                await html2canvas(
+                    elemento,
+                    {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor:
+                            "#ffffff"
+                    }
+                );
+
+
+            const imgData =
+                canvas.toDataURL(
+                    "image/jpeg",
+                    .88
+                );
+
+
+            const imgWidth =
+                anchoUtil;
+
+
+            const alturaNatural =
+                canvas.height *
+                imgWidth /
+                canvas.width;
+
+
+            const escala =
+                alturaNatural >
+                altoUtil
+
+                    ? altoUtil /
+                        alturaNatural
+
+                    : 1;
+
+
+            const widthFinal =
+                imgWidth *
+                escala;
+
+
+            const heightFinal =
+                alturaNatural *
+                escala;
+
+
+            const x =
+                margen +
+                (
+                    anchoUtil -
+                    widthFinal
+                ) / 2;
+
+
+            if (i > 0) {
+
+                pdf.addPage();
+
+            }
+
+
+            pdf.addImage(
+                imgData,
+                "JPEG",
+                x,
+                margen,
+                widthFinal,
+                heightFinal,
+                undefined,
+                "FAST"
+            );
+
+        }
+
+
+        contenedor.remove();
+
+
+        const nombre =
+            g.numero ||
+            "sin_numero";
+
+
+        pdf.save(
+            `guia_${nombre}.pdf`
+        );
+
+
+        mostrarAlerta(
+            `✅ PDF exportado: guia_${nombre}.pdf`,
+            "success"
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Error generando PDF:",
+            error
+        );
+
+
+        mostrarAlerta(
+            "No se pudo generar el PDF",
+            "error"
+        );
+
     }
 
-    const nombre = ultimaGuiaCargada?.numero || "sin_numero";
-    pdf.save(`guia_${nombre}.pdf`);
-    mostrarAlerta(`✅ PDF exportado: guia_${nombre}.pdf`, "success");
 }
 
 // ============================================================
