@@ -276,8 +276,44 @@ function mostrarGuiaBonita(g) {
     }
 
     html += `</tbody></table></div>`;
-    document.getElementById("salida").innerHTML = html;
+        document.getElementById(
+        "salida"
+    ).innerHTML = html;
+
+
     ultimaGuiaCargada = g;
+
+
+    // ========================================================
+    // ACTUALIZAR ESTADO DEL VISOR
+    // ========================================================
+    const estadoVisor =
+        document.querySelector(
+            ".viewer-header-status"
+        );
+
+
+    if (estadoVisor) {
+
+        estadoVisor.innerHTML = `
+
+            <span
+                class="viewer-status-dot"
+                style="
+                    background:#22c55e;
+                "
+            ></span>
+
+            <span>
+                ${escapeHtml(
+                    g.numero ||
+                    "Guía cargada"
+                )}
+            </span>
+
+        `;
+
+    }
 }
 
 // ============================================================
@@ -938,16 +974,82 @@ function limpiarFiltroFecha() {
 // ============================================================
 function toggleBusquedaAvanzada() {
 
-    const panel = document.getElementById("panel-busqueda-avanzada");
-    const boton = document.getElementById("btn-toggle-avanzada");
+    const panel =
+        document.getElementById(
+            "panel-busqueda-avanzada"
+        );
 
-    if (!panel || !boton) return;
+    const boton =
+        document.getElementById(
+            "btn-toggle-avanzada"
+        );
 
-    const estaAbierto = panel.style.display !== "none";
+    const busquedaRapida =
+        document.querySelector(
+            ".search-section-basic"
+        );
 
-    panel.style.display = estaAbierto ? "none" : "block";
 
-    boton.classList.toggle("activo", !estaAbierto);
+    if (!panel || !boton) {
+        return;
+    }
+
+
+    const estaAbierto =
+        panel.style.display !== "none";
+
+
+    const abrir =
+        !estaAbierto;
+
+
+    // Mostrar / ocultar panel avanzado
+    panel.style.display =
+        abrir
+            ? "block"
+            : "none";
+
+
+    // Estado visual
+    boton.classList.toggle(
+        "activo",
+        abrir
+    );
+
+
+    // Accesibilidad
+    boton.setAttribute(
+        "aria-expanded",
+        String(abrir)
+    );
+
+
+    // Cuando se abre búsqueda avanzada,
+    // ocultamos búsqueda rápida para recuperar espacio.
+    if (busquedaRapida) {
+
+        busquedaRapida.style.display =
+            abrir
+                ? "none"
+                : "block";
+
+    }
+
+
+    // Si abrimos, colocar foco en producto
+    if (abrir) {
+
+        requestAnimationFrame(() => {
+
+            document
+                .getElementById(
+                    "av-producto"
+                )
+                ?.focus();
+
+        });
+
+    }
 }
 
 
@@ -1919,6 +2021,17 @@ function limpiarBusquedaAvanzada() {
         normal.style.display = "block";
     }
 
+    const seleccionarTodas =
+        document.getElementById(
+            "seleccionar-todas-guias"
+        );
+
+    if (seleccionarTodas) {
+
+        seleccionarTodas.checked = false;
+        seleccionarTodas.indeterminate = false;
+
+    }
 
     pagina = 0;
 
@@ -3480,6 +3593,516 @@ async function exportarPDFSeleccionadas() {
 }
 
 // ============================================================
+// EXPORTAR EXCEL - GUÍAS SELECCIONADAS
+// ============================================================
+async function exportarExcelSeleccionadas() {
+
+    if (
+        guiasSeleccionadasAvanzadas.size === 0
+    ) {
+
+        mostrarAlerta(
+            "Selecciona al menos una guía",
+            "error"
+        );
+
+        return;
+    }
+
+
+    const seleccionadas =
+        resultadosBusquedaAvanzada.filter(
+            guia =>
+                guiasSeleccionadasAvanzadas.has(
+                    Number(guia.id)
+                )
+        );
+
+
+    if (seleccionadas.length === 0) {
+
+        mostrarAlerta(
+            "No se encontraron las guías seleccionadas",
+            "error"
+        );
+
+        return;
+    }
+
+
+    const boton =
+        document.getElementById(
+            "btn-excel-seleccionadas"
+        );
+
+
+    const contenidoOriginal =
+        boton?.innerHTML;
+
+
+    if (boton) {
+
+        boton.disabled = true;
+
+        boton.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Generando...
+        `;
+
+    }
+
+
+    try {
+
+        // ====================================================
+        // LIBRO
+        // ====================================================
+        const workbook =
+            XLSX.utils.book_new();
+
+
+        // ====================================================
+        // HOJA 1 - RESUMEN DE BÚSQUEDA
+        // ====================================================
+        const resumen = [
+
+            [
+                "RESULTADO DE BÚSQUEDA DE GUÍAS"
+            ],
+
+            [],
+
+            [
+                "Producto",
+                filtrosBusquedaAvanzadaActuales.producto || "-"
+            ],
+
+            [
+                "Punto de partida",
+                filtrosBusquedaAvanzadaActuales.partida || "-"
+            ],
+
+            [
+                "Punto de llegada",
+                filtrosBusquedaAvanzadaActuales.llegada || "-"
+            ],
+
+            [
+                "Desde",
+                filtrosBusquedaAvanzadaActuales.desde
+                    ? formatearFecha(
+                        filtrosBusquedaAvanzadaActuales.desde
+                    )
+                    : "-"
+            ],
+
+            [
+                "Hasta",
+                filtrosBusquedaAvanzadaActuales.hasta
+                    ? formatearFecha(
+                        filtrosBusquedaAvanzadaActuales.hasta
+                    )
+                    : "-"
+            ],
+
+            [
+                "Guías seleccionadas",
+                seleccionadas.length
+            ],
+
+            [],
+
+            [
+                "#",
+                "Guía",
+                "Fecha",
+                "Destinatario",
+                "Punto de partida",
+                "Punto de llegada",
+                "Coincidencias"
+            ]
+
+        ];
+
+
+        seleccionadas.forEach(
+            (guia, index) => {
+
+                resumen.push([
+
+                    index + 1,
+
+                    guia.numero || "-",
+
+                    formatearFecha(
+                        guia.fecha_emision
+                    ),
+
+                    guia.destinatario_nombre || "-",
+
+                    guia.direccion_partida || "-",
+
+                    guia.direccion_llegada || "-",
+
+                    Number(
+                        guia.cantidad_coincidencias || 0
+                    )
+
+                ]);
+
+            }
+        );
+
+
+        const wsResumen =
+            XLSX.utils.aoa_to_sheet(
+                resumen
+            );
+
+
+        wsResumen["!cols"] = [
+
+            { wch: 6 },
+            { wch: 18 },
+            { wch: 14 },
+            { wch: 38 },
+            { wch: 55 },
+            { wch: 55 },
+            { wch: 14 }
+
+        ];
+
+
+        wsResumen["!merges"] = [
+
+            {
+                s: { r: 0, c: 0 },
+                e: { r: 0, c: 6 }
+            }
+
+        ];
+
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            wsResumen,
+            "Resumen"
+        );
+
+
+        // ====================================================
+        // HOJA 2 - TODOS LOS ITEMS
+        // ====================================================
+        const detalle = [
+
+            [
+                "Guía",
+                "Fecha",
+                "Cliente",
+                "Partida",
+                "Llegada",
+                "Línea",
+                "Código",
+                "Descripción",
+                "Cantidad",
+                "Unidad",
+                "Coincidencia"
+            ]
+
+        ];
+
+
+        seleccionadas.forEach(guia => {
+
+            const idsCoincidentes =
+                new Set(
+                    (
+                        guia.items_coincidentes ||
+                        []
+                    )
+                        .map(
+                            item =>
+                                Number(item.id)
+                        )
+                        .filter(
+                            id =>
+                                Number.isFinite(id)
+                        )
+                );
+
+
+            const palabrasProducto =
+                normalizarTexto(
+                    filtrosBusquedaAvanzadaActuales.producto ||
+                    ""
+                )
+                    .split(" ")
+                    .filter(Boolean);
+
+
+            const items =
+                Array.isArray(guia.items)
+                    ? guia.items
+                    : [];
+
+
+            items.forEach(
+                (item, index) => {
+
+                    let coincide = false;
+
+
+                    // Primero por ID
+                    if (
+                        item.id != null &&
+                        idsCoincidentes.has(
+                            Number(item.id)
+                        )
+                    ) {
+
+                        coincide = true;
+
+                    }
+
+
+                    // Fallback por texto
+                    if (
+                        !coincide &&
+                        palabrasProducto.length > 0
+                    ) {
+
+                        const textoItem =
+                            normalizarTexto(
+                                `${
+                                    item.codigo_bien || ""
+                                } ${
+                                    item.descripcion || ""
+                                }`
+                            );
+
+
+                        coincide =
+                            palabrasProducto.every(
+                                palabra =>
+                                    textoItem.includes(
+                                        palabra
+                                    )
+                            );
+
+                    }
+
+
+                    detalle.push([
+
+                        guia.numero || "-",
+
+                        formatearFecha(
+                            guia.fecha_emision
+                        ),
+
+                        guia.destinatario_nombre || "-",
+
+                        guia.direccion_partida || "-",
+
+                        guia.direccion_llegada || "-",
+
+                        item.linea ??
+                            index + 1,
+
+                        item.codigo_bien || "-",
+
+                        item.descripcion || "-",
+
+                        item.cantidad ?? "-",
+
+                        item.unidad || "-",
+
+                        coincide
+                            ? "SÍ"
+                            : ""
+
+                    ]);
+
+                }
+            );
+
+        });
+
+
+        const wsDetalle =
+            XLSX.utils.aoa_to_sheet(
+                detalle
+            );
+
+
+        wsDetalle["!cols"] = [
+
+            { wch: 18 },
+            { wch: 14 },
+            { wch: 35 },
+            { wch: 50 },
+            { wch: 50 },
+            { wch: 8 },
+            { wch: 22 },
+            { wch: 60 },
+            { wch: 12 },
+            { wch: 10 },
+            { wch: 14 }
+
+        ];
+
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            wsDetalle,
+            "Detalle"
+        );
+
+
+        // ====================================================
+        // HOJA 3 - SOLO COINCIDENCIAS
+        // ====================================================
+        const coincidencias = [
+
+            [
+                "Guía",
+                "Fecha",
+                "Producto encontrado",
+                "Cantidad",
+                "Unidad",
+                "Punto de partida",
+                "Punto de llegada"
+            ]
+
+        ];
+
+
+        seleccionadas.forEach(
+            guia => {
+
+                const items =
+                    Array.isArray(
+                        guia.items_coincidentes
+                    )
+                        ? guia.items_coincidentes
+                        : [];
+
+
+                items.forEach(
+                    item => {
+
+                        coincidencias.push([
+
+                            guia.numero || "-",
+
+                            formatearFecha(
+                                guia.fecha_emision
+                            ),
+
+                            item.descripcion || "-",
+
+                            item.cantidad ?? "-",
+
+                            item.unidad || "-",
+
+                            guia.direccion_partida || "-",
+
+                            guia.direccion_llegada || "-"
+
+                        ]);
+
+                    }
+                );
+
+            }
+        );
+
+
+        const wsCoincidencias =
+            XLSX.utils.aoa_to_sheet(
+                coincidencias
+            );
+
+
+        wsCoincidencias["!cols"] = [
+
+            { wch: 18 },
+            { wch: 14 },
+            { wch: 65 },
+            { wch: 12 },
+            { wch: 10 },
+            { wch: 55 },
+            { wch: 55 }
+
+        ];
+
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            wsCoincidencias,
+            "Coincidencias"
+        );
+
+
+        // ====================================================
+        // NOMBRE
+        // ====================================================
+        const producto =
+            normalizarTexto(
+                filtrosBusquedaAvanzadaActuales.producto ||
+                "busqueda"
+            )
+                .replace(/\s+/g, "_")
+                .slice(0, 30);
+
+
+        const nombre =
+            `guias_${producto}_${seleccionadas.length}.xlsx`;
+
+
+        XLSX.writeFile(
+            workbook,
+            nombre
+        );
+
+
+        mostrarAlerta(
+            `✅ Excel generado con ${seleccionadas.length} guía(s)`,
+            "success"
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "❌ Error generando Excel seleccionado:",
+            error
+        );
+
+
+        mostrarAlerta(
+            "No se pudo generar el Excel",
+            "error"
+        );
+
+
+    } finally {
+
+        if (boton) {
+
+            boton.disabled =
+                guiasSeleccionadasAvanzadas.size === 0;
+
+
+            boton.innerHTML =
+                contenidoOriginal;
+
+        }
+
+    }
+}
+
+// ============================================================
 // EXPORTAR EXCEL
 // ============================================================
 async function exportarExcel() {
@@ -3681,6 +4304,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnPdfSeleccionadas =
         document.getElementById("btn-pdf-seleccionadas");
 
+    const btnExcelSeleccionadas =
+        document.getElementById(
+            "btn-excel-seleccionadas"
+        );
+
+    
     if (seleccionarTodas) {
 
         seleccionarTodas.addEventListener(
@@ -3701,6 +4330,15 @@ document.addEventListener("DOMContentLoaded", () => {
         btnPdfSeleccionadas.addEventListener(
             "click",
             exportarPDFSeleccionadas
+        );
+
+    }
+
+    if (btnExcelSeleccionadas) {
+
+        btnExcelSeleccionadas.addEventListener(
+            "click",
+            exportarExcelSeleccionadas
         );
 
     }

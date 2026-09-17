@@ -1,120 +1,531 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lector de Guías SUNAT | Profesional V3</title>
 
-<link rel="icon" href="Logo_XML_HTML.png" type="image/png">
-<meta name="description" content="Sistema profesional para visualizar y exportar guías de remisión SUNAT XML.">
-<link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="script.js?v=5" defer></script>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Sistema de Guías de Remisión SUNAT
+    </title>
+
+
+    <!-- =====================================================
+         META
+    ====================================================== -->
+
+    <meta
+        name="description"
+        content="Sistema para visualizar, consultar y exportar guías de remisión SUNAT."
+    >
+
+
+    <!-- =====================================================
+         ICONO
+    ====================================================== -->
+
+    <link
+        rel="icon"
+        href="Logo_XML_HTML.png"
+        type="image/png"
+    >
+
+
+    <!-- =====================================================
+         ESTILOS
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="styles.css"
+    >
+
+
+    <!-- =====================================================
+         ICONOS
+    ====================================================== -->
+
+    <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        rel="stylesheet"
+    >
+
+
+    <!-- =====================================================
+         LIBRERÍAS
+    ====================================================== -->
+
+    <script
+        src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"
+    ></script>
+
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+    ></script>
+
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+    ></script>
+
+
+    <!-- =====================================================
+         APLICACIÓN
+    ====================================================== -->
+
+    <script src="script.js?v=7" defer></script>
+
 </head>
+
+
 <body>
 
-<header class="header">
-    <div class="header-left">
-        <img src="Logo_XML.png" alt="Logo SUNAT" class="logo-header" onerror="this.style.display='none'">
-        <div>
-            <h1>Sistema de Guías de Remisión SUNAT</h1>
-            <span class="version">v3.0</span>
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<header class="app-header">
+
+    <div class="app-header-inner">
+
+
+        <!-- MARCA -->
+        <div class="app-brand">
+
+            <div class="app-brand-logo">
+
+                <img
+                    src="Logo_XML.png"
+                    alt="Logo"
+                    class="logo-header"
+                    onerror="this.style.display='none'"
+                >
+
+            </div>
+
+
+            <div class="app-brand-text">
+
+                <div class="app-brand-title-row">
+
+                    <h1>
+                        Sistema de Guías de Remisión
+                    </h1>
+
+                    <span class="version">
+                        v3.0
+                    </span>
+
+                </div>
+
+
+                <p class="app-brand-subtitle">
+                    Consulta, seguimiento y exportación de guías SUNAT
+                </p>
+
+            </div>
+
         </div>
+
+
+        <!-- ESTADO -->
+        <div class="app-header-status">
+
+            <span class="status-dot"></span>
+
+            <span>
+                Sistema activo
+            </span>
+
+        </div>
+
     </div>
+
 </header>
 
-<div class="app-container">
 
-    <!-- TOOLBAR SUPERIOR -->
-    <div class="top-toolbar">
-        <div class="toolbar-left">
-            <div class="file-wrapper">
-                <label for="xmlfile" class="btn-file">
-                    <i class="fa-solid fa-folder-open"></i> Seleccionar XML
-                </label>
-                <input type="file" id="xmlfile" accept=".xml">
-                <span id="file-name">Ningún archivo seleccionado</span>
-            </div>
-            <button class="btn btn-primary" onclick="leerGuia()">
-                <i class="fa-solid fa-upload"></i> Procesar
-            </button>
-        </div>
-        <div class="toolbar-right">
-            <button class="btn btn-excel" onclick="exportarExcel()">
-                <i class="fa-solid fa-file-excel"></i> Excel
-            </button>
-            <button class="btn btn-pdf" onclick="exportarPDF()">
-                <i class="fa-solid fa-file-pdf"></i> PDF
-            </button>
-        </div>
-    </div>
 
-    <!-- WORKSPACE -->
-    <div class="workspace">
+<!-- =========================================================
+     APLICACIÓN
+========================================================= -->
 
-        <!-- HISTORIAL -->
-        <aside class="historial-panel">
-            <div class="panel-header">
-                <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial</h2>
-                <small>Últimas guías</small>
+<main class="app-shell">
+
+
+    <!-- =====================================================
+         BARRA DE ACCIONES
+    ====================================================== -->
+
+    <section class="action-bar">
+
+
+        <!-- IMPORTAR -->
+        <div class="action-group action-import">
+
+            <div class="action-group-info">
+
+                <span class="action-eyebrow">
+                    Nueva guía
+                </span>
+
+                <strong>
+                    Importar XML SUNAT
+                </strong>
+
             </div>
 
-            <div class="buscador-wrapper">
-                <div class="search-toolbar">
-                    <span class="icono-lupa"><i class="fa-solid fa-search"></i></span>
-                    <input id="buscador" type="text" placeholder="Buscar guía, cliente o producto..." autocomplete="off">
-                    <button id="btn-limpiar" onclick="limpiarBusqueda()" title="Limpiar">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
 
-                <!-- CONTROLES DE ORDENAMIENTO (solo visible en búsqueda) -->
-                <div id="orden-controls" style="display:none; align-items:center; gap:8px; flex-wrap:wrap; padding:6px 0; border-bottom:1px solid var(--border); margin-bottom:4px;">
-                    <span style="font-size:12px; color:var(--text-secondary); font-weight:500;">
-                        <i class="fa-solid fa-arrow-up-wide-short"></i> Ordenar:
+            <div class="action-import-controls">
+
+
+                <!-- ARCHIVO -->
+                <div class="file-wrapper">
+
+                    <label
+                        for="xmlfile"
+                        class="btn-file"
+                    >
+
+                        <i class="fa-solid fa-folder-open"></i>
+
+                        <span>
+                            Seleccionar XML
+                        </span>
+
+                    </label>
+
+
+                    <input
+                        type="file"
+                        id="xmlfile"
+                        accept=".xml"
+                    >
+
+
+                    <span
+                        id="file-name"
+                        class="file-name"
+                    >
+                        Ningún archivo seleccionado
                     </span>
-                    <button class="btn-orden" id="orden-toggle-btn" onclick="toggleOrdenDireccion()" style="background:var(--bg); color:var(--text); border:1px solid var(--border); min-width:65px; justify-content:center;">
-                        <i class="fa-solid fa-arrow-down-wide-short"></i> DESC
-                    </button>
+
                 </div>
 
-                <div class="filtro-fechas">
-                    <input type="date" id="fecha-desde" title="Fecha desde">
-                    <input type="date" id="fecha-hasta" title="Fecha hasta">
-                    <button class="btn-icon" onclick="filtrarPorFecha()" title="Filtrar">
-                        <i class="fa-solid fa-filter"></i>
-                    </button>
-                    <button class="btn-icon" onclick="limpiarFiltroFecha()" title="Limpiar filtros">
-                        <i class="fa-solid fa-rotate-left"></i>
-                    </button>
-                </div>
+
+                <!-- PROCESAR -->
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    onclick="leerGuia()"
+                >
+
+                    <i class="fa-solid fa-arrow-up-from-bracket"></i>
+
+                    Procesar
+
+                </button>
+
             </div>
 
-            <!-- =====================================================
-                BÚSQUEDA AVANZADA
-            ====================================================== -->
-            <div class="busqueda-avanzada">
+        </div>
 
-                <!-- BOTÓN ABRIR / CERRAR -->
+
+        <!-- EXPORTACIÓN DE LA GUÍA ABIERTA -->
+        <div class="action-group action-export">
+
+            <div class="action-group-info">
+
+                <span class="action-eyebrow">
+                    Guía actual
+                </span>
+
+                <strong>
+                    Exportar documento
+                </strong>
+
+            </div>
+
+
+            <div class="action-export-buttons">
+
+                <button
+                    type="button"
+                    class="btn btn-excel"
+                    onclick="exportarExcel()"
+                    title="Exportar guía actual a Excel"
+                >
+
+                    <i class="fa-solid fa-file-excel"></i>
+
+                    Excel
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="btn btn-pdf"
+                    onclick="exportarPDF()"
+                    title="Exportar guía actual a PDF"
+                >
+
+                    <i class="fa-solid fa-file-pdf"></i>
+
+                    PDF
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         WORKSPACE
+    ====================================================== -->
+
+    <section class="workspace">
+
+
+        <!-- =================================================
+             PANEL IZQUIERDO
+        ================================================== -->
+
+        <aside class="search-panel">
+
+
+            <!-- CABECERA -->
+            <div class="panel-titlebar">
+
+                <div>
+
+                    <span class="panel-eyebrow">
+                        Consulta
+                    </span>
+
+                    <h2>
+
+                        <i class="fa-solid fa-magnifying-glass"></i>
+
+                        Explorar guías
+
+                    </h2>
+
+                </div>
+
+
+                <span class="panel-title-meta">
+                    Historial y búsqueda
+                </span>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 BÚSQUEDA RÁPIDA
+            ================================================== -->
+
+            <section class="search-section search-section-basic">
+
+                <div class="search-section-heading">
+
+                    <span>
+                        Búsqueda rápida
+                    </span>
+
+                    <small>
+                        Guía, cliente o producto
+                    </small>
+
+                </div>
+
+
+                <!-- BUSCADOR -->
+                <div class="search-toolbar">
+
+                    <span class="icono-lupa">
+
+                        <i class="fa-solid fa-search"></i>
+
+                    </span>
+
+
+                    <input
+                        id="buscador"
+                        type="text"
+                        placeholder="Buscar guía, cliente o producto..."
+                        autocomplete="off"
+                    >
+
+
+                    <button
+                        type="button"
+                        id="btn-limpiar"
+                        onclick="limpiarBusqueda()"
+                        title="Limpiar búsqueda"
+                        aria-label="Limpiar búsqueda"
+                    >
+
+                        <i class="fa-solid fa-xmark"></i>
+
+                    </button>
+
+                </div>
+
+
+
+                <!-- ORDENAMIENTO -->
+                <div
+                    id="orden-controls"
+                    class="sort-controls"
+                    style="display:none;"
+                >
+
+                    <span class="sort-label">
+
+                        <i class="fa-solid fa-arrow-up-wide-short"></i>
+
+                        Ordenar
+
+                    </span>
+
+
+                    <button
+                        type="button"
+                        class="btn-orden"
+                        id="orden-toggle-btn"
+                        onclick="toggleOrdenDireccion()"
+                    >
+
+                        <i class="fa-solid fa-arrow-down-wide-short"></i>
+
+                        DESC
+
+                    </button>
+
+                </div>
+
+
+
+                <!-- FECHAS -->
+                <div class="date-filter">
+
+                    <div class="date-field">
+
+                        <label for="fecha-desde">
+                            Desde
+                        </label>
+
+                        <input
+                            type="date"
+                            id="fecha-desde"
+                            title="Fecha desde"
+                        >
+
+                    </div>
+
+
+                    <div class="date-field">
+
+                        <label for="fecha-hasta">
+                            Hasta
+                        </label>
+
+                        <input
+                            type="date"
+                            id="fecha-hasta"
+                            title="Fecha hasta"
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="btn-icon"
+                        onclick="filtrarPorFecha()"
+                        title="Filtrar por fechas"
+                        aria-label="Filtrar por fechas"
+                    >
+
+                        <i class="fa-solid fa-filter"></i>
+
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="btn-icon"
+                        onclick="limpiarFiltroFecha()"
+                        title="Limpiar fechas"
+                        aria-label="Limpiar fechas"
+                    >
+
+                        <i class="fa-solid fa-rotate-left"></i>
+
+                    </button>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =================================================
+                 BÚSQUEDA AVANZADA
+            ================================================== -->
+
+            <section class="advanced-search-wrapper">
+
+
+                <!-- TOGGLE -->
                 <button
                     type="button"
                     id="btn-toggle-avanzada"
                     class="btn-toggle-avanzada"
+                    aria-expanded="false"
                 >
-                    <span>
-                        <i class="fa-solid fa-sliders"></i>
-                        Búsqueda avanzada
+
+                    <span class="toggle-left">
+
+                        <span class="toggle-icon">
+
+                            <i class="fa-solid fa-sliders"></i>
+
+                        </span>
+
+
+                        <span class="toggle-text">
+
+                            <strong>
+                                Búsqueda avanzada
+                            </strong>
+
+                            <small>
+                                Producto, ruta y periodo
+                            </small>
+
+                        </span>
+
                     </span>
+
 
                     <i
                         id="icono-toggle-avanzada"
                         class="fa-solid fa-chevron-down"
                     ></i>
+
                 </button>
+
 
 
                 <!-- PANEL -->
@@ -124,13 +535,18 @@
                     style="display:none;"
                 >
 
+
                     <!-- PRODUCTO -->
                     <div class="campo-avanzado campo-avanzado-completo">
 
                         <label for="av-producto">
+
                             <i class="fa-solid fa-box"></i>
+
                             Producto, herramienta o equipo
+
                         </label>
+
 
                         <input
                             type="text"
@@ -142,13 +558,18 @@
                     </div>
 
 
+
                     <!-- PARTIDA -->
                     <div class="campo-avanzado campo-avanzado-completo">
 
                         <label for="av-partida">
+
                             <i class="fa-solid fa-location-dot"></i>
+
                             Punto de partida
+
                         </label>
+
 
                         <input
                             type="text"
@@ -160,13 +581,18 @@
                     </div>
 
 
+
                     <!-- LLEGADA -->
                     <div class="campo-avanzado campo-avanzado-completo">
 
                         <label for="av-llegada">
+
                             <i class="fa-solid fa-location-crosshairs"></i>
+
                             Punto de llegada
+
                         </label>
+
 
                         <input
                             type="text"
@@ -178,15 +604,21 @@
                     </div>
 
 
+
                     <!-- FECHAS -->
                     <div class="fila-fechas-avanzada">
+
 
                         <div class="campo-avanzado">
 
                             <label for="av-desde">
+
                                 <i class="fa-regular fa-calendar"></i>
+
                                 Desde
+
                             </label>
+
 
                             <input
                                 type="date"
@@ -199,9 +631,13 @@
                         <div class="campo-avanzado">
 
                             <label for="av-hasta">
+
                                 <i class="fa-regular fa-calendar-check"></i>
+
                                 Hasta
+
                             </label>
+
 
                             <input
                                 type="date"
@@ -213,7 +649,8 @@
                     </div>
 
 
-                    <!-- BOTONES -->
+
+                    <!-- ACCIONES -->
                     <div class="acciones-busqueda-avanzada">
 
                         <button
@@ -221,8 +658,11 @@
                             id="btn-buscar-avanzado"
                             class="btn btn-primary"
                         >
+
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            Buscar
+
+                            Buscar guías
+
                         </button>
 
 
@@ -231,29 +671,72 @@
                             id="btn-limpiar-avanzado"
                             class="btn-limpiar-avanzado"
                         >
+
                             <i class="fa-solid fa-rotate-left"></i>
+
                             Limpiar
+
                         </button>
 
                     </div>
 
                 </div>
 
-            </div>
+            </section>
 
 
 
-            <!-- =====================================================
-                 BARRA DE SELECCIÓN DE RESULTADOS
-                 Aparecerá únicamente durante búsqueda avanzada
-            ====================================================== -->
-            <div
-                id="barra-seleccion-guias"
-                class="barra-seleccion-guias"
+            <!-- =================================================
+                 ESTADO / RESUMEN DE BÚSQUEDA AVANZADA
+            ================================================== -->
+
+            <section
+                id="resumen-busqueda-avanzada"
+                class="search-summary"
                 style="display:none;"
             >
 
-                <div class="seleccion-superior">
+                <div class="search-summary-top">
+
+                    <div>
+
+                        <span class="search-summary-label">
+                            Resultados encontrados
+                        </span>
+
+                        <strong id="total-resultados-avanzados">
+                            0 guías
+                        </strong>
+
+                    </div>
+
+
+                    <i class="fa-solid fa-list-check"></i>
+
+                </div>
+
+
+                <div
+                    id="criterios-busqueda-avanzada"
+                    class="criterios-busqueda-avanzada"
+                ></div>
+
+            </section>
+
+
+
+            <!-- =================================================
+                 SELECCIÓN Y EXPORTACIÓN
+            ================================================== -->
+
+            <section
+                id="barra-seleccion-guias"
+                class="selection-toolbar"
+                style="display:none;"
+            >
+
+
+                <div class="selection-toolbar-top">
 
                     <label class="seleccionar-todas-wrapper">
 
@@ -279,7 +762,7 @@
                 </div>
 
 
-                <div class="acciones-seleccion">
+                <div class="selection-toolbar-actions">
 
                     <button
                         type="button"
@@ -287,8 +770,11 @@
                         class="btn btn-pdf"
                         disabled
                     >
+
                         <i class="fa-solid fa-file-pdf"></i>
-                        PDF
+
+                        PDF seleccionadas
+
                     </button>
 
 
@@ -298,82 +784,200 @@
                         class="btn btn-excel"
                         disabled
                     >
+
                         <i class="fa-solid fa-file-excel"></i>
-                        Excel
+
+                        Excel seleccionadas
+
                     </button>
 
                 </div>
 
-            </div>
+            </section>
 
 
 
-            <!-- =====================================================
-                 RESUMEN DE BÚSQUEDA AVANZADA
-            ====================================================== -->
-            <div
-                id="resumen-busqueda-avanzada"
-                class="resumen-busqueda-avanzada"
-                style="display:none;"
-            >
+            <!-- =================================================
+                 RESULTADOS
+            ================================================== -->
 
-                <div class="resumen-avanzado-header">
+            <section class="results-section">
 
-                    <span>
-                        <i class="fa-solid fa-list-check"></i>
-                        Resultados
-                    </span>
 
-                    <strong id="total-resultados-avanzados">
-                        0 guías
-                    </strong>
+                <!-- CABECERA -->
+                <div class="results-header">
+
+                    <div>
+
+                        <span class="results-eyebrow">
+                            Listado
+                        </span>
+
+                        <strong>
+                            Guías
+                        </strong>
+
+                    </div>
+
+
+                    <i class="fa-solid fa-list-ul"></i>
 
                 </div>
 
 
+
+                <!-- BÚSQUEDA AVANZADA -->
                 <div
-                    id="criterios-busqueda-avanzada"
-                    class="criterios-busqueda-avanzada"
+                    id="historial-avanzado"
+                    class="results-container"
+                    style="display:none;"
                 ></div>
 
-            </div>
+
+                <!-- HISTORIAL NORMAL -->
+                <div
+                    id="historial-lista"
+                    class="results-container"
+                ></div>
 
 
+                <!-- BÚSQUEDA NORMAL -->
+                <div
+                    id="historial-busqueda"
+                    class="results-container"
+                    style="display:none;"
+                ></div>
 
-            <!-- =====================================================
-                 RESULTADOS BÚSQUEDA AVANZADA
-            ====================================================== -->
-            <div
-                id="historial-avanzado"
-                class="results-container"
-                style="display:none;"
-            ></div>
+            </section>
 
-            <div id="historial-lista" class="results-container"></div>
-            <div id="historial-busqueda" class="results-container" style="display:none;"></div>
         </aside>
 
-        <!-- VISOR -->
+
+
+        <!-- =================================================
+             VISOR
+        ================================================== -->
+
         <section class="viewer-panel">
+
+
             <div class="viewer-card">
-                <div class="panel-header">
-                    <h2><i class="fa-solid fa-file-lines"></i> Vista de Guía</h2>
-                    <small>Seleccione una guía o procese un XML</small>
-                </div>
-                <div id="pdf-area" class="viewer-area">
-                    <div id="salida" class="viewer-content">
-                        <div class="empty-view">
-                            <i class="fa-regular fa-file-circle-plus"></i>
-                            <h3>No hay ninguna guía cargada</h3>
-                            <p>Seleccione una guía del historial o procese un archivo XML.</p>
-                        </div>
+
+
+                <!-- CABECERA VISOR -->
+                <div class="viewer-header">
+
+
+                    <div class="viewer-header-left">
+
+                        <span class="viewer-eyebrow">
+                            Documento
+                        </span>
+
+
+                        <h2>
+
+                            <i class="fa-solid fa-file-lines"></i>
+
+                            Vista de guía
+
+                        </h2>
+
                     </div>
+
+
+                    <div class="viewer-header-status">
+
+                        <span class="viewer-status-dot"></span>
+
+                        <span>
+                            Seleccione una guía
+                        </span>
+
+                    </div>
+
                 </div>
+
+
+
+                <!-- ÁREA DOCUMENTO -->
+                <div
+                    id="pdf-area"
+                    class="viewer-area"
+                >
+
+                    <div
+                        id="salida"
+                        class="viewer-content"
+                    >
+
+
+                        <!-- EMPTY STATE -->
+                        <div class="empty-view">
+
+                            <div class="empty-view-icon">
+
+                                <i class="fa-regular fa-file-circle-plus"></i>
+
+                            </div>
+
+
+                            <h3>
+                                Ninguna guía seleccionada
+                            </h3>
+
+
+                            <p>
+                                Seleccione una guía del listado o procese un
+                                archivo XML para visualizar su contenido.
+                            </p>
+
+
+                            <div class="empty-view-help">
+
+                                <span>
+
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                                    Buscar
+
+                                </span>
+
+
+                                <span>
+
+                                    <i class="fa-solid fa-arrow-pointer"></i>
+
+                                    Seleccionar
+
+                                </span>
+
+
+                                <span>
+
+                                    <i class="fa-solid fa-file-export"></i>
+
+                                    Exportar
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
             </div>
+
         </section>
 
-    </div>
-</div>
+    </section>
+
+</main>
+
 
 </body>
+
 </html>
