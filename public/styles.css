@@ -54,7 +54,7 @@
     --radius: 14px;
     --radius-lg: 18px;
 
-    --header-height: 74px;
+    --header-height: 78px;
 
     --transition:
         .18s ease;
@@ -175,7 +175,10 @@ img {
     min-height: var(--header-height);
 
     margin: 0 auto;
-    padding: 10px 28px;
+
+    padding:
+        9px
+        28px;
 
     display: flex;
     align-items: center;
@@ -194,29 +197,42 @@ img {
 }
 
 .app-brand-logo {
-    width: 50px;
-    height: 50px;
+    width: 72px;
+    height: 56px;
 
-    flex: 0 0 50px;
+    flex:
+        0 0 72px;
 
-    display: grid;
-    place-items: center;
+    position: relative;
 
-    background: #fff;
+    overflow: hidden;
 
-    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    background: #ffffff;
+
+    border-radius: 12px;
 
     box-shadow:
-        0 3px 12px rgba(0, 0, 0, .12);
+        0 3px 12px
+        rgba(0, 0, 0, .14);
 }
 
 .logo-header {
-    width: 42px;
-    height: 42px;
+    width: 165px;
+    max-width: none;
 
-    object-fit: contain;
+    height: auto;
 
     display: block;
+
+    transform:
+        translateX(-2px);
+
+    transform-origin:
+        left center;
 }
 
 .app-brand-text {
@@ -604,9 +620,8 @@ img {
     gap: 14px;
 }
 
-
 /* ============================================================
-   10. LEFT SEARCH PANEL
+   10. LEFT SEARCH PANEL — COMPACTO
 ============================================================ */
 
 .search-panel {
@@ -627,7 +642,7 @@ img {
 
     overflow: hidden;
 
-    padding: 18px;
+    padding: 14px;
 
     background: #ffffff;
 
@@ -635,68 +650,102 @@ img {
         1px solid
         #cfdae2;
 
-    border-radius: 20px;
+    border-radius: 18px;
 
     box-shadow:
         0 7px 24px
         rgba(25, 52, 68, .08);
 }
 
+
+/* ============================================================
+   CABECERA COMPACTA
+============================================================ */
+
 .panel-titlebar {
     flex-shrink: 0;
 
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-
-    gap: 10px;
+    align-items: center;
 
     padding:
-        4px 3px
-        16px;
+        2px 2px
+        12px;
 
     border-bottom:
         1px solid
         #dce6ed;
 }
 
-.panel-eyebrow {
-    font-size: 10px;
 
-    letter-spacing: 1px;
+.panel-titlebar-compact {
+    justify-content: flex-start;
 }
 
-.panel-titlebar h2 {
-    margin: 6px 0 0;
+
+.panel-title-main {
+    min-width: 0;
 
     display: flex;
     align-items: center;
 
-    gap: 10px;
+    gap: 11px;
+}
+
+
+.panel-title-icon {
+    width: 38px;
+    height: 38px;
+
+    flex: 0 0 38px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 10px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #0877b9,
+            #065f94
+        );
+
+    color: #ffffff;
+
+    font-size: 15px;
+
+    box-shadow:
+        0 3px 9px
+        rgba(8, 119, 185, .20);
+}
+
+
+.panel-titlebar h2 {
+    margin: 0;
 
     color:
         var(--primary-dark);
 
-    font-size: 22px;
-    line-height: 1.15;
+    font-size: 20px;
+
+    line-height: 1.1;
 
     font-weight: 800;
 }
 
-.panel-titlebar h2 i {
+
+.panel-title-description {
+    display: block;
+
+    margin-top: 3px;
+
     color:
-        var(--primary);
+        #71889a;
 
-    font-size: 18px;
-}
+    font-size: 10px;
 
-.panel-title-meta {
-    color:
-        var(--text-muted);
-
-    font-size: 11px;
-
-    white-space: nowrap;
+    line-height: 1.2;
 }
 
 
@@ -709,7 +758,7 @@ img {
 }
 
 .search-section-basic {
-    padding: 16px 0 0;
+    padding: 11px 0 0;
 }
 
 .search-section-heading {
@@ -737,7 +786,7 @@ img {
 }
 
 .search-toolbar {
-    min-height: 54px;
+    min-height: 47px;
 
     position: relative;
 
@@ -750,7 +799,7 @@ img {
         1.5px solid
         #cbd9e3;
 
-    border-radius: 12px;
+    border-radius: 10px;
 
     transition:
         var(--transition);
@@ -770,7 +819,7 @@ img {
 .icono-lupa {
     position: absolute;
 
-    left: 15px;
+    left: 14px;
 
     display: grid;
     place-items: center;
@@ -778,7 +827,7 @@ img {
     color:
         var(--text-muted);
 
-    font-size: 16px;
+    font-size: 15px;
 
     pointer-events: none;
 }
@@ -787,13 +836,13 @@ img {
     width: 100%;
     min-width: 0;
 
-    min-height: 52px;
+    min-height: 45px;
 
     padding:
-        12px
-        44px
-        12px
-        43px;
+        10px
+        42px
+        10px
+        40px;
 
     border: 0;
     outline: 0;
@@ -803,7 +852,7 @@ img {
     color:
         var(--text);
 
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .search-toolbar input::placeholder {
@@ -920,19 +969,19 @@ img {
 ============================================================ */
 
 .date-filter {
-    margin-top: 11px;
+    margin-top: 8px;
 
     display: grid;
 
     grid-template-columns:
         minmax(0, 1fr)
         minmax(0, 1fr)
-        45px
-        45px;
+        40px
+        40px;
 
     align-items: end;
 
-    gap: 8px;
+    gap: 7px;
 }
 
 .date-field {
@@ -941,17 +990,18 @@ img {
     display: flex;
     flex-direction: column;
 
-    gap: 6px;
+    gap: 4px;
 }
 
 .date-field label {
     padding-left: 2px;
 
     color:
-        var(--text-muted);
+        #657d8f;
 
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 9px;
+
+    font-weight: 800;
 
     text-transform: uppercase;
 
@@ -962,17 +1012,17 @@ img {
     width: 100%;
     min-width: 0;
 
-    height: 47px;
+    height: 41px;
 
     padding:
-        9px
-        10px;
+        7px
+        9px;
 
     border:
         1px solid
         var(--border);
 
-    border-radius: 9px;
+    border-radius: 8px;
 
     outline: none;
 
@@ -982,19 +1032,19 @@ img {
     color:
         var(--text-secondary);
 
-    font-size: 12px;
+    font-size: 11px;
 
     transition:
         var(--transition);
 }
 
 .date-filter .btn-icon {
-    width: 45px;
-    height: 45px;
+    width: 40px;
+    height: 40px;
 
-    flex-basis: 45px;
+    flex-basis: 40px;
 
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .date-field input[type="date"]:focus {
@@ -1012,7 +1062,7 @@ img {
 ============================================================ */
 
 .advanced-search-wrapper {
-    margin-top: 13px;
+    margin-top: 10px;
 
     flex-shrink: 0;
 
@@ -1022,7 +1072,7 @@ img {
         1px solid
         #cbdbe5;
 
-    border-radius: 12px;
+    border-radius: 10px;
 
     background: #ffffff;
 
@@ -1033,17 +1083,17 @@ img {
 
 .btn-toggle-avanzada {
     width: 100%;
-    min-height: 60px;
+    min-height: 48px;
 
     display: flex;
     align-items: center;
     justify-content: space-between;
 
-    gap: 10px;
+    gap: 9px;
 
     padding:
-        10px
-        13px;
+        7px
+        10px;
 
     border: 0;
 
@@ -1071,22 +1121,22 @@ img {
 }
 
 .toggle-icon {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
 
-    flex: 0 0 36px;
+    flex: 0 0 32px;
 
     display: grid !important;
     place-items: center;
 
-    border-radius: 9px;
+    border-radius: 8px;
 
     background:
         var(--primary);
 
     color: #ffffff;
 
-    font-size: 14px;
+    font-size: 12px;
 
     box-shadow:
         0 2px 6px
@@ -1107,18 +1157,19 @@ img {
     color:
         var(--primary-dark);
 
-    font-size: 13px;
+    font-size: 12px;
 
     font-weight: 800;
 }
 
+
 .toggle-text small {
-    margin-top: 2px;
+    margin-top: 1px;
 
     color:
         var(--text-muted);
 
-    font-size: 10px;
+    font-size: 9px;
 }
 
 .btn-toggle-avanzada > i {
@@ -1504,7 +1555,7 @@ img {
 ============================================================ */
 
 .results-section {
-    margin-top: 14px;
+    margin-top: 9px;
 
     flex: 1;
     min-height: 0;
@@ -1518,16 +1569,16 @@ img {
 .results-header {
     flex-shrink: 0;
 
-    min-height: 44px;
+    min-height: 36px;
 
     display: flex;
     align-items: center;
     justify-content: space-between;
 
     padding:
-        8px
-        4px
-        9px;
+        5px
+        3px
+        7px;
 
     border-bottom:
         1px solid
