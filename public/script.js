@@ -1072,36 +1072,61 @@ async function buscarGuiasAvanzado() {
     if (desde)    params.set("desde", desde);
     if (hasta)    params.set("hasta", hasta);
 
-
     const urlBusqueda =
         `${API_URL}/buscar-avanzado?${params.toString()}&_=${Date.now()}`;
 
-    /*console.log(
-        "🔎 URL BÚSQUEDA AVANZADA:",
-        urlBusqueda
-    );*/
+    console.log("========================================");
+    console.log("🔎 URL BÚSQUEDA AVANZADA:");
+    console.log(urlBusqueda);
 
-    const {
-        data,
-        error,
-        status
-    } = await fetchJSON(urlBusqueda);
-
-    /*console.log(
-        "📦 RESPUESTA BÚSQUEDA AVANZADA:",
-        {
-            status,
-            error,
-            respuesta: data,
-            totalServidor: data?.total,
-            cantidadData: Array.isArray(data?.data)
-                ? data.data.length
-                : "NO ES ARRAY"
+    const response = await fetch(urlBusqueda, {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+            "Accept": "application/json"
         }
-    );*/
+    });
+
+    console.log("🌐 HTTP STATUS:", response.status);
+
+    let data;
+
+    try {
+
+        data = await response.json();
+
+    } catch (error) {
+
+        console.error(
+            "❌ La respuesta no es JSON válido:",
+            error
+        );
+
+        historialAvanzado.innerHTML = `
+            <div class="sin-resultados-avanzados">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <strong>Respuesta inválida</strong>
+                <span>
+                    El servidor no devolvió JSON válido.
+                </span>
+            </div>
+        `;
+
+        return;
+    }
 
 
-    if (error) {
+    console.log("📦 RESPUESTA COMPLETA:", data);
+    console.log("📊 TOTAL SERVIDOR:", data?.total);
+    console.log(
+        "📋 CANTIDAD ARRAY:",
+        Array.isArray(data?.data)
+            ? data.data.length
+            : "NO ES ARRAY"
+    );
+
+
+    if (!response.ok) {
 
         historialAvanzado.innerHTML = `
             <div class="sin-resultados-avanzados">
@@ -1111,7 +1136,13 @@ async function buscarGuiasAvanzado() {
                 <strong>Error en la búsqueda</strong>
 
                 <span>
-                    ${escapeHtml(error)}
+                    ${
+                        escapeHtml(
+                            data?.mensaje ||
+                            data?.error ||
+                            `HTTP ${response.status}`
+                        )
+                    }
                 </span>
 
             </div>
@@ -1120,12 +1151,16 @@ async function buscarGuiasAvanzado() {
         return;
     }
 
-
     if (
         !data ||
-        !data.ok ||
+        data.ok !== true ||
         !Array.isArray(data.data)
     ) {
+
+        console.error(
+            "❌ ESTRUCTURA DE RESPUESTA INCORRECTA:",
+            data
+        );
 
         historialAvanzado.innerHTML = `
             <div class="sin-resultados-avanzados">
@@ -1141,29 +1176,47 @@ async function buscarGuiasAvanzado() {
     }
 
 
-    resultadosBusquedaAvanzada =
-        Array.isArray(data.data)
-            ? data.data
-            : [];
+    // ========================================================
+    // GUARDAR RESULTADOS RECIBIDOS DEL SERVIDOR
+    // ========================================================
+    resultadosBusquedaAvanzada = data.data;
 
-    /*console.log(
-        "✅ GUÍAS RECIBIDAS EN FRONTEND:",
+
+    console.log(
+        "✅ RESULTADOS GUARDADOS EN JS:",
         resultadosBusquedaAvanzada.length
-    );*/
+    );
 
 
-    // Cada nueva búsqueda elimina selección anterior
+    console.log(
+        "✅ PRIMER RESULTADO:",
+        resultadosBusquedaAvanzada[0]
+    );
+
+
+    // ========================================================
+    // LIMPIAR SELECCIÓN ANTERIOR
+    // ========================================================
     guiasSeleccionadasAvanzadas.clear();
 
 
+    // ========================================================
+    // RENDERIZAR RESULTADOS
+    // ========================================================
     renderResultadosBusquedaAvanzada(
         resultadosBusquedaAvanzada
     );
 
 
+    // ========================================================
+    // ACTUALIZAR RESUMEN
+    // ========================================================
     actualizarResumenBusquedaAvanzada();
 
 
+    // ========================================================
+    // ACTUALIZAR BARRA DE SELECCIÓN
+    // ========================================================
     actualizarBarraSeleccionAvanzada();
 }
 
