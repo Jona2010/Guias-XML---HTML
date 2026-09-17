@@ -13,6 +13,8 @@ const UBL = {
 // ============================================================
 let pagina = 0;
 const limite = 10;
+let totalGuiasHistorial = 0;
+let totalPaginasHistorial = 1;
 let buscando = false;
 let ultimaGuiaCargada = null;
 let hayMasPaginas = true;
@@ -445,6 +447,179 @@ function actualizarGuiaSeleccionada(id) {
 }
 
 // ============================================================
+// PAGINACIÓN NUMERADA DEL HISTORIAL
+// BLOQUES: 1-5, 6-10, 11-15...
+// ============================================================
+function generarPaginacionHistorial() {
+
+    if (
+        totalPaginasHistorial <= 1
+    ) {
+        return "";
+    }
+
+
+    const paginaActual =
+        pagina + 1;
+
+
+    const paginasPorBloque =
+        5;
+
+
+    // Ejemplo:
+    // página 1 -> bloque 0 -> 1 al 5
+    // página 6 -> bloque 1 -> 6 al 10
+    const bloqueActual =
+        Math.floor(
+            (paginaActual - 1) /
+            paginasPorBloque
+        );
+
+
+    const inicioBloque =
+        bloqueActual *
+        paginasPorBloque +
+        1;
+
+
+    const finBloque =
+        Math.min(
+            inicioBloque +
+            paginasPorBloque -
+            1,
+            totalPaginasHistorial
+        );
+
+
+    let botonesPaginas = "";
+
+
+    for (
+        let numero = inicioBloque;
+        numero <= finBloque;
+        numero++
+    ) {
+
+        botonesPaginas += `
+
+            <button
+                type="button"
+                class="
+                    pagina-btn
+                    ${
+                        numero === paginaActual
+                            ? "activa"
+                            : ""
+                    }
+                "
+                onclick="irPaginaHistorial(${numero})"
+                aria-label="Ir a la página ${numero}"
+                ${
+                    numero === paginaActual
+                        ? 'aria-current="page"'
+                        : ""
+                }
+            >
+                ${numero}
+            </button>
+
+        `;
+
+    }
+
+
+    return `
+
+        <div class="paginacion paginacion-numerada">
+
+            <span class="paginacion-info">
+
+                Mostrando
+                ${
+                    pagina * limite + 1
+                }–${
+                    Math.min(
+                        (pagina + 1) * limite,
+                        totalGuiasHistorial
+                    )
+                }
+                de
+                ${totalGuiasHistorial}
+
+            </span>
+
+
+            <div class="paginacion-controls">
+
+                <button
+                    type="button"
+                    class="btn-icon"
+                    onclick="anteriorPagina()"
+                    aria-label="Página anterior"
+                    ${
+                        paginaActual === 1
+                            ? "disabled"
+                            : ""
+                    }
+                >
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+
+                ${botonesPaginas}
+
+
+                <button
+                    type="button"
+                    class="btn-icon"
+                    onclick="siguientePagina()"
+                    aria-label="Página siguiente"
+                    ${
+                        paginaActual ===
+                        totalPaginasHistorial
+                            ? "disabled"
+                            : ""
+                    }
+                >
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+}
+
+
+// ============================================================
+// IR DIRECTAMENTE A UNA PÁGINA
+// ============================================================
+function irPaginaHistorial(numeroPagina) {
+
+    const nuevaPagina =
+        Number(numeroPagina) - 1;
+
+
+    if (
+        !Number.isInteger(nuevaPagina) ||
+        nuevaPagina < 0 ||
+        nuevaPagina >=
+            totalPaginasHistorial
+    ) {
+        return;
+    }
+
+
+    pagina =
+        nuevaPagina;
+
+
+    mostrarHistorial();
+}
+
+// ============================================================
 // MOSTRAR HISTORIAL - CORREGIDO CON ORDENAMIENTO
 // ============================================================
 async function mostrarHistorial() {
@@ -474,8 +649,28 @@ async function mostrarHistorial() {
         return;
     }
 
-    const guias = data.data;
-    hayMasPaginas = guias.length === limite;
+    const guias =
+        data.data;
+
+
+    totalGuiasHistorial =
+        Number(
+            data.total || 0
+        );
+
+
+    totalPaginasHistorial =
+        Math.max(
+            1,
+            Number(
+                data.totalPaginas || 1
+            )
+        );
+
+
+    hayMasPaginas =
+        pagina + 1 <
+        totalPaginasHistorial;
 
     if (guias.length === 0) {
         contHistorial.innerHTML = `<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>No hay guías registradas</p></div>`;
@@ -483,21 +678,11 @@ async function mostrarHistorial() {
     }
 
     // 🔥 CORREGIDO: Ordenar por fecha (más reciente primero) y luego por número de guía
-    const guiasOrdenadas = [...guias].sort((a, b) => {
-        const fechaA = a.fecha_emision || '';
-        const fechaB = b.fecha_emision || '';
-        
-        if (fechaA !== fechaB) {
-            return fechaB.localeCompare(fechaA);
-        }
-        
-        const numA = a.numero || '';
-        const numB = b.numero || '';
-        return numB.localeCompare(numA);
-    });
+    const guiasOrdenadas =
+        guias;
 
-    const inicio = (pagina * limite) + 1;
-    const fin = inicio + guiasOrdenadas.length - 1;
+    /*const inicio = (pagina * limite) + 1;
+    const fin = inicio + guiasOrdenadas.length - 1;*/
 
     let html = `
     <table class="historial-tabla">
@@ -522,20 +707,11 @@ async function mostrarHistorial() {
     });
 
     html += `
-        </tbody>
-    </table>
-    <div class="paginacion">
-        <span>📄 Mostrando ${inicio}–${fin}</span>
-        <div class="paginacion-controls">
-            <button class="btn-icon" onclick="anteriorPagina()" ${pagina === 0 ? "disabled" : ""}>
-                <i class="fa-solid fa-chevron-left"></i>
-            </button>
-            <span class="pagina-actual">${pagina + 1}</span>
-            <button class="btn-icon" onclick="siguientePagina()" ${!hayMasPaginas ? "disabled" : ""}>
-                <i class="fa-solid fa-chevron-right"></i>
-            </button>
-        </div>
-    </div>`;
+            </tbody>
+        </table>
+
+        ${generarPaginacionHistorial()}
+    `;
 
     contHistorial.innerHTML = html;
 }
@@ -842,13 +1018,31 @@ function seleccionarGuia(fila, id) {
 // PAGINACIÓN
 // ============================================================
 function siguientePagina() {
-    if (!hayMasPaginas) return;
+
+    if (
+        pagina + 1 >=
+        totalPaginasHistorial
+    ) {
+        return;
+    }
+
+
     pagina++;
+
     mostrarHistorial();
 }
 
+
 function anteriorPagina() {
-    if (pagina > 0) { pagina--; mostrarHistorial(); }
+
+    if (pagina <= 0) {
+        return;
+    }
+
+
+    pagina--;
+
+    mostrarHistorial();
 }
 
 // ============================================================

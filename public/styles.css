@@ -596,7 +596,7 @@ img {
     display: grid;
 
     grid-template-columns:
-        minmax(340px, 390px)
+        minmax(390px, 440px)
         minmax(0, 1fr);
 
     align-items: start;
@@ -627,7 +627,7 @@ img {
 
     overflow: hidden;
 
-    padding: 15px;
+    padding: 18px;
 
     background: #ffffff;
 
@@ -635,7 +635,7 @@ img {
         1px solid
         #cfdae2;
 
-    border-radius: var(--radius-lg);
+    border-radius: 20px;
 
     box-shadow:
         0 7px 24px
@@ -651,38 +651,50 @@ img {
 
     gap: 10px;
 
-    padding: 2px 2px 13px;
+    padding:
+        4px 3px
+        16px;
 
-    border-bottom: 1px solid #edf1f5;
+    border-bottom:
+        1px solid
+        #dce6ed;
+}
+
+.panel-eyebrow {
+    font-size: 10px;
+
+    letter-spacing: 1px;
 }
 
 .panel-titlebar h2 {
-    margin: 4px 0 0;
+    margin: 6px 0 0;
 
     display: flex;
     align-items: center;
 
-    gap: 8px;
+    gap: 10px;
 
     color:
         var(--primary-dark);
 
-    font-size: 19px;
+    font-size: 22px;
     line-height: 1.15;
 
     font-weight: 800;
 }
 
 .panel-titlebar h2 i {
-    color: var(--primary);
+    color:
+        var(--primary);
 
-    font-size: 15px;
+    font-size: 18px;
 }
 
 .panel-title-meta {
-    color: var(--text-muted);
+    color:
+        var(--text-muted);
 
-    font-size: 10px;
+    font-size: 11px;
 
     white-space: nowrap;
 }
@@ -697,11 +709,11 @@ img {
 }
 
 .search-section-basic {
-    padding: 12px 0 0;
+    padding: 16px 0 0;
 }
 
 .search-section-heading {
-    margin-bottom: 7px;
+    margin-bottom: 9px;
 
     display: flex;
     align-items: center;
@@ -713,18 +725,19 @@ img {
 .search-section-heading > span {
     color: #25394a;
 
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
 }
 
 .search-section-heading small {
-    color: var(--text-muted);
+    color:
+        var(--text-muted);
 
-    font-size: 9px;
+    font-size: 10px;
 }
 
 .search-toolbar {
-    min-height: 44px;
+    min-height: 54px;
 
     position: relative;
 
@@ -737,9 +750,10 @@ img {
         1.5px solid
         #cbd9e3;
 
-    border-radius: var(--radius-sm);
+    border-radius: 12px;
 
-    transition: var(--transition);
+    transition:
+        var(--transition);
 }
 
 .search-toolbar:focus-within {
@@ -756,14 +770,15 @@ img {
 .icono-lupa {
     position: absolute;
 
-    left: 12px;
+    left: 15px;
 
     display: grid;
     place-items: center;
 
-    color: var(--text-muted);
+    color:
+        var(--text-muted);
 
-    font-size: 13px;
+    font-size: 16px;
 
     pointer-events: none;
 }
@@ -772,13 +787,13 @@ img {
     width: 100%;
     min-width: 0;
 
-    min-height: 43px;
+    min-height: 52px;
 
     padding:
-        10px
-        39px
-        10px
-        35px;
+        12px
+        44px
+        12px
+        43px;
 
     border: 0;
     outline: 0;
@@ -788,7 +803,7 @@ img {
     color:
         var(--text);
 
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .search-toolbar input::placeholder {
@@ -796,11 +811,11 @@ img {
 }
 
 #btn-limpiar {
-    width: 29px;
-    height: 29px;
+    width: 34px;
+    height: 34px;
 
     position: absolute;
-    right: 6px;
+    right: 8px;
 
     display: none;
     place-items: center;
@@ -811,9 +826,13 @@ img {
     border-radius: 50%;
 
     background: transparent;
-    color: var(--text-muted);
+
+    color:
+        var(--text-muted);
 
     cursor: pointer;
+
+    font-size: 13px;
 }
 
 #btn-limpiar:hover {
@@ -901,19 +920,19 @@ img {
 ============================================================ */
 
 .date-filter {
-    margin-top: 8px;
+    margin-top: 11px;
 
     display: grid;
 
     grid-template-columns:
         minmax(0, 1fr)
         minmax(0, 1fr)
-        39px
-        39px;
+        45px
+        45px;
 
     align-items: end;
 
-    gap: 6px;
+    gap: 8px;
 }
 
 .date-field {
@@ -922,40 +941,60 @@ img {
     display: flex;
     flex-direction: column;
 
-    gap: 4px;
+    gap: 6px;
 }
 
 .date-field label {
     padding-left: 2px;
 
-    color: var(--text-muted);
+    color:
+        var(--text-muted);
 
-    font-size: 9px;
-    font-weight: 650;
+    font-size: 10px;
+    font-weight: 700;
 
     text-transform: uppercase;
-    letter-spacing: .4px;
+
+    letter-spacing: .6px;
 }
 
 .date-field input[type="date"] {
     width: 100%;
     min-width: 0;
 
-    height: 39px;
+    height: 47px;
 
-    padding: 7px 8px;
+    padding:
+        9px
+        10px;
 
-    border: 1px solid var(--border);
-    border-radius: var(--radius-xs);
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 9px;
 
     outline: none;
 
-    background: var(--surface-subtle);
-    color: var(--text-secondary);
+    background:
+        var(--surface-subtle);
 
-    font-size: 10px;
+    color:
+        var(--text-secondary);
 
-    transition: var(--transition);
+    font-size: 12px;
+
+    transition:
+        var(--transition);
+}
+
+.date-filter .btn-icon {
+    width: 45px;
+    height: 45px;
+
+    flex-basis: 45px;
+
+    font-size: 14px;
 }
 
 .date-field input[type="date"]:focus {
@@ -973,7 +1012,7 @@ img {
 ============================================================ */
 
 .advanced-search-wrapper {
-    margin-top: 10px;
+    margin-top: 13px;
 
     flex-shrink: 0;
 
@@ -983,7 +1022,7 @@ img {
         1px solid
         #cbdbe5;
 
-    border-radius: var(--radius-sm);
+    border-radius: 12px;
 
     background: #ffffff;
 
@@ -994,7 +1033,7 @@ img {
 
 .btn-toggle-avanzada {
     width: 100%;
-    min-height: 48px;
+    min-height: 60px;
 
     display: flex;
     align-items: center;
@@ -1002,7 +1041,9 @@ img {
 
     gap: 10px;
 
-    padding: 8px 11px;
+    padding:
+        10px
+        13px;
 
     border: 0;
 
@@ -1011,7 +1052,8 @@ img {
 
     cursor: pointer;
 
-    transition: var(--transition);
+    transition:
+        var(--transition);
 }
 
 .btn-toggle-avanzada:hover,
@@ -1029,20 +1071,22 @@ img {
 }
 
 .toggle-icon {
-    width: 29px;
-    height: 29px;
+    width: 36px;
+    height: 36px;
 
-    flex: 0 0 29px;
+    flex: 0 0 36px;
 
     display: grid !important;
     place-items: center;
 
-    border-radius: 7px;
+    border-radius: 9px;
 
     background:
         var(--primary);
 
     color: #ffffff;
+
+    font-size: 14px;
 
     box-shadow:
         0 2px 6px
@@ -1063,23 +1107,28 @@ img {
     color:
         var(--primary-dark);
 
-    font-size: 12px;
+    font-size: 13px;
 
     font-weight: 800;
 }
 
 .toggle-text small {
-    color: var(--text-muted);
+    margin-top: 2px;
 
-    font-size: 9px;
+    color:
+        var(--text-muted);
+
+    font-size: 10px;
 }
 
 .btn-toggle-avanzada > i {
-    color: var(--text-muted);
+    color:
+        var(--text-muted);
 
-    font-size: 10px;
+    font-size: 12px;
 
-    transition: transform .2s ease;
+    transition:
+        transform .2s ease;
 }
 
 .btn-toggle-avanzada.activo > i {
@@ -1455,7 +1504,7 @@ img {
 ============================================================ */
 
 .results-section {
-    margin-top: 9px;
+    margin-top: 14px;
 
     flex: 1;
     min-height: 0;
@@ -1469,15 +1518,24 @@ img {
 .results-header {
     flex-shrink: 0;
 
-    min-height: 37px;
+    min-height: 44px;
 
     display: flex;
     align-items: center;
     justify-content: space-between;
 
-    padding: 6px 3px 7px;
+    padding:
+        8px
+        4px
+        9px;
 
-    border-bottom: 1px solid #edf1f5;
+    border-bottom:
+        1px solid
+        #edf1f5;
+}
+
+.results-eyebrow {
+    font-size: 9.5px;
 }
 
 .results-header > div {
@@ -1488,13 +1546,14 @@ img {
 }
 
 .results-header strong {
-    font-size: 11px;
+    font-size: 13px;
 }
 
 .results-header > i {
-    color: var(--text-muted);
+    color:
+        var(--text-muted);
 
-    font-size: 11px;
+    font-size: 13px;
 }
 
 .results-container {
@@ -1524,7 +1583,7 @@ img {
     border-collapse: separate;
     border-spacing: 0;
 
-    font-size: 10px;
+    font-size: 11.5px;
 }
 
 .historial-tabla thead th {
@@ -1532,20 +1591,25 @@ img {
     top: 0;
     z-index: 5;
 
-    padding: 8px;
+    padding:
+        10px
+        10px;
 
     background: #eef5f9;
     color: #5c7180;
 
-    border-bottom: 1px solid #d9e5ec;
+    border-bottom:
+        1px solid
+        #d9e5ec;
 
     text-align: left;
 
-    font-size: 8px;
+    font-size: 9.5px;
     font-weight: 750;
 
     text-transform: uppercase;
-    letter-spacing: .35px;
+
+    letter-spacing: .45px;
 }
 
 .historial-tabla thead th:first-child {
@@ -1563,15 +1627,20 @@ img {
 }
 
 .historial-tabla td {
-    padding: 8px;
+    padding:
+        12px
+        10px;
 
-    border-bottom: 1px solid #edf1f4;
+    border-bottom:
+        1px solid
+        #edf1f4;
 
     background: #fff;
 
     vertical-align: middle;
 
-    transition: var(--transition);
+    transition:
+        var(--transition);
 }
 
 .historial-tabla tbody tr:hover td {
@@ -1579,21 +1648,26 @@ img {
 }
 
 .historial-tabla tr.fila-activa td {
-    background: #eef7fc !important;
+    background:
+        #dff1fb !important;
 
-    border-bottom-color: #c1ddea;
+    border-bottom-color:
+        #c1ddea;
 }
 
 .historial-tabla tr.fila-activa td:first-child {
     box-shadow:
-        inset 3px 0 0 var(--primary);
+        inset 4px 0 0
+        var(--primary);
 }
 
 .guia-numero {
-    color: var(--primary);
+    color:
+        var(--primary);
 
-    font-size: 10px;
-    font-weight: 750;
+    font-size: 12px;
+
+    font-weight: 800;
 }
 
 .guia-cliente {
@@ -1603,83 +1677,241 @@ img {
 
     overflow: hidden;
 
-    color: var(--text-secondary);
+    color:
+        var(--text-secondary);
 
-    font-size: 9px;
+    font-size: 10px;
+
+    line-height: 1.45;
 
     -webkit-box-orient: vertical;
+
     -webkit-line-clamp: 2;
+
     line-clamp: 2;
 }
 
 .guia-fecha {
-    color: var(--text-muted);
+    color:
+        var(--text-muted);
 
-    font-size: 9px;
+    font-size: 10px;
+
+    white-space: nowrap;
+}
+
+/* ============================================================
+   19. PAGINATION — NUMERADA
+============================================================ */
+
+.paginacion {
+    margin-top: 10px;
+
+    padding:
+        12px
+        1px
+        1px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    border-top:
+        1px solid
+        #dce6ed;
+}
+
+
+/* ============================================================
+   INFORMACIÓN
+============================================================ */
+
+.paginacion-info {
+    color:
+        #667f91 !important;
+
+    font-size:
+        10.5px !important;
+
+    font-weight: 600;
 
     white-space: nowrap;
 }
 
 
 /* ============================================================
-   19. PAGINATION
+   CONTROLES
 ============================================================ */
-
-.paginacion {
-    margin-top: 8px;
-    padding: 8px 1px 1px;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 6px;
-
-    border-top: 1px solid #edf1f4;
-}
-
-.paginacion > span {
-    padding: 0;
-
-    background: transparent;
-    color: var(--text-muted);
-
-    font-size: 9px;
-}
 
 .paginacion-controls {
     display: flex;
     align-items: center;
 
-    gap: 4px;
+    gap: 5px;
 }
+
+
+/* ============================================================
+   FLECHAS
+============================================================ */
 
 .paginacion .btn-icon {
-    width: 29px;
-    height: 29px;
+    width: 34px;
+    height: 34px;
 
-    flex-basis: 29px;
+    flex:
+        0 0 34px;
 
-    font-size: 9px;
+    border:
+        1px solid
+        #cbd9e3;
+
+    border-radius: 8px;
+
+    background:
+        #ffffff;
+
+    color:
+        #52697a;
+
+    font-size: 10px;
 }
 
-.pagina-actual {
-    min-width: 29px;
 
-    padding: 5px 6px;
+.paginacion .btn-icon:hover:not(:disabled) {
+    border-color:
+        var(--primary);
 
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    background:
+        #eaf6fc;
 
-    background: #fff;
-    color: var(--text-secondary);
+    color:
+        var(--primary);
+}
 
-    text-align: center;
 
-    font-size: 9px;
+.paginacion .btn-icon:disabled {
+    opacity: .35;
+
+    background:
+        #f5f7f9;
+
+    cursor:
+        not-allowed;
+}
+
+
+/* ============================================================
+   NÚMEROS
+============================================================ */
+
+.pagina-btn {
+    width: 34px;
+    height: 34px;
+
+    flex:
+        0 0 34px;
+
+    display:
+        inline-grid;
+
+    place-items:
+        center;
+
+    padding: 0;
+
+    border:
+        1px solid
+        #cbd9e3;
+
+    border-radius: 8px;
+
+    background:
+        #ffffff;
+
+    color:
+        #40596b;
+
+    cursor: pointer;
+
+    font-size: 11px;
+
     font-weight: 700;
+
+    transition:
+        background .18s ease,
+        border-color .18s ease,
+        color .18s ease,
+        box-shadow .18s ease,
+        transform .18s ease;
 }
 
+
+.pagina-btn:hover {
+    border-color:
+        var(--primary);
+
+    background:
+        #eaf6fc;
+
+    color:
+        var(--primary);
+
+    transform:
+        translateY(-1px);
+}
+
+
+.pagina-btn.activa {
+    border-color:
+        var(--primary);
+
+    background:
+        var(--primary);
+
+    color:
+        #ffffff;
+
+    box-shadow:
+        0 3px 9px
+        rgba(8, 119, 185, .24);
+}
+
+
+/* ============================================================
+   AJUSTE CUANDO EL PANEL ES ESTRECHO
+============================================================ */
+
+@media (max-width: 520px) {
+
+    .paginacion {
+        align-items:
+            flex-start;
+
+        flex-direction:
+            column;
+    }
+
+
+    .paginacion-controls {
+        width: 100%;
+
+        justify-content:
+            center;
+    }
+
+
+    .pagina-btn,
+    .paginacion .btn-icon {
+        width: 32px;
+        height: 32px;
+
+        flex-basis: 32px;
+    }
+
+}
 
 /* ============================================================
    20. NORMAL SEARCH CARDS

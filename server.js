@@ -850,29 +850,116 @@ app.post("/guardar-guia", async (req, res) => {
 
 // ----------------------
 // HISTORIAL PAGINADO
-// ✅ FIX PRINCIPAL - pool.query + Number()
 // ----------------------
 app.get("/guias", async (req, res) => {
 
-    const limit  = Number(Math.max(1, parseInt(req.query.limit,  10) || 10));
-    const offset = Number(Math.max(0, parseInt(req.query.offset, 10) || 0));
-
-    try {
-        const [guias] = await pool.query(
-            "SELECT * FROM guias ORDER BY id DESC LIMIT ? OFFSET ?",
-            [limit, offset]
+    const limit =
+        Number(
+            Math.max(
+                1,
+                parseInt(req.query.limit, 10) || 10
+            )
         );
 
-        console.log(`📋 /guias → ${guias.length} registros (L:${limit} O:${offset})`);
+    const offset =
+        Number(
+            Math.max(
+                0,
+                parseInt(req.query.offset, 10) || 0
+            )
+        );
+
+
+    try {
+
+        // ====================================================
+        // TOTAL DE GUÍAS
+        // ====================================================
+        const [conteo] =
+            await pool.query(`
+                SELECT COUNT(*) AS total
+                FROM guias
+            `);
+
+
+        const total =
+            Number(
+                conteo[0]?.total || 0
+            );
+
+
+        // ====================================================
+        // GUÍAS DE LA PÁGINA ACTUAL
+        // ====================================================
+        const [guias] =
+            await pool.query(
+                `
+                SELECT *
+                FROM guias
+
+                ORDER BY
+                    fecha_emision DESC,
+                    hora_emision DESC,
+                    id DESC
+
+                LIMIT ? OFFSET ?
+                `,
+                [
+                    limit,
+                    offset
+                ]
+            );
+
+
+        const totalPaginas =
+            Math.ceil(
+                total / limit
+            );
+
+
+        console.log(
+            `📋 /guias → ${guias.length} registros | Total: ${total} | Página: ${
+                Math.floor(offset / limit) + 1
+            }/${totalPaginas}`
+        );
+
+
         res.json({
+
             ok: true,
-            data: guias
+
+            data: guias,
+
+            total,
+
+            limit,
+
+            offset,
+
+            totalPaginas
+
         });
 
-    } catch(err) {
-        console.error("❌ Error guías:", err.message);
-        res.status(500).json({ error: err.message });
+
+    } catch (err) {
+
+        console.error(
+            "❌ Error guías:",
+            err.message
+        );
+
+
+        res.status(500).json({
+
+            ok: false,
+
+            error:
+                err.message
+
+        });
+
     }
+
 });
 
 // ----------------------
