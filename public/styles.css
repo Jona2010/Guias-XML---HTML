@@ -1506,16 +1506,22 @@ img {
 .search-summary-top {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
 
     gap: 8px;
+
+    min-width: 0;
 }
 
 .search-summary-top > div {
+    min-width: 0;
+
     display: flex;
     align-items: center;
 
-    gap: 9px;
+    gap: 8px;
+
+    flex: 1;
 }
 
 .search-summary-label {
@@ -1537,16 +1543,21 @@ img {
 }
 
 .search-summary-top > i {
+    margin-left: auto;
+
+    flex-shrink: 0;
+
     color: #98b6c8;
 
     font-size: 13px;
 }
 
 .criterios-busqueda-avanzada {
-    margin-top: 7px;
+    margin-top: 6px;
+
+    width: 100%;
 
     display: flex;
-    flex-wrap: nowrap;
     align-items: center;
 
     gap: 6px;
@@ -1554,7 +1565,12 @@ img {
     overflow-x: auto;
     overflow-y: hidden;
 
-    padding-bottom: 2px;
+    padding:
+        1px
+        2px
+        3px;
+
+    scroll-behavior: smooth;
 
     scrollbar-width: none;
 
@@ -1566,7 +1582,7 @@ img {
 }
 
 .criterio-avanzado-chip {
-    max-width: 100%;
+    max-width: 190px;
 
     flex:
         0 0 auto;
@@ -1577,7 +1593,7 @@ img {
     gap: 5px;
 
     padding:
-        5px
+        4px
         8px;
 
     overflow: hidden;
@@ -1593,9 +1609,13 @@ img {
     color:
         #49677b;
 
-    font-size: 10.5px;
+    font-size: 9.5px;
+
+    line-height: 1.2;
 
     font-weight: 650;
+
+    white-space: nowrap;
 }
 
 .criterio-avanzado-chip i {
@@ -1820,7 +1840,10 @@ img {
 
     padding:
         7px
-        9px;
+        9px
+        6px;
+
+    overflow: hidden;
 }
 
 
@@ -2703,11 +2726,11 @@ img {
 .search-panel.modo-resultados-avanzados
 .guia-avanzada-card {
 
-    margin-bottom: 7px;
+    margin-bottom: 6px;
 
     padding:
-        9px
-        10px;
+        8px
+        9px;
 
     border-radius: 9px;
 }
@@ -2765,17 +2788,17 @@ img {
 .search-panel.modo-resultados-avanzados
 .guia-avanzada-ruta {
 
-    margin-top: 5px;
+    margin-top: 4px;
 
     grid-template-columns:
         minmax(0, 1fr)
         minmax(0, 1fr);
 
-    gap: 6px;
+    gap: 5px;
 
     padding:
-        6px
-        8px;
+        5px
+        7px;
 }
 
 
@@ -2895,24 +2918,24 @@ img {
 .search-panel.modo-resultados-avanzados
 .coincidencias-avanzadas-titulo {
 
-    margin-bottom: 3px;
+    margin-bottom: 2px;
 
-    font-size: 9.5px;
+    font-size: 9px;
 }
 
 
 .search-panel.modo-resultados-avanzados
 .item-coincidente-avanzado {
 
-    margin-top: 3px;
+    margin-top: 2px;
 
     padding:
-        6px
-        8px;
+        5px
+        7px;
 
-    font-size: 10px;
+    font-size: 9.5px;
 
-    line-height: 1.3;
+    line-height: 1.25;
 }
 
 
@@ -2930,15 +2953,11 @@ img {
 
 
 .coincidencias-mas {
+    margin-top: 2px;
 
-    margin-top: 4px;
+    padding-left: 2px;
 
-    color:
-        #6a7f8e;
-
-    font-size: 9px;
-
-    font-weight: 700;
+    font-size: 8.5px;
 }
 
 /* ============================================================
