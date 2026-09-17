@@ -54,7 +54,7 @@
     --radius: 14px;
     --radius-lg: 18px;
 
-    --header-height: 78px;
+    --header-height: 88px;
 
     --transition:
         .18s ease;
@@ -197,42 +197,38 @@ img {
 }
 
 .app-brand-logo {
-    width: 72px;
-    height: 56px;
+    width: 68px;
+    height: 68px;
 
-    flex:
-        0 0 72px;
+    flex: 0 0 68px;
 
-    position: relative;
+    display: grid;
+    place-items: center;
 
     overflow: hidden;
 
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-
     background: #ffffff;
 
-    border-radius: 12px;
+    border:
+        2px solid
+        rgba(255, 255, 255, .28);
+
+    border-radius: 14px;
 
     box-shadow:
-        0 3px 12px
-        rgba(0, 0, 0, .14);
+        0 4px 14px
+        rgba(0, 0, 0, .18);
 }
 
 .logo-header {
-    width: 165px;
-    max-width: none;
+    width: 60px;
+    height: 60px;
 
-    height: auto;
+    max-width: none;
 
     display: block;
 
-    transform:
-        translateX(-2px);
-
-    transform-origin:
-        left center;
+    object-fit: contain;
 }
 
 .app-brand-text {
@@ -250,41 +246,51 @@ img {
 .app-brand-title-row h1 {
     margin: 0;
 
-    font-size:
-        clamp(19px, 1.45vw, 23px);
+    color: #ffffff;
 
-    line-height: 1.15;
+    font-size:
+        clamp(22px, 1.55vw, 27px);
+
+    line-height: 1.08;
 
     font-weight: 800;
-    letter-spacing: -.35px;
 
-    color: #ffffff;
+    letter-spacing: -.35px;
 }
 
 .version {
     display: inline-flex;
     align-items: center;
 
-    padding: 3px 8px;
+    padding:
+        4px
+        9px;
 
-    border: 1px solid rgba(255, 255, 255, .16);
+    border:
+        1px solid
+        rgba(255, 255, 255, .24);
+
     border-radius: 999px;
 
-    background: rgba(255, 255, 255, .12);
+    background:
+        rgba(255, 255, 255, .14);
 
-    color: rgba(255, 255, 255, .92);
+    color: #ffffff;
 
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 11px;
+
+    font-weight: 800;
 }
 
 .app-brand-subtitle {
     margin: 4px 0 0;
 
     color:
-        rgba(255,255,255,.82);
+        rgba(255, 255, 255, .88);
 
-    font-size: 12px;
+    font-size: 13px;
+
+    font-weight: 500;
 }
 
 .app-header-status {
@@ -1586,7 +1592,14 @@ img {
 }
 
 .results-eyebrow {
-    font-size: 9.5px;
+    color:
+        #55798f;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: .9px;
 }
 
 .results-header > div {
@@ -1597,7 +1610,12 @@ img {
 }
 
 .results-header strong {
-    font-size: 13px;
+    color:
+        #233b4d;
+
+    font-size: 14px;
+
+    font-weight: 800;
 }
 
 .results-header > i {
@@ -1634,7 +1652,7 @@ img {
     border-collapse: separate;
     border-spacing: 0;
 
-    font-size: 11.5px;
+    font-size: 13px;
 }
 
 .historial-tabla thead th {
@@ -1643,24 +1661,28 @@ img {
     z-index: 5;
 
     padding:
-        10px
-        10px;
+        11px
+        12px;
 
-    background: #eef5f9;
-    color: #5c7180;
+    background:
+        #dcecf5;
+
+    color:
+        #36566c;
 
     border-bottom:
         1px solid
-        #d9e5ec;
+        #c6d9e4;
 
     text-align: left;
 
-    font-size: 9.5px;
-    font-weight: 750;
+    font-size: 10px;
+
+    font-weight: 800;
 
     text-transform: uppercase;
 
-    letter-spacing: .45px;
+    letter-spacing: .5px;
 }
 
 .historial-tabla thead th:first-child {
@@ -1679,44 +1701,91 @@ img {
 
 .historial-tabla td {
     padding:
-        12px
-        10px;
+        13px
+        12px;
 
     border-bottom:
         1px solid
-        #edf1f4;
+        #e2eaf0;
 
-    background: #fff;
+    background: #ffffff;
 
     vertical-align: middle;
 
     transition:
-        var(--transition);
+        background .18s ease,
+        color .18s ease,
+        box-shadow .18s ease;
 }
 
 .historial-tabla tbody tr:hover td {
-    background: #f7fafc;
+    background:
+        #eef7fc;
+
+    color:
+        #18394d;
+}
+
+
+.historial-tabla tbody tr:hover .guia-numero {
+    color:
+        #005f91;
 }
 
 .historial-tabla tr.fila-activa td {
     background:
-        #dff1fb !important;
+        #dff2fb !important;
+
+    color:
+        #123b56;
 
     border-bottom-color:
-        #c1ddea;
+        #bad9e8;
 }
+
 
 .historial-tabla tr.fila-activa td:first-child {
     box-shadow:
-        inset 4px 0 0
+        inset 5px 0 0
         var(--primary);
 }
 
-.guia-numero {
-    color:
-        var(--primary);
 
-    font-size: 12px;
+.historial-tabla tr.fila-activa .guia-numero {
+    color:
+        #005f91;
+
+    font-weight: 900;
+}
+
+
+.historial-tabla tr.fila-activa .guia-cliente {
+    color:
+        #18394d;
+
+    font-weight: 700;
+}
+
+
+.historial-tabla tr.fila-activa .guia-fecha {
+    color:
+        #244d65;
+
+    font-weight: 700;
+}
+
+.guia-numero {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 5px;
+
+    color:
+        #006da8;
+
+    font-size: 13.5px;
+
+    line-height: 1.25;
 
     font-weight: 800;
 }
@@ -1729,14 +1798,15 @@ img {
     overflow: hidden;
 
     color:
-        var(--text-secondary);
+        #405b6d;
 
-    font-size: 10px;
+    font-size: 11.5px;
 
-    line-height: 1.45;
+    line-height: 1.4;
+
+    font-weight: 500;
 
     -webkit-box-orient: vertical;
-
     -webkit-line-clamp: 2;
 
     line-clamp: 2;
@@ -1744,9 +1814,11 @@ img {
 
 .guia-fecha {
     color:
-        var(--text-muted);
+        #57758a;
 
-    font-size: 10px;
+    font-size: 11px;
+
+    font-weight: 600;
 
     white-space: nowrap;
 }
@@ -2389,17 +2461,19 @@ img {
 }
 
 .viewer-header-left h2 {
-    margin: 3px 0 0;
+    margin: 4px 0 0;
 
     display: flex;
     align-items: center;
 
-    gap: 7px;
+    gap: 8px;
 
-    color: var(--text);
+    color:
+        var(--primary-dark);
 
-    font-size: 16px;
-    font-weight: 750;
+    font-size: 20px;
+
+    font-weight: 800;
 }
 
 .viewer-header-left h2 i {
@@ -2412,11 +2486,22 @@ img {
     display: inline-flex;
     align-items: center;
 
-    gap: 6px;
+    gap: 7px;
 
-    color: var(--text-muted);
+    color:
+        #587488;
 
-    font-size: 9px;
+    font-size: 11px;
+
+    font-weight: 650;
+}
+
+.viewer-eyebrow {
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: 1px;
 }
 
 .viewer-status-dot {
@@ -2566,7 +2651,6 @@ img {
         #dbe8ef;
 }
 
-
 .guia-header h3 {
     margin: 0;
 
@@ -2574,54 +2658,50 @@ img {
     align-items: center;
     flex-wrap: wrap;
 
-    gap: 8px;
+    gap: 9px;
 
     color:
-        #006fa9;
+        #006a9f;
 
-    font-size: 22px;
+    font-size: 25px;
 
-    font-weight: 800;
+    font-weight: 850;
 }
-
 
 .guia-header h3 small {
     color:
-        #638095;
+        #526f83;
 
-    font-size: 11px;
+    font-size: 12px;
 
-    font-weight: 600;
+    font-weight: 650;
 }
 
 
 .guia-meta {
-    margin-bottom: 14px;
+    margin-bottom: 15px;
 
     padding:
-        13px
-        15px;
+        16px
+        17px;
 
     display: grid;
 
     grid-template-columns:
-        repeat(
-            4,
-            minmax(0, 1fr)
-        );
+        repeat(4, minmax(0, 1fr));
 
     gap:
-        10px
-        14px;
+        12px
+        16px;
 
     border:
         1px solid
-        #d6e3eb;
+        #cddde7;
 
-    border-radius: 9px;
+    border-radius: 10px;
 
     background:
-        #f2f7fa;
+        #f1f7fa;
 }
 
 
@@ -2637,15 +2717,15 @@ img {
 
 .guia-meta-item label {
     color:
-        #61798b;
+        #55748a;
 
-    font-size: 8.8px;
+    font-size: 10px;
 
     font-weight: 800;
 
     text-transform: uppercase;
 
-    letter-spacing: .4px;
+    letter-spacing: .5px;
 }
 
 
@@ -2653,18 +2733,20 @@ img {
     overflow-wrap: anywhere;
 
     color:
-        #1d3040;
+        #172f40;
 
-    font-size: 11px;
+    font-size: 13px;
 
-    font-weight: 700;
+    line-height: 1.35;
+
+    font-weight: 750;
 }
 
 
 .guia-direcciones {
-    margin-bottom: 15px;
+    margin-bottom: 17px;
 
-    padding: 14px;
+    padding: 16px;
 
     display: grid;
 
@@ -2672,13 +2754,13 @@ img {
         1fr
         1fr;
 
-    gap: 12px;
+    gap: 16px;
 
     border:
         1px solid
-        #d6e3eb;
+        #cddde7;
 
-    border-radius: 9px;
+    border-radius: 10px;
 
     background:
         #f7fafc;
@@ -2713,28 +2795,30 @@ img {
 
 
 .direccion-block .label {
-    margin-bottom: 3px;
+    margin-bottom: 4px;
 
     color:
-        #5b778b;
+        #54748a;
 
-    font-size: 8.8px;
+    font-size: 10px;
 
     font-weight: 800;
 
     text-transform: uppercase;
+
+    letter-spacing: .4px;
 }
 
 
 .direccion-texto {
     color:
-        #3a5366;
+        #304f63;
 
-    font-size: 10.5px;
+    font-size: 12.5px;
 
     line-height: 1.45;
 
-    font-weight: 500;
+    font-weight: 550;
 
     overflow-wrap: anywhere;
 }
@@ -2742,18 +2826,18 @@ img {
 
 .guia-items-title {
     margin:
-        16px 0
-        8px;
+        18px 0
+        9px;
 
     display: flex;
     align-items: center;
 
-    gap: 6px;
+    gap: 7px;
 
     color:
-        #183a50;
+        #173f58;
 
-    font-size: 13px;
+    font-size: 15px;
 
     font-weight: 800;
 }
@@ -2771,42 +2855,40 @@ img {
 .tabla-items {
     width: 100%;
 
-    border-collapse:
-        separate;
-
+    border-collapse: separate;
     border-spacing: 0;
 
-    font-size: 11px;
+    font-size: 13px;
 }
-
 
 .tabla-items thead th {
     padding:
-        10px 9px;
+        12px
+        11px;
 
     background:
-        #dcecf5;
+        #d5e9f4;
 
     color:
-        #31556c;
+        #234e67;
 
     border-top:
         1px solid
-        #c6d9e4;
+        #bcd5e3;
 
     border-bottom:
         1px solid
-        #c6d9e4;
+        #bcd5e3;
 
     text-align: left;
 
-    font-size: 8.8px;
+    font-size: 10px;
 
-    font-weight: 800;
+    font-weight: 850;
 
     text-transform: uppercase;
 
-    letter-spacing: .3px;
+    letter-spacing: .45px;
 }
 
 
@@ -2832,18 +2914,19 @@ img {
 
 .tabla-items td {
     padding:
-        11px 9px;
+        13px
+        11px;
 
     border-bottom:
         1px solid
-        #e1e9ee;
+        #dce6ec;
 
     color:
-        #263c4c;
+        #213c4e;
 
     vertical-align: middle;
 
-    font-size: 10.5px;
+    font-size: 12.5px;
 
     line-height: 1.45;
 }
@@ -2868,27 +2951,30 @@ img {
     max-width: 100%;
 
     padding:
-        3px 6px;
+        4px
+        7px;
 
     overflow: hidden;
 
     border:
         1px solid
-        #c3deec;
+        #bcdceb;
 
-    border-radius: 5px;
+    border-radius: 6px;
 
     background:
-        #e7f3fa;
+        #e7f4fa;
 
     color:
-        #076a9f;
+        #006a9f;
 
     font-family:
         Consolas,
         monospace;
 
-    font-size: 9px;
+    font-size: 10.5px;
+
+    font-weight: 700;
 
     text-overflow: ellipsis;
 }
