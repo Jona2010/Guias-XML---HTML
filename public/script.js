@@ -2515,41 +2515,155 @@ async function exportarPDFSeleccionadas() {
 
 
         // ====================================================
-        // PORTADA / RESUMEN
+        // PORTADA / RESUMEN PROFESIONAL
         // ====================================================
-        pdf.setFontSize(18);
+
+        const azulPrincipal = [10, 92, 140];
+        const azulSuave = [235, 245, 251];
+        const grisTexto = [90, 105, 120];
+        const grisBorde = [215, 225, 234];
+        const amarilloSuave = [255, 248, 205];
+
+
+        // ----------------------------------------------------
+        // CABECERA
+        // ----------------------------------------------------
+        pdf.setFillColor(...azulPrincipal);
+
+        pdf.rect(
+            0,
+            0,
+            pageWidth,
+            34,
+            "F"
+        );
+
+
+        pdf.setTextColor(
+            255,
+            255,
+            255
+        );
+
+        pdf.setFont(
+            "helvetica",
+            "bold"
+        );
+
+        pdf.setFontSize(20);
 
         pdf.text(
             "RESULTADO DE BÚSQUEDA DE GUÍAS",
             margen,
-            22
+            17
         );
 
 
+        pdf.setFont(
+            "helvetica",
+            "normal"
+        );
+
         pdf.setFontSize(10);
 
+        pdf.text(
+            "Sistema de Guías de Remisión SUNAT",
+            margen,
+            25
+        );
 
-        let y = 34;
+
+        // ----------------------------------------------------
+        // TARJETA PRINCIPAL DE FILTROS
+        // ----------------------------------------------------
+        let y = 46;
+
+        pdf.setTextColor(
+            30,
+            41,
+            59
+        );
+
+        pdf.setFillColor(
+            ...azulSuave
+        );
+
+        pdf.setDrawColor(
+            ...grisBorde
+        );
+
+        pdf.roundedRect(
+            margen,
+            y,
+            anchoUtil,
+            56,
+            3,
+            3,
+            "FD"
+        );
 
 
-        const agregarDato = (
+        pdf.setFont(
+            "helvetica",
+            "bold"
+        );
+
+        pdf.setFontSize(12);
+
+        pdf.setTextColor(
+            ...azulPrincipal
+        );
+
+        pdf.text(
+            "CRITERIOS DE BÚSQUEDA",
+            margen + 6,
+            y + 10
+        );
+
+
+        pdf.setFontSize(9);
+
+        pdf.setTextColor(
+            30,
+            41,
+            59
+        );
+
+
+        // ----------------------------------------------------
+        // COLUMNAS DE DATOS
+        // ----------------------------------------------------
+        const col1X =
+            margen + 6;
+
+        const col2X =
+            margen + 94;
+
+        let filaY =
+            y + 21;
+
+
+        function escribirCampo(
             titulo,
-            valor
-        ) => {
-
-            if (!valor) return;
-
+            valor,
+            x,
+            yCampo,
+            ancho = 70
+        ) {
 
             pdf.setFont(
                 "helvetica",
                 "bold"
             );
 
+            pdf.setTextColor(
+                ...grisTexto
+            );
 
             pdf.text(
                 `${titulo}:`,
-                margen,
-                y
+                x,
+                yCampo
             );
 
 
@@ -2558,74 +2672,79 @@ async function exportarPDFSeleccionadas() {
                 "normal"
             );
 
+            pdf.setTextColor(
+                20,
+                30,
+                45
+            );
+
 
             const texto =
                 pdf.splitTextToSize(
-                    String(valor),
-                    140
+                    String(valor || "-"),
+                    ancho
                 );
 
 
             pdf.text(
                 texto,
-                52,
-                y
+                x + 27,
+                yCampo
             );
+        }
 
 
-            y +=
-                Math.max(
-                    7,
-                    texto.length * 5
-                );
-        };
-
-
-        agregarDato(
+        escribirCampo(
             "Producto",
-            filtrosBusquedaAvanzadaActuales.producto
+            filtrosBusquedaAvanzadaActuales.producto || "-",
+            col1X,
+            filaY
         );
 
 
-        agregarDato(
+        escribirCampo(
             "Partida",
-            filtrosBusquedaAvanzadaActuales.partida
+            filtrosBusquedaAvanzadaActuales.partida || "-",
+            col1X,
+            filaY + 10
         );
 
 
-        agregarDato(
+        escribirCampo(
             "Llegada",
-            filtrosBusquedaAvanzadaActuales.llegada
+            filtrosBusquedaAvanzadaActuales.llegada || "-",
+            col1X,
+            filaY + 20
         );
 
 
-        agregarDato(
+        escribirCampo(
             "Desde",
             filtrosBusquedaAvanzadaActuales.desde
                 ? formatearFecha(
                     filtrosBusquedaAvanzadaActuales.desde
                 )
-                : ""
+                : "-",
+            col2X,
+            filaY
         );
 
 
-        agregarDato(
+        escribirCampo(
             "Hasta",
             filtrosBusquedaAvanzadaActuales.hasta
                 ? formatearFecha(
                     filtrosBusquedaAvanzadaActuales.hasta
                 )
-                : ""
+                : "-",
+            col2X,
+            filaY + 10
         );
 
 
-        agregarDato(
-            "Guías seleccionadas",
-            seleccionadas.length
-        );
-
-
-        // Total de coincidencias
+        // ----------------------------------------------------
+        // INDICADORES
+        // ----------------------------------------------------
         const totalCoincidencias =
             seleccionadas.reduce(
                 (total, guia) =>
@@ -2637,25 +2756,440 @@ async function exportarPDFSeleccionadas() {
             );
 
 
-        agregarDato(
-            "Coincidencias",
+        const indicadoresY =
+            y + 65;
+
+
+        const anchoIndicador =
+            (anchoUtil - 8) / 2;
+
+
+        function dibujarIndicador(
+            x,
+            titulo,
+            valor
+        ) {
+
+            pdf.setFillColor(
+                248,
+                250,
+                252
+            );
+
+            pdf.setDrawColor(
+                ...grisBorde
+            );
+
+            pdf.roundedRect(
+                x,
+                indicadoresY,
+                anchoIndicador,
+                22,
+                3,
+                3,
+                "FD"
+            );
+
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+            pdf.setFontSize(16);
+
+            pdf.setTextColor(
+                ...azulPrincipal
+            );
+
+            pdf.text(
+                String(valor),
+                x + 6,
+                indicadoresY + 10
+            );
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+            pdf.setFontSize(8);
+
+            pdf.setTextColor(
+                ...grisTexto
+            );
+
+            pdf.text(
+                titulo,
+                x + 6,
+                indicadoresY + 17
+            );
+        }
+
+
+        dibujarIndicador(
+            margen,
+            "GUÍAS SELECCIONADAS",
+            seleccionadas.length
+        );
+
+
+        dibujarIndicador(
+            margen +
+                anchoIndicador +
+                8,
+            "COINCIDENCIAS ENCONTRADAS",
             totalCoincidencias
         );
 
 
-        pdf.setFontSize(9);
+        // ----------------------------------------------------
+        // TABLA DE GUÍAS ENCONTRADAS
+        // ----------------------------------------------------
+        let tablaY =
+            indicadoresY + 34;
+
+
+        pdf.setFont(
+            "helvetica",
+            "bold"
+        );
+
+        pdf.setFontSize(11);
 
         pdf.setTextColor(
-            90,
-            90,
-            90
+            ...azulPrincipal
+        );
+
+        pdf.text(
+            `GUÍAS DONDE SE ENCONTRÓ "${
+                (
+                    filtrosBusquedaAvanzadaActuales.producto ||
+                    "PRODUCTO"
+                ).toUpperCase()
+            }"`,
+            margen,
+            tablaY
         );
 
 
-        pdf.text(
-            "Las filas resaltadas en amarillo corresponden al producto buscado.",
+        tablaY += 7;
+
+
+        // Encabezado tabla
+        pdf.setFillColor(
+            ...azulPrincipal
+        );
+
+        pdf.rect(
             margen,
-            y + 8
+            tablaY,
+            anchoUtil,
+            9,
+            "F"
+        );
+
+
+        pdf.setTextColor(
+            255,
+            255,
+            255
+        );
+
+        pdf.setFontSize(8);
+
+        pdf.text(
+            "N°",
+            margen + 3,
+            tablaY + 6
+        );
+
+        pdf.text(
+            "GUÍA",
+            margen + 14,
+            tablaY + 6
+        );
+
+        pdf.text(
+            "FECHA",
+            margen + 55,
+            tablaY + 6
+        );
+
+        pdf.text(
+            "PRODUCTO COINCIDENTE",
+            margen + 88,
+            tablaY + 6
+        );
+
+        pdf.text(
+            "COINC.",
+            margen + 164,
+            tablaY + 6
+        );
+
+
+        tablaY += 9;
+
+
+        // ----------------------------------------------------
+        // FILAS
+        // ----------------------------------------------------
+        seleccionadas.forEach(
+            (guia, index) => {
+
+                // Si no entra otra fila, nueva página
+                if (
+                    tablaY > 270
+                ) {
+
+                    pdf.addPage();
+
+                    tablaY = 18;
+
+
+                    pdf.setFillColor(
+                        ...azulPrincipal
+                    );
+
+                    pdf.rect(
+                        margen,
+                        tablaY,
+                        anchoUtil,
+                        9,
+                        "F"
+                    );
+
+
+                    pdf.setTextColor(
+                        255,
+                        255,
+                        255
+                    );
+
+                    pdf.setFontSize(8);
+
+                    pdf.text(
+                        "N°",
+                        margen + 3,
+                        tablaY + 6
+                    );
+
+                    pdf.text(
+                        "GUÍA",
+                        margen + 14,
+                        tablaY + 6
+                    );
+
+                    pdf.text(
+                        "FECHA",
+                        margen + 55,
+                        tablaY + 6
+                    );
+
+                    pdf.text(
+                        "PRODUCTO COINCIDENTE",
+                        margen + 88,
+                        tablaY + 6
+                    );
+
+                    pdf.text(
+                        "COINC.",
+                        margen + 164,
+                        tablaY + 6
+                    );
+
+
+                    tablaY += 9;
+                }
+
+
+                const fondo =
+                    index % 2 === 0
+                        ? [255, 255, 255]
+                        : [248, 250, 252];
+
+
+                pdf.setFillColor(
+                    ...fondo
+                );
+
+                pdf.setDrawColor(
+                    ...grisBorde
+                );
+
+
+                pdf.rect(
+                    margen,
+                    tablaY,
+                    anchoUtil,
+                    13,
+                    "FD"
+                );
+
+
+                pdf.setFont(
+                    "helvetica",
+                    "normal"
+                );
+
+                pdf.setFontSize(8);
+
+                pdf.setTextColor(
+                    30,
+                    41,
+                    59
+                );
+
+
+                // Número
+                pdf.text(
+                    String(index + 1),
+                    margen + 3,
+                    tablaY + 8
+                );
+
+
+                // Guía
+                pdf.setFont(
+                    "helvetica",
+                    "bold"
+                );
+
+                pdf.text(
+                    String(
+                        guia.numero || "-"
+                    ),
+                    margen + 14,
+                    tablaY + 8
+                );
+
+
+                // Fecha
+                pdf.setFont(
+                    "helvetica",
+                    "normal"
+                );
+
+                pdf.text(
+                    formatearFecha(
+                        guia.fecha_emision
+                    ),
+                    margen + 55,
+                    tablaY + 8
+                );
+
+
+                // Producto coincidente
+                const primerItem =
+                    Array.isArray(
+                        guia.items_coincidentes
+                    ) &&
+                    guia.items_coincidentes.length > 0
+                        ? guia.items_coincidentes[0]
+                        : null;
+
+
+                const descripcion =
+                    primerItem?.descripcion ||
+                    "-";
+
+
+                const textoProducto =
+                    pdf.splitTextToSize(
+                        descripcion,
+                        70
+                    );
+
+
+                pdf.setFontSize(7);
+
+                pdf.text(
+                    textoProducto.slice(0, 2),
+                    margen + 88,
+                    tablaY + 5
+                );
+
+
+                // Número de coincidencias
+                pdf.setFontSize(8);
+
+                pdf.setFont(
+                    "helvetica",
+                    "bold"
+                );
+
+                pdf.text(
+                    String(
+                        guia.cantidad_coincidencias || 0
+                    ),
+                    margen + 167,
+                    tablaY + 8
+                );
+
+
+                tablaY += 13;
+            }
+        );
+
+
+        // ----------------------------------------------------
+        // NOTA
+        // ----------------------------------------------------
+        tablaY += 8;
+
+
+        pdf.setFillColor(
+            ...amarilloSuave
+        );
+
+        pdf.setDrawColor(
+            225,
+            190,
+            60
+        );
+
+        pdf.roundedRect(
+            margen,
+            tablaY,
+            anchoUtil,
+            18,
+            3,
+            3,
+            "FD"
+        );
+
+
+        pdf.setTextColor(
+            105,
+            85,
+            15
+        );
+
+        pdf.setFont(
+            "helvetica",
+            "bold"
+        );
+
+        pdf.setFontSize(8);
+
+        pdf.text(
+            "IDENTIFICACIÓN DE COINCIDENCIAS",
+            margen + 5,
+            tablaY + 7
+        );
+
+
+        pdf.setFont(
+            "helvetica",
+            "normal"
+        );
+
+        pdf.text(
+            "En las siguientes páginas, las filas resaltadas en amarillo corresponden al producto buscado.",
+            margen + 5,
+            tablaY + 13
         );
 
 
