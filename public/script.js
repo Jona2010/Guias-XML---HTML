@@ -1075,9 +1075,9 @@ async function buscarGuiasAvanzado() {
     const urlBusqueda =
         `${API_URL}/buscar-avanzado?${params.toString()}&_=${Date.now()}`;
 
-    console.log("========================================");
+    /*console.log("========================================");
     console.log("🔎 URL BÚSQUEDA AVANZADA:");
-    console.log(urlBusqueda);
+    console.log(urlBusqueda);*/
 
     const response = await fetch(urlBusqueda, {
         method: "GET",
@@ -1087,7 +1087,7 @@ async function buscarGuiasAvanzado() {
         }
     });
 
-    console.log("🌐 HTTP STATUS:", response.status);
+    /*console.log("🌐 HTTP STATUS:", response.status);*/
 
     let data;
 
@@ -1097,10 +1097,10 @@ async function buscarGuiasAvanzado() {
 
     } catch (error) {
 
-        console.error(
+        /*console.error(
             "❌ La respuesta no es JSON válido:",
             error
-        );
+        );*/
 
         historialAvanzado.innerHTML = `
             <div class="sin-resultados-avanzados">
@@ -1116,14 +1116,14 @@ async function buscarGuiasAvanzado() {
     }
 
 
-    console.log("📦 RESPUESTA COMPLETA:", data);
+    /*console.log("📦 RESPUESTA COMPLETA:", data);
     console.log("📊 TOTAL SERVIDOR:", data?.total);
     console.log(
         "📋 CANTIDAD ARRAY:",
         Array.isArray(data?.data)
             ? data.data.length
             : "NO ES ARRAY"
-    );
+    );*/
 
 
     if (!response.ok) {
@@ -1157,10 +1157,10 @@ async function buscarGuiasAvanzado() {
         !Array.isArray(data.data)
     ) {
 
-        console.error(
+        /*console.error(
             "❌ ESTRUCTURA DE RESPUESTA INCORRECTA:",
             data
-        );
+        );*/
 
         historialAvanzado.innerHTML = `
             <div class="sin-resultados-avanzados">
@@ -1182,7 +1182,7 @@ async function buscarGuiasAvanzado() {
     resultadosBusquedaAvanzada = data.data;
 
 
-    console.log(
+    /*console.log(
         "✅ RESULTADOS GUARDADOS EN JS:",
         resultadosBusquedaAvanzada.length
     );
@@ -1191,7 +1191,7 @@ async function buscarGuiasAvanzado() {
     console.log(
         "✅ PRIMER RESULTADO:",
         resultadosBusquedaAvanzada[0]
-    );
+    );*/
 
 
     // ========================================================
@@ -1926,6 +1926,974 @@ function limpiarBusquedaAvanzada() {
 }
 
 // ============================================================
+// CREAR HTML DE UNA GUÍA PARA PDF DE BÚSQUEDA AVANZADA
+// ============================================================
+function crearHTMLGuiaSeleccionadaPDF(g) {
+
+    const idsCoincidentes = new Set(
+        (g.items_coincidentes || [])
+            .map(item => Number(item.id))
+            .filter(id => Number.isFinite(id))
+    );
+
+
+    const productoBuscado =
+        filtrosBusquedaAvanzadaActuales.producto || "";
+
+
+    const palabrasProducto =
+        normalizarTexto(productoBuscado)
+            .split(" ")
+            .filter(Boolean);
+
+
+    const esItemCoincidente = (item) => {
+
+        // Primero usamos los IDs que devuelve el backend
+        if (
+            item.id != null &&
+            idsCoincidentes.has(Number(item.id))
+        ) {
+            return true;
+        }
+
+
+        // Fallback por texto
+        if (palabrasProducto.length === 0) {
+            return false;
+        }
+
+
+        const textoItem =
+            normalizarTexto(
+                `${item.codigo_bien || ""} ${item.descripcion || ""}`
+            );
+
+
+        return palabrasProducto.every(
+            palabra => textoItem.includes(palabra)
+        );
+    };
+
+
+    const items =
+        Array.isArray(g.items)
+            ? g.items
+            : [];
+
+
+    let filas = "";
+
+
+    items.forEach((item, index) => {
+
+        const coincide =
+            esItemCoincidente(item);
+
+
+        const fondo =
+            coincide
+                ? "#fff3a3"
+                : index % 2 === 0
+                    ? "#ffffff"
+                    : "#f8fafc";
+
+
+        const borde =
+            coincide
+                ? "2px solid #e0a800"
+                : "1px solid #d9e2ea";
+
+
+        filas += `
+            <tr
+                style="
+                    background:${fondo};
+                    border:${borde};
+                "
+            >
+
+                <td
+                    style="
+                        padding:7px;
+                        text-align:center;
+                        border:1px solid #d9e2ea;
+                    "
+                >
+                    ${escapeHtml(
+                        String(
+                            item.linea ??
+                            index + 1
+                        )
+                    )}
+                </td>
+
+
+                <td
+                    style="
+                        padding:7px;
+                        border:1px solid #d9e2ea;
+                    "
+                >
+                    ${escapeHtml(
+                        String(
+                            item.codigo_bien || "-"
+                        )
+                    )}
+                </td>
+
+
+                <td
+                    style="
+                        padding:7px;
+                        border:1px solid #d9e2ea;
+                        font-weight:${
+                            coincide
+                                ? "700"
+                                : "400"
+                        };
+                    "
+                >
+                    ${escapeHtml(
+                        String(
+                            item.descripcion || "-"
+                        )
+                    )}
+
+                    ${
+                        coincide
+                            ? `
+                                <div
+                                    style="
+                                        margin-top:3px;
+                                        color:#8a6500;
+                                        font-size:9px;
+                                        font-weight:700;
+                                    "
+                                >
+                                    COINCIDENCIA DE BÚSQUEDA
+                                </div>
+                            `
+                            : ""
+                    }
+                </td>
+
+
+                <td
+                    style="
+                        padding:7px;
+                        text-align:center;
+                        border:1px solid #d9e2ea;
+                    "
+                >
+                    ${escapeHtml(
+                        String(
+                            item.cantidad ?? "-"
+                        )
+                    )}
+                </td>
+
+
+                <td
+                    style="
+                        padding:7px;
+                        text-align:center;
+                        border:1px solid #d9e2ea;
+                    "
+                >
+                    ${escapeHtml(
+                        String(
+                            item.unidad || "-"
+                        )
+                    )}
+                </td>
+
+            </tr>
+        `;
+    });
+
+
+    return `
+
+        <div
+            style="
+                width:900px;
+                background:#ffffff;
+                color:#1f2937;
+                font-family:Arial, sans-serif;
+                padding:28px;
+                box-sizing:border-box;
+            "
+        >
+
+            <!-- CABECERA -->
+            <div
+                style="
+                    border-bottom:3px solid #0a5c8c;
+                    padding-bottom:14px;
+                    margin-bottom:18px;
+                "
+            >
+
+                <div
+                    style="
+                        font-size:22px;
+                        font-weight:700;
+                        color:#0a5c8c;
+                    "
+                >
+                    GUÍA DE REMISIÓN
+                </div>
+
+                <div
+                    style="
+                        margin-top:5px;
+                        font-size:18px;
+                        font-weight:700;
+                    "
+                >
+                    ${escapeHtml(
+                        g.numero || "Sin número"
+                    )}
+                </div>
+
+                <div
+                    style="
+                        margin-top:4px;
+                        color:#64748b;
+                        font-size:12px;
+                    "
+                >
+                    Fecha:
+                    ${escapeHtml(
+                        formatearFecha(
+                            g.fecha_emision
+                        )
+                    )}
+
+                    ${
+                        g.hora_emision
+                            ? ` · ${escapeHtml(
+                                String(
+                                    g.hora_emision
+                                )
+                            )}`
+                            : ""
+                    }
+                </div>
+
+            </div>
+
+
+            <!-- DATOS GENERALES -->
+            <div
+                style="
+                    display:grid;
+                    grid-template-columns:1fr 1fr;
+                    gap:10px;
+                    margin-bottom:16px;
+                "
+            >
+
+                <div
+                    style="
+                        padding:10px;
+                        background:#f8fafc;
+                        border:1px solid #e2e8f0;
+                        border-radius:6px;
+                    "
+                >
+                    <strong>Remitente</strong><br>
+
+                    ${escapeHtml(
+                        g.remitente_nombre || "-"
+                    )}
+
+                    <br>
+
+                    <span
+                        style="
+                            font-size:11px;
+                            color:#64748b;
+                        "
+                    >
+                        RUC:
+                        ${escapeHtml(
+                            g.remitente_ruc || "-"
+                        )}
+                    </span>
+                </div>
+
+
+                <div
+                    style="
+                        padding:10px;
+                        background:#f8fafc;
+                        border:1px solid #e2e8f0;
+                        border-radius:6px;
+                    "
+                >
+                    <strong>Destinatario</strong><br>
+
+                    ${escapeHtml(
+                        g.destinatario_nombre || "-"
+                    )}
+                </div>
+
+            </div>
+
+
+            <!-- RUTA -->
+            <div
+                style="
+                    margin-bottom:16px;
+                    padding:12px;
+                    background:#f8fafc;
+                    border:1px solid #e2e8f0;
+                    border-radius:6px;
+                "
+            >
+
+                <div
+                    style="
+                        margin-bottom:8px;
+                    "
+                >
+                    <strong>
+                        Punto de partida
+                    </strong>
+
+                    <br>
+
+                    ${escapeHtml(
+                        g.direccion_partida || "-"
+                    )}
+                </div>
+
+
+                <div>
+                    <strong>
+                        Punto de llegada
+                    </strong>
+
+                    <br>
+
+                    ${escapeHtml(
+                        g.direccion_llegada || "-"
+                    )}
+                </div>
+
+            </div>
+
+
+            <!-- CRITERIO -->
+            ${
+                productoBuscado
+                    ? `
+                        <div
+                            style="
+                                margin-bottom:14px;
+                                padding:9px 11px;
+                                border-left:4px solid #e0a800;
+                                background:#fff9df;
+                                font-size:11px;
+                            "
+                        >
+
+                            <strong>
+                                Producto buscado:
+                            </strong>
+
+                            ${escapeHtml(
+                                productoBuscado
+                            )}
+
+                            <br>
+
+                            <span
+                                style="
+                                    color:#806900;
+                                "
+                            >
+                                Las filas amarillas corresponden
+                                a coincidencias de la búsqueda.
+                            </span>
+
+                        </div>
+                    `
+                    : ""
+            }
+
+
+            <!-- TABLA -->
+            <table
+                style="
+                    width:100%;
+                    border-collapse:collapse;
+                    font-size:11px;
+                "
+            >
+
+                <thead>
+
+                    <tr
+                        style="
+                            background:#0a5c8c;
+                            color:#ffffff;
+                        "
+                    >
+
+                        <th
+                            style="
+                                width:7%;
+                                padding:8px;
+                                border:1px solid #0a5c8c;
+                            "
+                        >
+                            #
+                        </th>
+
+                        <th
+                            style="
+                                width:17%;
+                                padding:8px;
+                                border:1px solid #0a5c8c;
+                            "
+                        >
+                            Código
+                        </th>
+
+                        <th
+                            style="
+                                width:50%;
+                                padding:8px;
+                                border:1px solid #0a5c8c;
+                            "
+                        >
+                            Descripción
+                        </th>
+
+                        <th
+                            style="
+                                width:13%;
+                                padding:8px;
+                                border:1px solid #0a5c8c;
+                            "
+                        >
+                            Cantidad
+                        </th>
+
+                        <th
+                            style="
+                                width:13%;
+                                padding:8px;
+                                border:1px solid #0a5c8c;
+                            "
+                        >
+                            Unidad
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    ${
+                        filas ||
+                        `
+                            <tr>
+                                <td
+                                    colspan="5"
+                                    style="
+                                        padding:20px;
+                                        text-align:center;
+                                    "
+                                >
+                                    Sin items
+                                </td>
+                            </tr>
+                        `
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+    `;
+}
+
+
+// ============================================================
+// EXPORTAR PDF DE GUÍAS SELECCIONADAS
+// ============================================================
+async function exportarPDFSeleccionadas() {
+
+    if (
+        guiasSeleccionadasAvanzadas.size === 0
+    ) {
+
+        mostrarAlerta(
+            "Selecciona al menos una guía",
+            "error"
+        );
+
+        return;
+    }
+
+
+    const seleccionadas =
+        resultadosBusquedaAvanzada.filter(
+            guia =>
+                guiasSeleccionadasAvanzadas.has(
+                    Number(guia.id)
+                )
+        );
+
+
+    if (seleccionadas.length === 0) {
+
+        mostrarAlerta(
+            "No se encontraron las guías seleccionadas",
+            "error"
+        );
+
+        return;
+    }
+
+
+    const boton =
+        document.getElementById(
+            "btn-pdf-seleccionadas"
+        );
+
+
+    const textoOriginal =
+        boton?.innerHTML;
+
+
+    if (boton) {
+
+        boton.disabled = true;
+
+        boton.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Generando...
+        `;
+    }
+
+
+    try {
+
+        const {
+            jsPDF
+        } = window.jspdf;
+
+
+        const pdf =
+            new jsPDF(
+                "p",
+                "mm",
+                "a4"
+            );
+
+
+        const pageWidth = 210;
+        const pageHeight = 297;
+
+        const margen = 12;
+
+        const anchoUtil =
+            pageWidth -
+            margen * 2;
+
+        const altoUtil =
+            pageHeight -
+            margen * 2;
+
+
+        // ====================================================
+        // PORTADA / RESUMEN
+        // ====================================================
+        pdf.setFontSize(18);
+
+        pdf.text(
+            "RESULTADO DE BÚSQUEDA DE GUÍAS",
+            margen,
+            22
+        );
+
+
+        pdf.setFontSize(10);
+
+
+        let y = 34;
+
+
+        const agregarDato = (
+            titulo,
+            valor
+        ) => {
+
+            if (!valor) return;
+
+
+            pdf.setFont(
+                "helvetica",
+                "bold"
+            );
+
+
+            pdf.text(
+                `${titulo}:`,
+                margen,
+                y
+            );
+
+
+            pdf.setFont(
+                "helvetica",
+                "normal"
+            );
+
+
+            const texto =
+                pdf.splitTextToSize(
+                    String(valor),
+                    140
+                );
+
+
+            pdf.text(
+                texto,
+                52,
+                y
+            );
+
+
+            y +=
+                Math.max(
+                    7,
+                    texto.length * 5
+                );
+        };
+
+
+        agregarDato(
+            "Producto",
+            filtrosBusquedaAvanzadaActuales.producto
+        );
+
+
+        agregarDato(
+            "Partida",
+            filtrosBusquedaAvanzadaActuales.partida
+        );
+
+
+        agregarDato(
+            "Llegada",
+            filtrosBusquedaAvanzadaActuales.llegada
+        );
+
+
+        agregarDato(
+            "Desde",
+            filtrosBusquedaAvanzadaActuales.desde
+                ? formatearFecha(
+                    filtrosBusquedaAvanzadaActuales.desde
+                )
+                : ""
+        );
+
+
+        agregarDato(
+            "Hasta",
+            filtrosBusquedaAvanzadaActuales.hasta
+                ? formatearFecha(
+                    filtrosBusquedaAvanzadaActuales.hasta
+                )
+                : ""
+        );
+
+
+        agregarDato(
+            "Guías seleccionadas",
+            seleccionadas.length
+        );
+
+
+        // Total de coincidencias
+        const totalCoincidencias =
+            seleccionadas.reduce(
+                (total, guia) =>
+                    total +
+                    Number(
+                        guia.cantidad_coincidencias || 0
+                    ),
+                0
+            );
+
+
+        agregarDato(
+            "Coincidencias",
+            totalCoincidencias
+        );
+
+
+        pdf.setFontSize(9);
+
+        pdf.setTextColor(
+            90,
+            90,
+            90
+        );
+
+
+        pdf.text(
+            "Las filas resaltadas en amarillo corresponden al producto buscado.",
+            margen,
+            y + 8
+        );
+
+
+        pdf.setTextColor(
+            0,
+            0,
+            0
+        );
+
+
+        // ====================================================
+        // CONTENEDOR TEMPORAL
+        // ====================================================
+        const contenedor =
+            document.createElement(
+                "div"
+            );
+
+
+        contenedor.style.position =
+            "fixed";
+
+        contenedor.style.left =
+            "-10000px";
+
+        contenedor.style.top =
+            "0";
+
+        contenedor.style.width =
+            "900px";
+
+        contenedor.style.background =
+            "#ffffff";
+
+        contenedor.style.zIndex =
+            "-99999";
+
+
+        document.body.appendChild(
+            contenedor
+        );
+
+
+        // ====================================================
+        // CADA GUÍA
+        // ====================================================
+        for (
+            let index = 0;
+            index < seleccionadas.length;
+            index++
+        ) {
+
+            const guia =
+                seleccionadas[index];
+
+
+            contenedor.innerHTML =
+                crearHTMLGuiaSeleccionadaPDF(
+                    guia
+                );
+
+
+            await new Promise(
+                resolve =>
+                    setTimeout(
+                        resolve,
+                        80
+                    )
+            );
+
+
+            const canvas =
+                await html2canvas(
+                    contenedor.firstElementChild,
+                    {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor:
+                            "#ffffff"
+                    }
+                );
+
+
+            const imgData =
+                canvas.toDataURL(
+                    "image/png"
+                );
+
+
+            const imgWidth =
+                anchoUtil;
+
+
+            const imgHeight =
+                canvas.height *
+                imgWidth /
+                canvas.width;
+
+
+            pdf.addPage();
+
+
+            // ----------------------------------------------
+            // La guía entra en una página
+            // ----------------------------------------------
+            if (
+                imgHeight <= altoUtil
+            ) {
+
+                pdf.addImage(
+                    imgData,
+                    "PNG",
+                    margen,
+                    margen,
+                    imgWidth,
+                    imgHeight
+                );
+
+            }
+
+            // ----------------------------------------------
+            // La guía ocupa varias páginas
+            // ----------------------------------------------
+            else {
+
+                let heightLeft =
+                    imgHeight;
+
+
+                let position =
+                    margen;
+
+
+                pdf.addImage(
+                    imgData,
+                    "PNG",
+                    margen,
+                    position,
+                    imgWidth,
+                    imgHeight
+                );
+
+
+                heightLeft -=
+                    altoUtil;
+
+
+                while (
+                    heightLeft > 0
+                ) {
+
+                    pdf.addPage();
+
+
+                    position =
+                        margen -
+                        (
+                            imgHeight -
+                            heightLeft
+                        );
+
+
+                    pdf.addImage(
+                        imgData,
+                        "PNG",
+                        margen,
+                        position,
+                        imgWidth,
+                        imgHeight
+                    );
+
+
+                    heightLeft -=
+                        altoUtil;
+                }
+            }
+        }
+
+
+        contenedor.remove();
+
+
+        // ====================================================
+        // NOMBRE DEL ARCHIVO
+        // ====================================================
+        const producto =
+            normalizarTexto(
+                filtrosBusquedaAvanzadaActuales.producto ||
+                "busqueda"
+            )
+                .replace(/\s+/g, "_")
+                .slice(0, 35);
+
+
+        const nombreArchivo =
+            `guias_${producto}_${seleccionadas.length}.pdf`;
+
+
+        pdf.save(
+            nombreArchivo
+        );
+
+
+        mostrarAlerta(
+            `✅ PDF generado con ${seleccionadas.length} guía(s)`,
+            "success"
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "❌ Error generando PDF seleccionado:",
+            error
+        );
+
+
+        mostrarAlerta(
+            "No se pudo generar el PDF",
+            "error"
+        );
+
+    } finally {
+
+        if (boton) {
+
+            boton.disabled =
+                guiasSeleccionadasAvanzadas.size === 0;
+
+
+            boton.innerHTML =
+                textoOriginal;
+
+        }
+    }
+}
+
+// ============================================================
 // EXPORTAR EXCEL
 // ============================================================
 async function exportarExcel() {
@@ -2123,6 +3091,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const seleccionarTodas =
         document.getElementById("seleccionar-todas-guias");
+
+    const btnPdfSeleccionadas =
+        document.getElementById("btn-pdf-seleccionadas");
+
+    if (seleccionarTodas) {
+
+        seleccionarTodas.addEventListener(
+            "change",
+            event => {
+
+                seleccionarTodasGuiasAvanzadas(
+                    event.currentTarget.checked
+                );
+
+            }
+        );
+
+    }
+
+    if (btnPdfSeleccionadas) {
+
+        btnPdfSeleccionadas.addEventListener(
+            "click",
+            exportarPDFSeleccionadas
+        );
+
+    }
 
 
     if (btnToggleAvanzada) {
