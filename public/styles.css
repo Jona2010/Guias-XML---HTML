@@ -1481,13 +1481,13 @@ img {
 ============================================================ */
 
 .search-summary {
-    margin-top: 10px;
+    margin-top: 8px;
 
     flex-shrink: 0;
 
     padding:
-        12px
-        13px;
+        9px
+        10px;
 
     background:
         linear-gradient(
@@ -1500,7 +1500,7 @@ img {
         1px solid
         #c8dde8;
 
-    border-radius: 11px;
+    border-radius: 10px;
 }
 
 .search-summary-top {
@@ -1543,16 +1543,33 @@ img {
 }
 
 .criterios-busqueda-avanzada {
-    margin-top: 9px;
+    margin-top: 7px;
 
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
 
     gap: 6px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    padding-bottom: 2px;
+
+    scrollbar-width: none;
+
+    -webkit-overflow-scrolling: touch;
+}
+
+.criterios-busqueda-avanzada::-webkit-scrollbar {
+    display: none;
 }
 
 .criterio-avanzado-chip {
     max-width: 100%;
+
+    flex:
+        0 0 auto;
 
     display: inline-flex;
     align-items: center;
@@ -1601,30 +1618,32 @@ img {
 ============================================================ */
 
 .selection-toolbar {
-    margin-top: 10px;
+    margin-top: 8px;
 
     flex-shrink: 0;
 
     padding:
-        11px
-        12px;
+        8px
+        10px;
 
     border:
         1px solid
         #bcd8e7;
 
-    border-radius: 11px;
+    border-radius: 10px;
 
     background:
         #f4fafd;
 
     box-shadow:
-        0 3px 12px
-        rgba(8,119,185,.08);
+        0 2px 8px
+        rgba(8,119,185,.07);
 }
 
 .selection-toolbar-top {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
+
+    min-height: 28px;
 
     display: flex;
     align-items: center;
@@ -1680,15 +1699,27 @@ img {
     font-weight: 800;
 }
 
+.selection-toolbar-actions {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+
+    gap: 7px;
+}
+
 .selection-toolbar-actions .btn {
+    width: 100%;
+
     min-width: 0;
-    min-height: 39px;
+    min-height: 34px;
 
     padding:
-        8px
-        10px;
+        6px
+        8px;
 
-    font-size: 11px;
+    font-size: 10.5px;
 }
 
 
@@ -1697,7 +1728,7 @@ img {
 ============================================================ */
 
 .results-section {
-    margin-top: 9px;
+    margin-top: 6px;
 
     flex: 1;
     min-height: 0;
@@ -1711,16 +1742,16 @@ img {
 .results-header {
     flex-shrink: 0;
 
-    min-height: 36px;
+    min-height: 31px;
 
     display: flex;
     align-items: center;
     justify-content: space-between;
 
     padding:
-        5px
         3px
-        7px;
+        3px
+        5px;
 
     border-bottom:
         1px solid
@@ -3683,8 +3714,8 @@ mark {
     }
 
     .selection-toolbar-top {
-        align-items: flex-start;
-        flex-direction: column;
+        align-items: center;
+        flex-direction: row;
     }
 
     .selection-toolbar-actions {
