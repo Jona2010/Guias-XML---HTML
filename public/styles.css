@@ -54,7 +54,7 @@
     --radius: 14px;
     --radius-lg: 18px;
 
-    --header-height: 88px;
+    --header-height: 104px;
 
     --transition:
         .18s ease;
@@ -177,8 +177,8 @@ img {
     margin: 0 auto;
 
     padding:
-        9px
-        28px;
+        10px
+        24px;
 
     display: flex;
     align-items: center;
@@ -187,88 +187,131 @@ img {
     gap: 24px;
 }
 
+/* ============================================================
+   MARCA — LOGO HORIZONTAL COMPLETO
+============================================================ */
+
 .app-brand {
     min-width: 0;
 
     display: flex;
     align-items: center;
 
-    gap: 13px;
+    gap: 16px;
 }
 
-.app-brand-logo {
-    width: 68px;
-    height: 68px;
 
-    flex: 0 0 68px;
+.app-brand-horizontal {
+    flex: 1;
 
-    display: grid;
-    place-items: center;
+    min-width: 0;
+}
+
+
+/* ============================================================
+   CONTENEDOR DEL LOGO
+============================================================ */
+
+.app-brand-logo-horizontal {
+    width:
+        clamp(
+            360px,
+            35vw,
+            540px
+        );
+
+    height: 82px;
+
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
 
     overflow: hidden;
+
+    padding:
+        7px
+        12px;
 
     background: #ffffff;
 
     border:
-        2px solid
-        rgba(255, 255, 255, .28);
+        1px solid
+        rgba(255, 255, 255, .35);
 
     border-radius: 14px;
 
     box-shadow:
-        0 4px 14px
-        rgba(0, 0, 0, .18);
+        0 4px 15px
+        rgba(0, 0, 0, .16);
 }
 
-.logo-header {
-    width: 60px;
-    height: 60px;
 
-    max-width: none;
+/* ============================================================
+   IMAGEN
+============================================================ */
+
+.logo-header-horizontal {
+    width: 100%;
+    height: 100%;
 
     display: block;
 
     object-fit: contain;
+
+    object-position:
+        left center;
 }
 
-.app-brand-text {
-    min-width: 0;
-}
 
-.app-brand-title-row {
+/* ============================================================
+   INFORMACIÓN JUNTO AL LOGO
+============================================================ */
+
+.app-brand-info {
+    min-width: 150px;
+
     display: flex;
-    align-items: center;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
 
-    gap: 9px;
+    gap: 7px;
 }
 
-.app-brand-title-row h1 {
-    margin: 0;
 
-    color: #ffffff;
+.app-brand-description {
+    max-width: 290px;
 
-    font-size:
-        clamp(22px, 1.55vw, 27px);
+    color:
+        rgba(
+            255,
+            255,
+            255,
+            .92
+        );
 
-    line-height: 1.08;
+    font-size: 13px;
 
-    font-weight: 800;
+    line-height: 1.35;
 
-    letter-spacing: -.35px;
+    font-weight: 600;
 }
+
 
 .version {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
 
     padding:
-        4px
-        9px;
+        5px
+        10px;
 
     border:
         1px solid
-        rgba(255, 255, 255, .24);
+        rgba(255, 255, 255, .28);
 
     border-radius: 999px;
 
@@ -279,41 +322,44 @@ img {
 
     font-size: 11px;
 
+    line-height: 1;
+
     font-weight: 800;
+
+    box-shadow:
+        inset 0 1px 0
+        rgba(255, 255, 255, .08);
 }
 
-.app-brand-subtitle {
-    margin: 4px 0 0;
-
-    color:
-        rgba(255, 255, 255, .88);
-
-    font-size: 13px;
-
-    font-weight: 500;
-}
 
 .app-header-status {
+    flex: 0 0 auto;
+
     display: inline-flex;
     align-items: center;
 
-    gap: 7px;
+    gap: 8px;
 
-    padding: 7px 11px;
+    padding:
+        9px
+        13px;
 
     border:
         1px solid
-        rgba(255,255,255,.22);
+        rgba(255, 255, 255, .22);
 
     border-radius: 999px;
 
     background:
-        rgba(0,0,0,.15);
+        rgba(0, 0, 0, .15);
 
     color: #ffffff;
 
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 12px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
 }
 
 .status-dot {
@@ -846,7 +892,7 @@ img {
 
     padding:
         10px
-        42px
+        48px
         10px
         40px;
 
@@ -865,34 +911,86 @@ img {
     color: #a3b0bf;
 }
 
+/* ============================================================
+   BOTÓN LIMPIAR BUSCADOR
+============================================================ */
+
 #btn-limpiar {
-    width: 34px;
-    height: 34px;
+    width: 28px;
+    height: 28px;
 
     position: absolute;
-    right: 8px;
+
+    top: 50%;
+    right: 10px;
 
     display: none;
     place-items: center;
 
     padding: 0;
 
+    transform: translateY(-50%);
+
     border: 0;
-    border-radius: 50%;
+    border-radius: 7px;
+
+    outline: 0;
 
     background: transparent;
 
-    color:
-        var(--text-muted);
+    color: #7890a2;
 
     cursor: pointer;
 
-    font-size: 13px;
+    font-size: 14px;
+    line-height: 1;
+
+    transition:
+        color .16s ease,
+        background .16s ease,
+        transform .16s ease;
 }
 
+
+#btn-limpiar i {
+    pointer-events: none;
+}
+
+
+/* HOVER */
+
 #btn-limpiar:hover {
-    background: #edf1f5;
-    color: var(--text);
+    background:
+        #edf5f9;
+
+    color:
+        #31566d;
+}
+
+
+/* CLICK */
+
+#btn-limpiar:active {
+    transform:
+        translateY(-50%)
+        scale(.92);
+}
+
+
+/* FOCO POR TECLADO */
+
+#btn-limpiar:focus-visible {
+    background:
+        #edf5f9;
+
+    color:
+        var(--primary);
+
+    outline:
+        2px solid
+        rgba(8, 119, 185, .18);
+
+    outline-offset: 1px;
 }
 
 
@@ -3207,7 +3305,7 @@ mark {
 @media (max-width: 720px) {
 
     :root {
-        --header-height: 66px;
+        --header-height: 82px;
     }
 
 
@@ -3223,25 +3321,51 @@ mark {
         gap: 9px;
     }
 
-    .app-brand-logo {
-        width: 43px;
-        height: 43px;
+    .app-brand-horizontal {
+        width: 100%;
 
-        flex-basis: 43px;
+        gap: 10px;
     }
 
-    .logo-header {
-        width: 36px;
-        height: 36px;
+
+    .app-brand-logo-horizontal {
+        width:
+            min(
+                72vw,
+                390px
+            );
+
+        height: 64px;
+
+        flex-shrink: 1;
+
+        padding:
+            5px
+            8px;
+
+        border-radius: 10px;
     }
 
-    .app-brand-title-row h1 {
-        max-width: 230px;
 
-        font-size: 14px;
+    .logo-header-horizontal {
+        width: 100%;
+        height: 100%;
+
+        object-fit: contain;
+
+        object-position:
+            left center;
     }
 
-    .app-brand-subtitle {
+
+    .app-brand-info {
+        min-width: auto;
+
+        gap: 4px;
+    }
+
+
+    .app-brand-description {
         display: none;
     }
 
@@ -3411,10 +3535,28 @@ mark {
 
 @media (max-width: 460px) {
 
-    .app-brand-title-row h1 {
-        max-width: 190px;
+    .app-brand-logo-horizontal {
+        width:
+            min(
+                76vw,
+                320px
+            );
 
-        font-size: 13px;
+        height: 58px;
+    }
+
+
+    .app-brand-info {
+        flex-shrink: 0;
+    }
+
+
+    .app-brand-info .version {
+        padding:
+            4px
+            7px;
+
+        font-size: 9px;
     }
 
     .version {
