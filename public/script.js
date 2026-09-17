@@ -1926,9 +1926,41 @@ function limpiarBusquedaAvanzada() {
 }
 
 // ============================================================
+// DIVIDIR ITEMS DE UNA GUÍA EN PÁGINAS
+// ============================================================
+function dividirItemsGuiaPDF(items, porPagina = 12) {
+
+    const paginas = [];
+
+    for (
+        let i = 0;
+        i < items.length;
+        i += porPagina
+    ) {
+
+        paginas.push(
+            items.slice(
+                i,
+                i + porPagina
+            )
+        );
+
+    }
+
+    return paginas.length
+        ? paginas
+        : [[]];
+}
+
+// ============================================================
 // CREAR HTML DE UNA GUÍA PARA PDF DE BÚSQUEDA AVANZADA
 // ============================================================
-function crearHTMLGuiaSeleccionadaPDF(g) {
+function crearHTMLGuiaSeleccionadaPDF(
+    g,
+    itemsPagina,
+    paginaActual,
+    totalPaginas
+) {
 
     const idsCoincidentes = new Set(
         (g.items_coincidentes || [])
@@ -1977,8 +2009,8 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
 
 
     const items =
-        Array.isArray(g.items)
-            ? g.items
+        Array.isArray(itemsPagina)
+            ? itemsPagina
             : [];
 
 
@@ -2015,7 +2047,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
 
                 <td
                     style="
-                        padding:7px;
+                        padding:9px;
                         text-align:center;
                         border:1px solid #d9e2ea;
                     "
@@ -2031,7 +2063,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
 
                 <td
                     style="
-                        padding:7px;
+                        padding:9px;
                         border:1px solid #d9e2ea;
                     "
                 >
@@ -2045,7 +2077,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
 
                 <td
                     style="
-                        padding:7px;
+                        padding:9px;
                         border:1px solid #d9e2ea;
                         font-weight:${
                             coincide
@@ -2067,7 +2099,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
                                     style="
                                         margin-top:3px;
                                         color:#8a6500;
-                                        font-size:9px;
+                                        font-size:10px;
                                         font-weight:700;
                                     "
                                 >
@@ -2081,7 +2113,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
 
                 <td
                     style="
-                        padding:7px;
+                        padding:9px;
                         text-align:center;
                         border:1px solid #d9e2ea;
                     "
@@ -2096,7 +2128,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
 
                 <td
                     style="
-                        padding:7px;
+                        padding:9px;
                         text-align:center;
                         border:1px solid #d9e2ea;
                     "
@@ -2121,7 +2153,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
                 background:#ffffff;
                 color:#1f2937;
                 font-family:Arial, sans-serif;
-                padding:28px;
+                padding:22px;
                 box-sizing:border-box;
             "
         >
@@ -2137,7 +2169,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
 
                 <div
                     style="
-                        font-size:22px;
+                        font-size:24px;
                         font-weight:700;
                         color:#0a5c8c;
                     "
@@ -2148,7 +2180,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
                 <div
                     style="
                         margin-top:5px;
-                        font-size:18px;
+                        font-size:20px;
                         font-weight:700;
                     "
                 >
@@ -2161,7 +2193,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
                     style="
                         margin-top:4px;
                         color:#64748b;
-                        font-size:12px;
+                        font-size:13px;
                     "
                 >
                     Fecha:
@@ -2182,6 +2214,17 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
                     }
                 </div>
 
+                <div
+                    style="
+                        margin-top:4px;
+                        color:#64748b;
+                        font-size:12px;
+                        font-weight:700;
+                    "
+                >
+                    Página ${paginaActual} de ${totalPaginas}
+                </div>
+
             </div>
 
 
@@ -2197,7 +2240,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
 
                 <div
                     style="
-                        padding:10px;
+                        padding:11px;
                         background:#f8fafc;
                         border:1px solid #e2e8f0;
                         border-radius:6px;
@@ -2213,7 +2256,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
 
                     <span
                         style="
-                            font-size:11px;
+                            font-size:12px;
                             color:#64748b;
                         "
                     >
@@ -2296,7 +2339,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
                                 padding:9px 11px;
                                 border-left:4px solid #e0a800;
                                 background:#fff9df;
-                                font-size:11px;
+                                font-size:12px;
                             "
                         >
 
@@ -2330,7 +2373,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
                 style="
                     width:100%;
                     border-collapse:collapse;
-                    font-size:11px;
+                    font-size:12px;
                 "
             >
 
@@ -2346,7 +2389,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
                         <th
                             style="
                                 width:7%;
-                                padding:8px;
+                                padding:9px;
                                 border:1px solid #0a5c8c;
                             "
                         >
@@ -2356,7 +2399,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
                         <th
                             style="
                                 width:17%;
-                                padding:8px;
+                                padding:9px;
                                 border:1px solid #0a5c8c;
                             "
                         >
@@ -2366,7 +2409,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
                         <th
                             style="
                                 width:50%;
-                                padding:8px;
+                                padding:9px;
                                 border:1px solid #0a5c8c;
                             "
                         >
@@ -2376,7 +2419,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
                         <th
                             style="
                                 width:13%;
-                                padding:8px;
+                                padding:9px;
                                 border:1px solid #0a5c8c;
                             "
                         >
@@ -2386,7 +2429,7 @@ function crearHTMLGuiaSeleccionadaPDF(g) {
                         <th
                             style="
                                 width:13%;
-                                padding:8px;
+                                padding:9px;
                                 border:1px solid #0a5c8c;
                             "
                         >
@@ -2503,7 +2546,7 @@ async function exportarPDFSeleccionadas() {
         const pageWidth = 210;
         const pageHeight = 297;
 
-        const margen = 12;
+        const margen = 8;
 
         const anchoUtil =
             pageWidth -
@@ -3234,137 +3277,143 @@ async function exportarPDFSeleccionadas() {
 
 
         // ====================================================
-        // CADA GUÍA
+        // CADA GUÍA - PAGINACIÓN REAL
         // ====================================================
         for (
-            let index = 0;
-            index < seleccionadas.length;
-            index++
+            let indexGuia = 0;
+            indexGuia < seleccionadas.length;
+            indexGuia++
         ) {
 
             const guia =
-                seleccionadas[index];
+                seleccionadas[indexGuia];
 
 
-            contenedor.innerHTML =
-                crearHTMLGuiaSeleccionadaPDF(
-                    guia
+            const itemsGuia =
+                Array.isArray(guia.items)
+                    ? guia.items
+                    : [];
+
+
+            // Dividimos la guía antes de convertirla en imagen.
+            // Así nunca cortamos una tabla enorme con offsets.
+            const paginasItems =
+                dividirItemsGuiaPDF(
+                    itemsGuia
                 );
 
 
-            await new Promise(
-                resolve =>
-                    setTimeout(
-                        resolve,
-                        80
-                    )
-            );
-
-
-            const canvas =
-                await html2canvas(
-                    contenedor.firstElementChild,
-                    {
-                        scale: 2,
-                        useCORS: true,
-                        backgroundColor:
-                            "#ffffff"
-                    }
-                );
-
-
-            const imgData =
-                canvas.toDataURL(
-                    "image/png"
-                );
-
-
-            const imgWidth =
-                anchoUtil;
-
-
-            const imgHeight =
-                canvas.height *
-                imgWidth /
-                canvas.width;
-
-
-            pdf.addPage();
-
-
-            // ----------------------------------------------
-            // La guía entra en una página
-            // ----------------------------------------------
-            if (
-                imgHeight <= altoUtil
+            for (
+                let paginaGuia = 0;
+                paginaGuia < paginasItems.length;
+                paginaGuia++
             ) {
 
-                pdf.addImage(
-                    imgData,
-                    "PNG",
-                    margen,
-                    margen,
-                    imgWidth,
-                    imgHeight
-                );
-
-            }
-
-            // ----------------------------------------------
-            // La guía ocupa varias páginas
-            // ----------------------------------------------
-            else {
-
-                let heightLeft =
-                    imgHeight;
+                const itemsPagina =
+                    paginasItems[paginaGuia];
 
 
-                let position =
-                    margen;
+                const numeroPagina =
+                    paginaGuia + 1;
 
 
-                pdf.addImage(
-                    imgData,
-                    "PNG",
-                    margen,
-                    position,
-                    imgWidth,
-                    imgHeight
-                );
+                const totalPaginasGuia =
+                    paginasItems.length;
 
 
-                heightLeft -=
-                    altoUtil;
-
-
-                while (
-                    heightLeft > 0
-                ) {
-
-                    pdf.addPage();
-
-
-                    position =
-                        margen -
-                        (
-                            imgHeight -
-                            heightLeft
-                        );
-
-
-                    pdf.addImage(
-                        imgData,
-                        "PNG",
-                        margen,
-                        position,
-                        imgWidth,
-                        imgHeight
+                // --------------------------------------------------
+                // Crear solamente ESTA página de la guía
+                // --------------------------------------------------
+                contenedor.innerHTML =
+                    crearHTMLGuiaSeleccionadaPDF(
+                        guia,
+                        itemsPagina,
+                        numeroPagina,
+                        totalPaginasGuia
                     );
 
 
-                    heightLeft -=
-                        altoUtil;
-                }
+                await new Promise(
+                    resolve =>
+                        setTimeout(
+                            resolve,
+                            60
+                        )
+                );
+
+
+                const elementoPagina =
+                    contenedor.firstElementChild;
+
+
+                const canvas =
+                    await html2canvas(
+                        elementoPagina,
+                        {
+                            scale: 2.4,
+                            useCORS: true,
+                            backgroundColor: "#ffffff"
+                        }
+                    );
+
+
+                const imgData =
+                    canvas.toDataURL(
+                        "image/png"
+                    );
+
+
+                const imgWidth =
+                    anchoUtil;
+
+
+                const imgHeightNatural =
+                    canvas.height *
+                    imgWidth /
+                    canvas.width;
+
+
+                // Evitar que una página ligeramente alta
+                // se salga del área A4.
+                const escala =
+                    imgHeightNatural > altoUtil
+                        ? altoUtil /
+                            imgHeightNatural
+                        : 1;
+
+
+                const imgWidthFinal =
+                    imgWidth *
+                    escala;
+
+
+                const imgHeightFinal =
+                    imgHeightNatural *
+                    escala;
+
+
+                // Centrar horizontalmente si se redujo
+                const xFinal =
+                    margen +
+                    (
+                        anchoUtil -
+                        imgWidthFinal
+                    ) / 2;
+
+
+                // Cada bloque generado corresponde
+                // exactamente a una nueva página.
+                pdf.addPage();
+
+
+                pdf.addImage(
+                    imgData,
+                    "PNG",
+                    xFinal,
+                    margen,
+                    imgWidthFinal,
+                    imgHeightFinal
+                );
             }
         }
 
@@ -3682,23 +3731,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
     }
-
-
-    if (seleccionarTodas) {
-
-        seleccionarTodas.addEventListener(
-            "change",
-            event => {
-
-                seleccionarTodasGuiasAvanzadas(
-                    event.currentTarget.checked
-                );
-
-            }
-        );
-
-    }
-
 
     // Enter también ejecuta la búsqueda avanzada
     [
