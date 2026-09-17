@@ -3350,7 +3350,7 @@ async function exportarPDFSeleccionadas() {
                     await html2canvas(
                         elementoPagina,
                         {
-                            scale: 2.4,
+                            scale: 1.8,
                             useCORS: true,
                             backgroundColor: "#ffffff"
                         }
@@ -3359,7 +3359,8 @@ async function exportarPDFSeleccionadas() {
 
                 const imgData =
                     canvas.toDataURL(
-                        "image/png"
+                        "image/jpeg",
+                        0.82
                     );
 
 
@@ -3408,11 +3409,13 @@ async function exportarPDFSeleccionadas() {
 
                 pdf.addImage(
                     imgData,
-                    "PNG",
+                    "JPEG",
                     xFinal,
                     margen,
                     imgWidthFinal,
-                    imgHeightFinal
+                    imgHeightFinal,
+                    undefined,
+                    "FAST"
                 );
             }
         }
