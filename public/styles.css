@@ -691,10 +691,10 @@ img {
         calc(
             100vh -
             var(--header-height) -
-            126px
+            70px
         );
 
-    min-height: 560px;
+    min-height: 620px;
 
     position: sticky;
     top: calc(var(--header-height) + 12px);
@@ -1558,34 +1558,24 @@ img {
     width: 100%;
 
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
 
     gap: 6px;
 
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: visible;
 
     padding:
         1px
         2px
-        3px;
-
-    scroll-behavior: smooth;
-
-    scrollbar-width: none;
-
-    -webkit-overflow-scrolling: touch;
-}
-
-.criterios-busqueda-avanzada::-webkit-scrollbar {
-    display: none;
+        2px;
 }
 
 .criterio-avanzado-chip {
-    max-width: 190px;
+    max-width: 100%;
 
     flex:
-        0 0 auto;
+        0 1 auto;
 
     display: inline-flex;
     align-items: center;
