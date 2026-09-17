@@ -1808,6 +1808,155 @@ img {
     margin-top: 7px;
 }
 
+/* ============================================================
+   MODO RESULTADOS AVANZADOS
+   Prioriza verticalmente el listado de guías
+============================================================ */
+
+.search-panel.modo-resultados-avanzados
+.search-summary {
+
+    margin-top: 6px;
+
+    padding:
+        7px
+        9px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.search-summary-top {
+
+    min-height: 22px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.criterios-busqueda-avanzada {
+
+    margin-top: 5px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.criterio-avanzado-chip {
+
+    padding:
+        4px
+        7px;
+
+    font-size: 9.5px;
+}
+
+
+/* ============================================================
+   BARRA DE SELECCIÓN COMPACTA
+============================================================ */
+
+.search-panel.modo-resultados-avanzados
+.selection-toolbar {
+
+    margin-top: 6px;
+
+    padding:
+        6px
+        8px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.selection-toolbar-top {
+
+    min-height: 23px;
+
+    margin-bottom: 4px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.seleccionar-todas-wrapper {
+
+    gap: 6px;
+
+    font-size: 10.5px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.seleccionar-todas-wrapper input {
+
+    width: 15px;
+    height: 15px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.contador-seleccionadas {
+
+    padding:
+        3px
+        7px;
+
+    font-size: 9px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.selection-toolbar-actions {
+
+    gap: 6px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.selection-toolbar-actions .btn {
+
+    min-height: 30px;
+
+    padding:
+        5px
+        7px;
+
+    font-size: 9.5px;
+}
+
+
+/* ============================================================
+   LISTADO
+============================================================ */
+
+.search-panel.modo-resultados-avanzados
+.results-section {
+
+    margin-top: 4px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.results-header {
+
+    min-height: 28px;
+
+    padding:
+        2px
+        3px
+        4px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.results-container {
+
+    margin-top: 4px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+#historial-avanzado {
+
+    margin-top: 3px;
+}
+
 
 /* ============================================================
    18. HISTORIAL TABLE
@@ -2548,6 +2697,108 @@ img {
 }
 
 /* ============================================================
+   TARJETAS COMPACTAS EN MODO RESULTADOS
+============================================================ */
+
+.search-panel.modo-resultados-avanzados
+.guia-avanzada-card {
+
+    margin-bottom: 7px;
+
+    padding:
+        9px
+        10px;
+
+    border-radius: 9px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.guia-avanzada-selector {
+
+    gap: 8px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.guia-avanzada-selector > input {
+
+    width: 15px;
+    height: 15px;
+
+    margin-top: 1px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.guia-avanzada-header {
+
+    margin-bottom: 4px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.guia-avanzada-numero {
+
+    font-size: 13px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.guia-avanzada-fecha {
+
+    font-size: 9.5px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.search-client {
+
+    margin-bottom: 4px;
+
+    font-size: 9.5px;
+}
+
+
+/* Ruta en una sola fila */
+
+.search-panel.modo-resultados-avanzados
+.guia-avanzada-ruta {
+
+    margin-top: 5px;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+
+    gap: 6px;
+
+    padding:
+        6px
+        8px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.guia-avanzada-ruta-item {
+
+    gap: 5px;
+
+    font-size: 9px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.guia-avanzada-ruta-item span {
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+/* ============================================================
    22. MATCHES — V2
 ============================================================ */
 
@@ -2630,6 +2881,65 @@ img {
     font-weight: 600;
 }
 
+/* ============================================================
+   COINCIDENCIA COMPACTA
+============================================================ */
+
+.search-panel.modo-resultados-avanzados
+.coincidencias-avanzadas {
+
+    margin-top: 5px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.coincidencias-avanzadas-titulo {
+
+    margin-bottom: 3px;
+
+    font-size: 9.5px;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.item-coincidente-avanzado {
+
+    margin-top: 3px;
+
+    padding:
+        6px
+        8px;
+
+    font-size: 10px;
+
+    line-height: 1.3;
+}
+
+
+.search-panel.modo-resultados-avanzados
+.item-coincidente-meta {
+
+    margin-top: 2px;
+
+    gap:
+        4px
+        8px;
+
+    font-size: 8.5px;
+}
+
+
+.coincidencias-mas {
+
+    margin-top: 4px;
+
+    color:
+        #6a7f8e;
+
+    font-size: 9px;
+
+    font-weight: 700;
+}
 
 /* ============================================================
    23. VIEWER

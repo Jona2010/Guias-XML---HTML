@@ -1467,12 +1467,33 @@ function toggleBusquedaAvanzada() {
     );
 
 
-    // Cuando se abre búsqueda avanzada,
-    // ocultamos búsqueda rápida para recuperar espacio.
+    // ========================================================
+    // BÚSQUEDA RÁPIDA
+    // Si existen resultados avanzados, permanece oculta
+    // aunque cerremos el formulario avanzado.
+    // ========================================================
+
+    const panelBusqueda =
+        document.querySelector(
+            ".search-panel"
+        );
+
+
+    const modoResultados =
+        panelBusqueda
+            ?.classList
+            .contains(
+                "modo-resultados-avanzados"
+            );
+
+
     if (busquedaRapida) {
 
         busquedaRapida.style.display =
-            abrir
+            (
+                abrir ||
+                modoResultados
+            )
                 ? "none"
                 : "block";
 
@@ -1495,6 +1516,117 @@ function toggleBusquedaAvanzada() {
     }
 }
 
+// ============================================================
+// MODO RESULTADOS DE BÚSQUEDA AVANZADA
+// ============================================================
+
+function activarModoResultadosAvanzados() {
+
+    const searchPanel =
+        document.querySelector(
+            ".search-panel"
+        );
+
+
+    const panel =
+        document.getElementById(
+            "panel-busqueda-avanzada"
+        );
+
+
+    const boton =
+        document.getElementById(
+            "btn-toggle-avanzada"
+        );
+
+
+    const busquedaRapida =
+        document.querySelector(
+            ".search-section-basic"
+        );
+
+
+    // Activar diseño compacto
+    if (searchPanel) {
+
+        searchPanel.classList.add(
+            "modo-resultados-avanzados"
+        );
+
+    }
+
+
+    // Cerrar formulario avanzado
+    if (panel) {
+
+        panel.style.display =
+            "none";
+
+    }
+
+
+    // Flecha / estado del botón
+    if (boton) {
+
+        boton.classList.remove(
+            "activo"
+        );
+
+        boton.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+
+    }
+
+
+    // Ocultar búsqueda rápida
+    // para entregar espacio al listado
+    if (busquedaRapida) {
+
+        busquedaRapida.style.display =
+            "none";
+
+    }
+
+}
+
+
+// ============================================================
+// SALIR DEL MODO RESULTADOS AVANZADOS
+// ============================================================
+
+function desactivarModoResultadosAvanzados() {
+
+    const searchPanel =
+        document.querySelector(
+            ".search-panel"
+        );
+
+
+    const busquedaRapida =
+        document.querySelector(
+            ".search-section-basic"
+        );
+
+
+    if (searchPanel) {
+
+        searchPanel.classList.remove(
+            "modo-resultados-avanzados"
+        );
+
+    }
+
+
+    if (busquedaRapida) {
+
+        busquedaRapida.style.display =
+            "block";
+
+    }
+
+}
 
 // ============================================================
 // BÚSQUEDA AVANZADA - EJECUTAR
@@ -1726,18 +1858,11 @@ async function buscarGuiasAvanzado() {
     // ========================================================
     resultadosBusquedaAvanzada = data.data;
 
+    // ========================================================
+    // ENTREGAR ESPACIO AL LISTADO
+    // ========================================================
 
-    /*console.log(
-        "✅ RESULTADOS GUARDADOS EN JS:",
-        resultadosBusquedaAvanzada.length
-    );
-
-
-    console.log(
-        "✅ PRIMER RESULTADO:",
-        resultadosBusquedaAvanzada[0]
-    );*/
-
+    activarModoResultadosAvanzados();
 
     // ========================================================
     // LIMPIAR SELECCIÓN ANTERIOR
@@ -1816,6 +1941,19 @@ function renderResultadosBusquedaAvanzada(guias) {
             Array.isArray(g.items_coincidentes)
                 ? g.items_coincidentes
                 : [];
+
+        const coincidenciasMostrar =
+            coincidencias.slice(
+                0,
+                1
+            );
+
+
+        const coincidenciasRestantes =
+            Math.max(
+                0,
+                coincidencias.length - 1
+            );
 
 
         html += `
@@ -1922,7 +2060,7 @@ function renderResultadosBusquedaAvanzada(guias) {
                             ${
                                 coincidencias.length > 0
 
-                                ? coincidencias
+                                ? coincidenciasMostrar
                                     .map(item => `
 
                                         <div class="item-coincidente-avanzado">
@@ -1966,6 +2104,23 @@ function renderResultadosBusquedaAvanzada(guias) {
 
                                     `)
                                     .join("")
+
+                                + (
+                                    coincidenciasRestantes > 0
+
+                                        ? `
+                                            <div class="coincidencias-mas">
+                                                +${coincidenciasRestantes}
+                                                ${
+                                                    coincidenciasRestantes === 1
+                                                        ? "coincidencia más"
+                                                        : "coincidencias más"
+                                                }
+                                            </div>
+                                        `
+
+                                        : ""
+                                )
 
                                 : `
                                     <div
@@ -2479,6 +2634,10 @@ function limpiarBusquedaAvanzada() {
         seleccionarTodas.indeterminate = false;
 
     }
+
+    // Restaurar diseño normal
+    desactivarModoResultadosAvanzados();
+
 
     pagina = 0;
 
