@@ -218,7 +218,13 @@ app.get("/buscar", async (req, res) => {
                 ) LIKE ?
 
             ORDER BY
-                g.fecha_emision DESC,
+                COALESCE(
+                    g.fecha_inicio_traslado,
+                    g.fecha_emision
+                ) DESC,
+
+                g.hora_emision DESC,
+
                 g.id DESC
 
             LIMIT 100
@@ -520,7 +526,12 @@ app.get("/buscar-avanzado", async (req, res) => {
         if (desde) {
 
             condiciones.push(`
-                g.fecha_emision >= ?
+
+                COALESCE(
+                    g.fecha_inicio_traslado,
+                    g.fecha_emision
+                ) >= ?
+
             `);
 
             params.push(desde);
@@ -533,7 +544,16 @@ app.get("/buscar-avanzado", async (req, res) => {
         if (hasta) {
 
             condiciones.push(`
-                g.fecha_emision < DATE_ADD(?, INTERVAL 1 DAY)
+
+                COALESCE(
+                    g.fecha_inicio_traslado,
+                    g.fecha_emision
+                )
+                < DATE_ADD(
+                    ?,
+                    INTERVAL 1 DAY
+                )
+
             `);
 
             params.push(hasta);
@@ -554,8 +574,13 @@ app.get("/buscar-avanzado", async (req, res) => {
                 ${condiciones.join(" AND ")}
 
             ORDER BY
-                g.fecha_emision DESC,
+                COALESCE(
+                    g.fecha_inicio_traslado,
+                    g.fecha_emision
+                ) DESC,
+
                 g.hora_emision DESC,
+
                 g.id DESC
 
             LIMIT 200
@@ -802,24 +827,53 @@ app.post("/guardar-guia", async (req, res) => {
             });
         }
 
-        const [result] = await pool.query(`
-            INSERT INTO guias
-            (numero, fecha_emision, hora_emision, remitente_ruc,
-             remitente_nombre, destinatario_nombre, motivo, peso_total,
-             direccion_partida, direccion_llegada)
-            VALUES (?,?,?,?,?,?,?,?,?,?)
-        `, [
-            g.numero,
-            g.fecha_emision,
-            g.hora_emision,
-            g.remitente.ruc,
-            g.remitente.razon_social,
-            g.destinatario.nombre,
-            g.traslado.motivo,
-            g.traslado.peso_total,
-            g.partida.direccion,
-            g.llegada.direccion
-        ]);
+        const [result] =
+            await pool.query(
+                `
+                INSERT INTO guias
+                (
+                    numero,
+                    fecha_emision,
+                    hora_emision,
+                    fecha_inicio_traslado,
+                    remitente_ruc,
+                    remitente_nombre,
+                    destinatario_nombre,
+                    motivo,
+                    peso_total,
+                    direccion_partida,
+                    direccion_llegada
+                )
+                VALUES
+                (
+                    ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?
+                )
+                `,
+                [
+                    g.numero,
+
+                    g.fecha_emision || null,
+
+                    g.hora_emision || null,
+
+                    g.fecha_inicio_traslado || null,
+
+                    g.remitente.ruc,
+
+                    g.remitente.razon_social,
+
+                    g.destinatario.nombre,
+
+                    g.traslado.motivo,
+
+                    g.traslado.peso_total,
+
+                    g.partida.direccion,
+
+                    g.llegada.direccion
+                ]
+            );
 
         const guiaId = result.insertId;
 
@@ -899,8 +953,13 @@ app.get("/guias", async (req, res) => {
                 FROM guias
 
                 ORDER BY
-                    fecha_emision DESC,
+                    COALESCE(
+                        fecha_inicio_traslado,
+                        fecha_emision
+                    ) DESC,
+
                     hora_emision DESC,
+
                     id DESC
 
                 LIMIT ? OFFSET ?
@@ -1018,34 +1077,86 @@ app.get("/guias/:id", async (req, res) => {
 // ----------------------
 app.get("/buscar-por-fecha", async (req, res) => {
 
-    const { desde, hasta } = req.query;
+    const {
+        desde,
+        hasta
+    } =
+        req.query;
+
 
     try {
 
-        const [rows] = await pool.query(`
-            SELECT *
-            FROM guias
-            WHERE fecha_emision >= ?
-            AND fecha_emision < DATE_ADD(?, INTERVAL 1 DAY)
-            ORDER BY fecha_emision DESC
-        `, [desde, hasta]);
+        const [rows] =
+            await pool.query(
+                `
+                SELECT *
+                FROM guias
 
-        console.log("🔎 FILTRO:", desde, hasta);
-        console.log("📦 RESULTADOS:", rows.length);
+                WHERE
+                    COALESCE(
+                        fecha_inicio_traslado,
+                        fecha_emision
+                    ) >= ?
+
+                AND
+                    COALESCE(
+                        fecha_inicio_traslado,
+                        fecha_emision
+                    )
+                    < DATE_ADD(
+                        ?,
+                        INTERVAL 1 DAY
+                    )
+
+                ORDER BY
+                    COALESCE(
+                        fecha_inicio_traslado,
+                        fecha_emision
+                    ) DESC,
+
+                    hora_emision DESC,
+
+                    id DESC
+                `,
+                [
+                    desde,
+                    hasta
+                ]
+            );
+
+
+        console.log(
+            "🔎 FILTRO:",
+            desde,
+            hasta
+        );
+
+
+        console.log(
+            "📦 RESULTADOS:",
+            rows.length
+        );
+
 
         res.json({
             ok: true,
             data: rows
         });
 
+
     } catch (error) {
+
         console.error(error);
 
-        res.json({
+
+        res.status(500).json({
             ok: false,
-            mensaje: "Error en servidor"
+            mensaje:
+                "Error en servidor"
         });
+
     }
+
 });
 
 // ----------------------
@@ -1072,7 +1183,19 @@ app.get("/buscar-por-direccion", async (req, res) => {
             params.push(`%${llegada.trim()}%`);
         }
 
-        sql += ` ORDER BY g.fecha_emision DESC, g.hora_emision DESC LIMIT 100`;
+        sql += `
+            ORDER BY
+                COALESCE(
+                    g.fecha_inicio_traslado,
+                    g.fecha_emision
+                ) DESC,
+
+                g.hora_emision DESC,
+
+                g.id DESC
+
+            LIMIT 100
+        `;
 
         const [rows] = await pool.query(sql, params);
 

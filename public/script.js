@@ -124,25 +124,142 @@ async function leerGuia() {
         const xml = new DOMParser().parseFromString(e.target.result, "text/xml");
 
         let guia = {};
-        guia.numero = val(xml, UBL.cbc, "ID");
-        guia.fecha_emision = val(xml, UBL.cbc, "IssueDate");
-        guia.hora_emision = val(xml, UBL.cbc, "IssueTime");
 
-        const remitente = first(xml, UBL.cac, "DespatchSupplierParty");
+        // ========================================================
+        // IDENTIFICACIÓN
+        // ========================================================
+
+        guia.numero =
+            val(
+                xml,
+                UBL.cbc,
+                "ID"
+            );
+
+
+        guia.fecha_emision =
+            val(
+                xml,
+                UBL.cbc,
+                "IssueDate"
+            );
+
+
+        guia.hora_emision =
+            val(
+                xml,
+                UBL.cbc,
+                "IssueTime"
+            );
+
+
+        // ========================================================
+        // REMITENTE
+        // ========================================================
+
+        const remitente =
+            first(
+                xml,
+                UBL.cac,
+                "DespatchSupplierParty"
+            );
+
+
         guia.remitente = {
-            ruc: val(remitente, UBL.cbc, "ID"),
-            razon_social: val(remitente, UBL.cbc, "RegistrationName")
+
+            ruc:
+                val(
+                    remitente,
+                    UBL.cbc,
+                    "ID"
+                ),
+
+            razon_social:
+                val(
+                    remitente,
+                    UBL.cbc,
+                    "RegistrationName"
+                )
+
         };
 
-        const destinatario = first(xml, UBL.cac, "DeliveryCustomerParty");
+
+        // ========================================================
+        // DESTINATARIO
+        // ========================================================
+
+        const destinatario =
+            first(
+                xml,
+                UBL.cac,
+                "DeliveryCustomerParty"
+            );
+
+
         guia.destinatario = {
-            nombre: val(destinatario, UBL.cbc, "RegistrationName")
+
+            nombre:
+                val(
+                    destinatario,
+                    UBL.cbc,
+                    "RegistrationName"
+                )
+
         };
 
-        const shipment = first(xml, UBL.cac, "Shipment");
+
+        // ========================================================
+        // TRASLADO
+        // ========================================================
+
+        const shipment =
+            first(
+                xml,
+                UBL.cac,
+                "Shipment"
+            );
+
+
+        const shipmentStage =
+            first(
+                shipment,
+                UBL.cac,
+                "ShipmentStage"
+            );
+
+
+        const transitPeriod =
+            first(
+                shipmentStage,
+                UBL.cac,
+                "TransitPeriod"
+            );
+
+
+        guia.fecha_inicio_traslado =
+            val(
+                transitPeriod,
+                UBL.cbc,
+                "StartDate"
+            ) || null;
+
+
         guia.traslado = {
-            motivo: val(shipment, UBL.cbc, "HandlingInstructions"),
-            peso_total: val(shipment, UBL.cbc, "GrossWeightMeasure")
+
+            motivo:
+                val(
+                    shipment,
+                    UBL.cbc,
+                    "HandlingInstructions"
+                ),
+
+            peso_total:
+                val(
+                    shipment,
+                    UBL.cbc,
+                    "GrossWeightMeasure"
+                )
+
         };
 
         const deliveryAddress = first(xml, UBL.cac, "DeliveryAddress");
@@ -190,6 +307,23 @@ async function leerGuia() {
             });
         }
 
+        console.log(
+            "📅 Fechas XML:",
+            {
+                numero:
+                    guia.numero,
+
+                fecha_emision:
+                    guia.fecha_emision,
+
+                hora_emision:
+                    guia.hora_emision,
+
+                fecha_inicio_traslado:
+                    guia.fecha_inicio_traslado
+            }
+        );
+
         console.log(`📄 ${guia.numero} → ${guia.items.length} items`);
         mostrarGuiaBonita(guia);
         await guardarGuia(guia);
@@ -204,8 +338,19 @@ async function leerGuia() {
 function mostrarGuiaBonita(g) {
     let html = `
     <div class="guia-card">
+
         <div class="guia-header">
-            <h3>📄 ${g.numero} <small>${formatearFecha(g.fecha_emision)} ${g.hora_emision || ""}</small></h3>
+
+            <h3>
+                📄 ${escapeHtml(g.numero || "Sin número")}
+
+                <small>
+                    Emisión:
+                    ${formatearFecha(g.fecha_emision)}
+                    ${g.hora_emision || ""}
+                </small>
+            </h3>
+
         </div>
 
         <div class="guia-meta">
@@ -225,6 +370,22 @@ function mostrarGuiaBonita(g) {
                 <label>Peso total</label>
                 <span>${g.traslado.peso_total || "0"} kg</span>
             </div>
+            <div class="guia-meta-item">
+                <label>
+                    Inicio de traslado
+                </label>
+
+                <span>
+                    ${
+                        g.fecha_inicio_traslado
+                            ? formatearFecha(
+                                g.fecha_inicio_traslado
+                            )
+                            : "No registrado"
+                    }
+                </span>
+            </div>
+
         </div>
 
         <div class="guia-direcciones">
@@ -370,9 +531,17 @@ async function verGuiaPorId(id) {
     }
 
     const guia = {
-        numero: g.numero || "",
-        fecha_emision: g.fecha_emision || "",
-        hora_emision: g.hora_emision || "",
+        numero:
+            g.numero || "",
+
+        fecha_emision:
+            g.fecha_emision || "",
+
+        hora_emision:
+            g.hora_emision || "",
+
+        fecha_inicio_traslado:
+            g.fecha_inicio_traslado || "",
         remitente: {
             ruc: g.remitente_ruc || "-",
             razon_social: g.remitente_nombre || "-"
@@ -690,7 +859,7 @@ async function mostrarHistorial() {
             <tr>
                 <th style="width:35%;">N° Guía</th>
                 <th style="width:40%;">Cliente</th>
-                <th style="width:25%;">Fecha</th>
+                <th style="width:25%;">Traslado</th>
             </tr>
         </thead>
         <tbody>
@@ -702,7 +871,15 @@ async function mostrarHistorial() {
         <tr data-id="${g.id}" onclick="seleccionarGuia(this, ${g.id})">
             <td><span class="guia-numero">📄 ${g.numero}</span></td>
             <td><span class="guia-cliente" title="${cliente}">${cliente}</span></td>
-            <td><span class="guia-fecha">${formatearFecha(g.fecha_emision)}</span></td>
+            <td>
+                <span class="guia-fecha">
+                    ${
+                        formatearFecha(
+                            obtenerFechaOperativa(g)
+                        )
+                    }
+                </span>
+            </td>
         </tr>`;
     });
 
@@ -783,21 +960,41 @@ async function filtrarGuias() {
     }
 
     // Ordenar por número de guía (de mayor a menor por defecto)
-    const resultados = data.data
-        .map(g => ({
-            ...g,
-            __score: calcularRelevancia(g, texto)
-        }))
-        .sort((a, b) => {
-            const fechaA = a.fecha_emision || "";
-            const fechaB = b.fecha_emision || "";
+    const resultados =
+        data.data
+            .map(g => ({
+                ...g,
 
-            if (fechaA !== fechaB) {
-                return fechaB.localeCompare(fechaA);
-            }
+                __score:
+                    calcularRelevancia(
+                        g,
+                        texto
+                    )
+            }))
+            .sort((a, b) => {
 
-            return (b.id || 0) - (a.id || 0);
-        });
+                const fechaA =
+                    obtenerFechaOperativa(a);
+
+                const fechaB =
+                    obtenerFechaOperativa(b);
+
+
+                if (fechaA !== fechaB) {
+
+                    return fechaB.localeCompare(
+                        fechaA
+                    );
+
+                }
+
+
+                return (
+                    (b.id || 0) -
+                    (a.id || 0)
+                );
+
+            });
 
     renderResultadosBusqueda(resultados, texto);
 }
@@ -878,7 +1075,13 @@ function renderResultadosBusqueda(resultados, texto) {
         <div class="search-result-card" onclick="seleccionarGuia(this, ${g.id})">
             <div class="search-card-header">
                 <span class="numero">📄 ${resaltarTexto(g.numero, texto)}</span>
-                <span class="fecha">${formatearFecha(g.fecha_emision)}</span>
+                <span class="fecha">
+                    ${
+                        formatearFecha(
+                            obtenerFechaOperativa(g)
+                        )
+                    }
+                </span>
             </div>
             <div class="search-client">
                 <i class="fa-regular fa-user"></i>
@@ -965,6 +1168,25 @@ function mostrarControlesOrdenamiento(mostrar) {
 function toggleOrdenDireccion() {
     if (resultadosBusqueda.length === 0) return;
     ordenarResultados(); // Cambia ASC <-> DESC
+}
+
+// ============================================================
+// FECHA OPERATIVA DE LA GUÍA
+// Prioridad:
+// 1. Inicio de traslado
+// 2. Fecha de emisión como fallback
+// ============================================================
+function obtenerFechaOperativa(guia) {
+
+    if (!guia) {
+        return "";
+    }
+
+    return (
+        guia.fecha_inicio_traslado ||
+        guia.fecha_emision ||
+        ""
+    );
 }
 
 // ============================================================
@@ -1114,20 +1336,37 @@ async function filtrarPorFecha() {
     }
 
     // 🔥 CORREGIDO: Ordenar por fecha (más reciente primero) y luego por número de guía
-    const guiasOrdenadas = data.data.sort((a, b) => {
-        // Primero ordenar por fecha (descendente - más reciente primero)
-        const fechaA = a.fecha_emision || '';
-        const fechaB = b.fecha_emision || '';
-        
-        if (fechaA !== fechaB) {
-            return fechaB.localeCompare(fechaA);
-        }
-        
-        // Si misma fecha, ordenar por número de guía (descendente)
-        const numA = a.numero || '';
-        const numB = b.numero || '';
-        return numB.localeCompare(numA);
-    });
+    const guiasOrdenadas =
+        data.data.sort((a, b) => {
+
+            const fechaA =
+                obtenerFechaOperativa(a);
+
+            const fechaB =
+                obtenerFechaOperativa(b);
+
+
+            if (fechaA !== fechaB) {
+
+                return fechaB.localeCompare(
+                    fechaA
+                );
+
+            }
+
+
+            const numA =
+                a.numero || "";
+
+            const numB =
+                b.numero || "";
+
+
+            return numB.localeCompare(
+                numA
+            );
+
+        });
 
     // Mostrar resultados en tabla
     let html = `
@@ -1136,7 +1375,9 @@ async function filtrarPorFecha() {
             <tr>
                 <th style="width:35%;">N° Guía</th>
                 <th style="width:40%;">Cliente</th>
-                <th style="width:25%;">Fecha</th>
+                <th style="width:25%;">
+                    Traslado
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -1147,7 +1388,15 @@ async function filtrarPorFecha() {
         <tr data-id="${g.id}" onclick="seleccionarGuia(this, ${g.id})">
             <td><span class="guia-numero">📄 ${g.numero}</span></td>
             <td><span class="guia-cliente">${g.destinatario_nombre || "—"}</span></td>
-            <td><span class="guia-fecha">${formatearFecha(g.fecha_emision)}</span></td>
+            <td>
+                <span class="guia-fecha">
+                    ${
+                        formatearFecha(
+                            obtenerFechaOperativa(g)
+                        )
+                    }
+                </span>
+            </td>
         </tr>`;
     });
 
@@ -1599,7 +1848,11 @@ function renderResultadosBusquedaAvanzada(guias) {
                         </span>
 
                         <span class="guia-avanzada-fecha">
-                            ${formatearFecha(g.fecha_emision)}
+                            ${
+                                formatearFecha(
+                                    obtenerFechaOperativa(g)
+                                )
+                            }
                         </span>
 
                     </div>
@@ -2503,21 +2756,34 @@ function crearHTMLGuiaSeleccionadaPDF(
                         font-size:13px;
                     "
                 >
-                    Fecha:
-                    ${escapeHtml(
-                        formatearFecha(
-                            g.fecha_emision
+                    Emisión:
+                    ${
+                        escapeHtml(
+                            formatearFecha(
+                                g.fecha_emision
+                            )
                         )
-                    )}
+                    }
 
                     ${
                         g.hora_emision
-                            ? ` · ${escapeHtml(
-                                String(
-                                    g.hora_emision
+                            ? ` · ${
+                                escapeHtml(
+                                    String(g.hora_emision)
                                 )
-                            )}`
+                            }`
                             : ""
+                    }
+
+                    <br>
+
+                    Inicio de traslado:
+                    ${
+                        escapeHtml(
+                            formatearFecha(
+                                obtenerFechaOperativa(g)
+                            )
+                        )
                     }
                 </div>
 
@@ -3262,7 +3528,7 @@ async function exportarPDFSeleccionadas() {
         );
 
         pdf.text(
-            "FECHA",
+            "TRASLADO",
             margen + 55,
             tablaY + 6
         );
@@ -3333,7 +3599,7 @@ async function exportarPDFSeleccionadas() {
                     );
 
                     pdf.text(
-                        "FECHA",
+                        "TRASLADO",
                         margen + 55,
                         tablaY + 6
                     );
@@ -3424,7 +3690,7 @@ async function exportarPDFSeleccionadas() {
 
                 pdf.text(
                     formatearFecha(
-                        guia.fecha_emision
+                        obtenerFechaOperativa(guia)
                     ),
                     margen + 55,
                     tablaY + 8
@@ -3909,7 +4175,7 @@ async function exportarExcelSeleccionadas() {
             [
                 "#",
                 "Guía",
-                "Fecha",
+                "Fecha traslado",
                 "Destinatario",
                 "Punto de partida",
                 "Punto de llegada",
@@ -3929,7 +4195,7 @@ async function exportarExcelSeleccionadas() {
                     guia.numero || "-",
 
                     formatearFecha(
-                        guia.fecha_emision
+                        obtenerFechaOperativa(guia)
                     ),
 
                     guia.destinatario_nombre || "-",
@@ -3991,7 +4257,7 @@ async function exportarExcelSeleccionadas() {
 
             [
                 "Guía",
-                "Fecha",
+                "Fecha traslado",
                 "Cliente",
                 "Partida",
                 "Llegada",
@@ -4091,7 +4357,7 @@ async function exportarExcelSeleccionadas() {
                         guia.numero || "-",
 
                         formatearFecha(
-                            guia.fecha_emision
+                            obtenerFechaOperativa(guia)
                         ),
 
                         guia.destinatario_nombre || "-",
@@ -4160,7 +4426,7 @@ async function exportarExcelSeleccionadas() {
 
             [
                 "Guía",
-                "Fecha",
+                "Fecha traslado",
                 "Producto encontrado",
                 "Cantidad",
                 "Unidad",
@@ -4190,7 +4456,7 @@ async function exportarExcelSeleccionadas() {
                             guia.numero || "-",
 
                             formatearFecha(
-                                guia.fecha_emision
+                                obtenerFechaOperativa(guia)
                             ),
 
                             item.descripcion || "-",
@@ -4306,7 +4572,20 @@ async function exportarExcel() {
     let rows = [
         ["GUÍA DE REMISIÓN"], [],
         ["Número:", g.numero],
-        ["Fecha:", formatearFecha(g.fecha_emision)],
+        [
+            "Fecha de emisión:",
+            formatearFecha(
+                g.fecha_emision
+            )
+        ],
+
+        [
+            "Inicio de traslado:",
+            formatearFecha(
+                g.fecha_inicio_traslado ||
+                g.fecha_emision
+            )
+        ],
         ["Remitente:", g.remitente.razon_social],
         ["RUC:", g.remitente.ruc],
         ["Destinatario:", g.destinatario.nombre], [],
@@ -4574,10 +4853,10 @@ function crearHTMLGuiaUnitariaPDF(
                             margin-top:4px;
                             color:#64788a;
                             font-size:12px;
+                            line-height:1.55;
                         "
                     >
-
-                        Fecha:
+                        Emisión:
                         ${
                             escapeHtml(
                                 formatearFecha(
@@ -4598,6 +4877,16 @@ function crearHTMLGuiaUnitariaPDF(
                                 : ""
                         }
 
+                        <br>
+
+                        Inicio de traslado:
+                        ${
+                            escapeHtml(
+                                formatearFecha(
+                                    obtenerFechaOperativa(g)
+                                )
+                            )
+                        }
                     </div>
 
                 </div>
