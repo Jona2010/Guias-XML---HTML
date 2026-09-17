@@ -197,7 +197,7 @@ img {
     display: flex;
     align-items: center;
 
-    gap: 16px;
+    gap: 12px;
 }
 
 
@@ -215,14 +215,15 @@ img {
 .app-brand-logo-horizontal {
     width:
         clamp(
-            360px,
-            35vw,
-            540px
+            300px,
+            26vw,
+            390px
         );
 
-    height: 82px;
+    height: 88px;
 
-    flex: 0 0 auto;
+    flex:
+        0 0 auto;
 
     display: flex;
     align-items: center;
@@ -231,16 +232,18 @@ img {
     overflow: hidden;
 
     padding:
-        7px
-        12px;
+        5px
+        10px;
 
-    background: #ffffff;
+    background:
+        #ffffff;
 
     border:
         1px solid
         rgba(255, 255, 255, .35);
 
-    border-radius: 14px;
+    border-radius:
+        16px;
 
     box-shadow:
         0 4px 15px
@@ -258,10 +261,17 @@ img {
 
     display: block;
 
-    object-fit: contain;
+    object-fit:
+        contain;
 
     object-position:
-        left center;
+        center center;
+
+    transform:
+        scale(1.04);
+
+    transform-origin:
+        center center;
 }
 
 
@@ -277,7 +287,7 @@ img {
     align-items: flex-start;
     justify-content: center;
 
-    gap: 7px;
+    gap: 6px;
 }
 
 
@@ -910,14 +920,13 @@ img {
 .search-toolbar input::placeholder {
     color: #a3b0bf;
 }
-
 /* ============================================================
-   BOTÓN LIMPIAR BUSCADOR
+   BOTÓN LIMPIAR BUSCADOR — SOLO ICONO
 ============================================================ */
 
 #btn-limpiar {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
 
     position: absolute;
 
@@ -929,30 +938,36 @@ img {
 
     padding: 0;
 
-    transform: translateY(-50%);
+    transform:
+        translateY(-50%);
 
     border: 0;
-    border-radius: 7px;
+    border-radius: 0;
 
     outline: 0;
 
-    background: transparent;
+    background:
+        transparent !important;
 
-    color: #7890a2;
+    color:
+        #6f8798;
 
     cursor: pointer;
 
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1;
+
+    box-shadow: none;
 
     transition:
         color .16s ease,
-        background .16s ease,
         transform .16s ease;
 }
 
 
 #btn-limpiar i {
+    display: block;
+
     pointer-events: none;
 }
 
@@ -961,19 +976,22 @@ img {
 
 #btn-limpiar:hover {
     background:
-        #edf5f9;
+        transparent !important;
 
     color:
-        #31566d;
+        #174d6b;
 }
 
 
 /* CLICK */
 
 #btn-limpiar:active {
+    background:
+        transparent !important;
+
     transform:
         translateY(-50%)
-        scale(.92);
+        scale(.88);
 }
 
 
@@ -981,16 +999,20 @@ img {
 
 #btn-limpiar:focus-visible {
     background:
-        #edf5f9;
+        transparent !important;
 
     color:
         var(--primary);
 
     outline:
         2px solid
-        rgba(8, 119, 185, .18);
+        rgba(8, 119, 185, .22);
 
-    outline-offset: 1px;
+    outline-offset:
+        2px;
+
+    border-radius:
+        4px;
 }
 
 
@@ -3331,19 +3353,21 @@ mark {
     .app-brand-logo-horizontal {
         width:
             min(
-                72vw,
-                390px
+                68vw,
+                340px
             );
 
-        height: 64px;
+        height:
+            68px;
 
         flex-shrink: 1;
 
         padding:
-            5px
-            8px;
+            4px
+            7px;
 
-        border-radius: 10px;
+        border-radius:
+            10px;
     }
 
 
@@ -3538,11 +3562,12 @@ mark {
     .app-brand-logo-horizontal {
         width:
             min(
-                76vw,
-                320px
+                70vw,
+                300px
             );
 
-        height: 58px;
+        height:
+            62px;
     }
 
 
@@ -3557,10 +3582,6 @@ mark {
             7px;
 
         font-size: 9px;
-    }
-
-    .version {
-        display: none;
     }
 
     .date-filter {

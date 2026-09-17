@@ -37,6 +37,7 @@ const pool = mysql.createPool({
     connectTimeout: 10000,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0,
+    dateStrings: true,
     ssl: String(process.env.DB_SSL || "false").toLowerCase() === "true"
         ? { rejectUnauthorized: true }
         : undefined,
