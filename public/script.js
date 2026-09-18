@@ -2910,9 +2910,14 @@ function crearHTMLGuiaSeleccionadaPDF(
 
                 <div
                     style="
-                        margin-top:4px;
-                        color:#64748b;
-                        font-size:13px;
+                        margin-top:7px;
+
+                        color:#4f6575;
+
+                        font-size:15px;
+                        line-height:1.6;
+
+                        font-weight:600;
                     "
                 >
                     Emisión:
@@ -2948,10 +2953,13 @@ function crearHTMLGuiaSeleccionadaPDF(
 
                 <div
                     style="
-                        margin-top:4px;
-                        color:#64748b;
-                        font-size:12px;
-                        font-weight:700;
+                        margin-top:6px;
+
+                        color:#0877b9;
+
+                        font-size:13px;
+
+                        font-weight:750;
                     "
                 >
                     Página ${paginaActual} de ${totalPaginas}
@@ -5009,10 +5017,14 @@ function crearHTMLGuiaUnitariaPDF(
 
                     <div
                         style="
-                            margin-top:4px;
-                            color:#64788a;
-                            font-size:12px;
-                            line-height:1.55;
+                            margin-top:7px;
+
+                            color:#4f6575;
+
+                            font-size:15px;
+                            line-height:1.6;
+
+                            font-weight:600;
                         "
                     >
                         Emisión:
@@ -5053,15 +5065,15 @@ function crearHTMLGuiaUnitariaPDF(
 
                 <div
                     style="
-                        padding:6px 10px;
+                        padding:7px 12px;
 
                         border-radius:20px;
 
                         background:#e8f4fa;
                         color:#0877b9;
 
-                        font-size:11px;
-                        font-weight:700;
+                        font-size:13px;
+                        font-weight:750;
                     "
                 >
                     Página
