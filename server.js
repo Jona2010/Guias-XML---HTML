@@ -950,17 +950,26 @@ app.get("/guias", async (req, res) => {
             await pool.query(
                 `
                 SELECT *
-                FROM guias
+                    FROM guias
 
-                ORDER BY
-                    COALESCE(
-                        fecha_inicio_traslado,
-                        fecha_emision
-                    ) DESC,
+                    ORDER BY
+                        COALESCE(
+                            fecha_inicio_traslado,
+                            fecha_emision
+                        ) DESC,
 
-                    hora_emision DESC,
+                        CAST(
+                            SUBSTRING_INDEX(
+                                numero,
+                                '-',
+                                -1
+                            )
+                            AS UNSIGNED
+                        ) DESC,
 
-                    id DESC
+                        hora_emision DESC,
+
+                        id DESC
 
                 LIMIT ? OFFSET ?
                 `,

@@ -2254,6 +2254,24 @@ img {
         not-allowed;
 }
 
+.paginacion .btn-icon.cambio-bloque {
+    border-color:
+        var(--primary);
+
+    background:
+        var(--primary-soft);
+
+    color:
+        var(--primary);
+
+    box-shadow:
+        0 0 0 2px
+        rgba(8, 119, 185, .08);
+
+    font-size:
+        11px;
+}
+
 
 /* ============================================================
    NÚMEROS

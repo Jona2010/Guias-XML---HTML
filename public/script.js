@@ -697,6 +697,14 @@ function generarPaginacionHistorial() {
 
     }
 
+    const cambiaBloqueSiguiente =
+        paginaActual === finBloque &&
+        finBloque < totalPaginasHistorial;
+
+
+    const cambiaBloqueAnterior =
+        paginaActual === inicioBloque &&
+        inicioBloque > 1;
 
     return `
 
@@ -723,16 +731,33 @@ function generarPaginacionHistorial() {
 
                 <button
                     type="button"
-                    class="btn-icon"
+                    class="
+                        btn-icon
+                        ${
+                            cambiaBloqueAnterior
+                                ? "cambio-bloque"
+                                : ""
+                        }
+                    "
                     onclick="anteriorPagina()"
-                    aria-label="Página anterior"
+                    aria-label="${
+                        cambiaBloqueAnterior
+                            ? "Ir al bloque anterior"
+                            : "Página anterior"
+                    }"
                     ${
                         paginaActual === 1
                             ? "disabled"
                             : ""
                     }
                 >
-                    <i class="fa-solid fa-chevron-left"></i>
+                    <i
+                        class="fa-solid ${
+                            cambiaBloqueAnterior
+                                ? "fa-angles-left"
+                                : "fa-chevron-left"
+                        }"
+                    ></i>
                 </button>
 
 
@@ -741,9 +766,20 @@ function generarPaginacionHistorial() {
 
                 <button
                     type="button"
-                    class="btn-icon"
+                    class="
+                        btn-icon
+                        ${
+                            cambiaBloqueSiguiente
+                                ? "cambio-bloque"
+                                : ""
+                        }
+                    "
                     onclick="siguientePagina()"
-                    aria-label="Página siguiente"
+                    aria-label="${
+                        cambiaBloqueSiguiente
+                            ? "Ir al siguiente bloque de páginas"
+                            : "Página siguiente"
+                    }"
                     ${
                         paginaActual ===
                         totalPaginasHistorial
@@ -751,7 +787,13 @@ function generarPaginacionHistorial() {
                             : ""
                     }
                 >
-                    <i class="fa-solid fa-chevron-right"></i>
+                    <i
+                        class="fa-solid ${
+                            cambiaBloqueSiguiente
+                                ? "fa-angles-right"
+                                : "fa-chevron-right"
+                        }"
+                    ></i>
                 </button>
 
             </div>
