@@ -13,6 +13,7 @@
   "type": "commonjs",
   "dependencies": {
     "@xmldom/xmldom": "^0.9.12",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
     "exceljs": "^4.4.0",
