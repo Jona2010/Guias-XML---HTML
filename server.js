@@ -5,6 +5,9 @@ const cors = require("cors");
 const mysql = require("mysql2/promise");
 const path = require("path");
 
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
 const app = express();
 
 app.disable("x-powered-by");
@@ -59,6 +62,67 @@ async function query(sql, params = []){
     return rows;
 }
 
+// ============================================================
+// AUTENTICACIÓN
+// ============================================================
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+const JWT_EXPIRES_IN =
+    process.env.JWT_EXPIRES_IN || "8h";
+
+if (!JWT_SECRET) {
+    console.warn(
+        "⚠️ JWT_SECRET no está configurado."
+    );
+}
+
+
+// ============================================================
+// MIDDLEWARE DE AUTENTICACIÓN
+// ============================================================
+
+function verificarToken(req, res, next) {
+
+    const authHeader =
+        req.headers.authorization || "";
+
+    if (!authHeader.startsWith("Bearer ")) {
+
+        return res.status(401).json({
+            ok: false,
+            mensaje: "Sesión no válida"
+        });
+
+    }
+
+    const token =
+        authHeader.substring(7);
+
+    try {
+
+        const payload =
+            jwt.verify(
+                token,
+                JWT_SECRET
+            );
+
+        req.usuario = payload;
+
+        next();
+
+    } catch (error) {
+
+        return res.status(401).json({
+            ok: false,
+            mensaje:
+                "La sesión ha expirado o no es válida"
+        });
+
+    }
+
+}
+
 // ----------------------
 // HEALTH CHECK API
 // ----------------------
@@ -69,6 +133,407 @@ app.get("/api/health", (req, res) => {
         entorno: process.env.VERCEL === "1" ? "vercel" : "local"
     });
 });
+
+// ============================================================
+// LOGIN
+// POST /api/auth/login
+// ============================================================
+
+app.post("/api/auth/login", async (req, res) => {
+
+    try {
+
+        const correo =
+            String(req.body.correo || "")
+                .trim()
+                .toLowerCase();
+
+        const password =
+            String(req.body.password || "");
+
+
+        // ----------------------------------------------------
+        // VALIDACIONES BÁSICAS
+        // ----------------------------------------------------
+
+        if (!correo || !password) {
+
+            return res.status(400).json({
+                ok: false,
+                mensaje:
+                    "Ingrese correo y contraseña"
+            });
+
+        }
+
+
+        // ----------------------------------------------------
+        // BUSCAR USUARIO
+        // ----------------------------------------------------
+
+        const usuarios = await query(
+            `
+            SELECT
+
+                u.id,
+                u.correo,
+                u.nombres,
+                u.apellidos,
+                u.cargo,
+                u.password_hash,
+                u.activo,
+                u.requiere_configurar_clave,
+
+                r.id AS rol_id,
+                r.codigo AS rol_codigo,
+                r.nombre AS rol_nombre,
+                r.es_superadmin
+
+            FROM usuarios u
+
+            INNER JOIN roles r
+                ON r.id = u.rol_id
+
+            WHERE LOWER(u.correo) = LOWER(?)
+
+            LIMIT 1
+            `,
+            [
+                correo
+            ]
+        );
+
+
+        // ----------------------------------------------------
+        // USUARIO NO EXISTE
+        // ----------------------------------------------------
+
+        if (usuarios.length === 0) {
+
+            return res.status(401).json({
+                ok: false,
+                mensaje:
+                    "Correo o contraseña incorrectos"
+            });
+
+        }
+
+
+        const usuario =
+            usuarios[0];
+
+
+        // ----------------------------------------------------
+        // USUARIO DESACTIVADO
+        // ----------------------------------------------------
+
+        if (!Number(usuario.activo)) {
+
+            return res.status(403).json({
+                ok: false,
+                mensaje:
+                    "Este usuario está desactivado"
+            });
+
+        }
+
+
+        // ----------------------------------------------------
+        // CONTRASEÑA TODAVÍA NO CONFIGURADA
+        // ----------------------------------------------------
+
+        if (!usuario.password_hash) {
+
+            return res.status(403).json({
+                ok: false,
+                mensaje:
+                    "El usuario todavía no tiene una contraseña configurada"
+            });
+
+        }
+
+
+        // ----------------------------------------------------
+        // VALIDAR CONTRASEÑA CON BCRYPT
+        // ----------------------------------------------------
+
+        const passwordCorrecta =
+            await bcrypt.compare(
+                password,
+                usuario.password_hash
+            );
+
+
+        if (!passwordCorrecta) {
+
+            return res.status(401).json({
+                ok: false,
+                mensaje:
+                    "Correo o contraseña incorrectos"
+            });
+
+        }
+
+
+        // ----------------------------------------------------
+        // GENERAR TOKEN
+        // ----------------------------------------------------
+
+        if (!JWT_SECRET) {
+
+            console.error(
+                "❌ JWT_SECRET no configurado"
+            );
+
+            return res.status(500).json({
+                ok: false,
+                mensaje:
+                    "El servidor de autenticación no está configurado"
+            });
+
+        }
+
+
+        const token =
+            jwt.sign(
+                {
+                    id:
+                        usuario.id,
+
+                    correo:
+                        usuario.correo,
+
+                    rol:
+                        usuario.rol_codigo,
+
+                    es_superadmin:
+                        Boolean(
+                            Number(
+                                usuario.es_superadmin
+                            )
+                        )
+                },
+
+                JWT_SECRET,
+
+                {
+                    expiresIn:
+                        JWT_EXPIRES_IN
+                }
+            );
+
+
+        // ----------------------------------------------------
+        // ACTUALIZAR ÚLTIMO ACCESO
+        // ----------------------------------------------------
+
+        await query(
+            `
+            UPDATE usuarios
+            SET ultimo_acceso = NOW()
+            WHERE id = ?
+            `,
+            [
+                usuario.id
+            ]
+        );
+
+
+        // ----------------------------------------------------
+        // RESPUESTA
+        // ----------------------------------------------------
+
+        return res.json({
+
+            ok: true,
+
+            mensaje:
+                "Inicio de sesión correcto",
+
+            token,
+
+            usuario: {
+
+                id:
+                    usuario.id,
+
+                correo:
+                    usuario.correo,
+
+                nombres:
+                    usuario.nombres,
+
+                apellidos:
+                    usuario.apellidos,
+
+                cargo:
+                    usuario.cargo,
+
+                rol: {
+                    id:
+                        usuario.rol_id,
+
+                    codigo:
+                        usuario.rol_codigo,
+
+                    nombre:
+                        usuario.rol_nombre
+                },
+
+                es_superadmin:
+                    Boolean(
+                        Number(
+                            usuario.es_superadmin
+                        )
+                    )
+
+            }
+
+        });
+
+
+    } catch (error) {
+
+        console.error(
+            "❌ Error /api/auth/login:",
+            error
+        );
+
+        return res.status(500).json({
+            ok: false,
+            mensaje:
+                "Error al iniciar sesión"
+        });
+
+    }
+
+});
+
+// ============================================================
+// USUARIO ACTUAL
+// GET /api/auth/me
+// ============================================================
+
+app.get(
+    "/api/auth/me",
+    verificarToken,
+
+    async (req, res) => {
+
+        try {
+
+            const usuarios = await query(
+                `
+                SELECT
+
+                    u.id,
+                    u.correo,
+                    u.nombres,
+                    u.apellidos,
+                    u.cargo,
+                    u.activo,
+
+                    r.codigo AS rol,
+                    r.nombre AS rol_nombre,
+                    r.es_superadmin
+
+                FROM usuarios u
+
+                INNER JOIN roles r
+                    ON r.id = u.rol_id
+
+                WHERE u.id = ?
+
+                LIMIT 1
+                `,
+                [
+                    req.usuario.id
+                ]
+            );
+
+
+            if (usuarios.length === 0) {
+
+                return res.status(404).json({
+                    ok: false,
+                    mensaje:
+                        "Usuario no encontrado"
+                });
+
+            }
+
+
+            const usuario =
+                usuarios[0];
+
+
+            if (!Number(usuario.activo)) {
+
+                return res.status(403).json({
+                    ok: false,
+                    mensaje:
+                        "Usuario desactivado"
+                });
+
+            }
+
+
+            return res.json({
+
+                ok: true,
+
+                usuario: {
+
+                    id:
+                        usuario.id,
+
+                    correo:
+                        usuario.correo,
+
+                    nombres:
+                        usuario.nombres,
+
+                    apellidos:
+                        usuario.apellidos,
+
+                    cargo:
+                        usuario.cargo,
+
+                    rol:
+                        usuario.rol,
+
+                    rol_nombre:
+                        usuario.rol_nombre,
+
+                    es_superadmin:
+                        Boolean(
+                            Number(
+                                usuario.es_superadmin
+                            )
+                        )
+
+                }
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "❌ Error /api/auth/me:",
+                error
+            );
+
+            return res.status(500).json({
+                ok: false,
+                mensaje:
+                    "Error al consultar la sesión"
+            });
+
+        }
+
+    }
+);
 
 // ----------------------
 // PING
