@@ -121,7 +121,33 @@ async function leerGuia() {
 
     const reader = new FileReader();
     reader.onload = async function(e) {
-        const xml = new DOMParser().parseFromString(e.target.result, "text/xml");
+
+        const xml =
+            new DOMParser()
+                .parseFromString(
+                    e.target.result,
+                    "text/xml"
+                );
+
+
+        // ========================================================
+        // VALIDAR XML
+        // ========================================================
+
+        if (
+            xml.querySelector(
+                "parsererror"
+            )
+        ) {
+
+            mostrarAlerta(
+                "El archivo XML no es válido o está dañado.",
+                "error"
+            );
+
+            return;
+        }
+
 
         let guia = {};
 
@@ -135,6 +161,16 @@ async function leerGuia() {
                 UBL.cbc,
                 "ID"
             );
+
+        if (!guia.numero) {
+
+            mostrarAlerta(
+                "El XML no contiene un número de guía válido.",
+                "error"
+            );
+
+            return;
+        }
 
 
         guia.fecha_emision =
@@ -347,7 +383,7 @@ function mostrarGuiaBonita(g) {
                 <small>
                     Emisión:
                     ${formatearFecha(g.fecha_emision)}
-                    ${g.hora_emision || ""}
+                    ${escapeHtml(g.hora_emision || "")}
                 </small>
             </h3>
 
@@ -356,19 +392,36 @@ function mostrarGuiaBonita(g) {
         <div class="guia-meta">
             <div class="guia-meta-item">
                 <label>Remitente</label>
-                <span>${g.remitente.razon_social} (${g.remitente.ruc})</span>
+                <span>
+                    ${escapeHtml(g.remitente?.razon_social || "—")}
+                    (${escapeHtml(g.remitente?.ruc || "—")})
+                </span>
             </div>
             <div class="guia-meta-item">
                 <label>Destinatario</label>
-                <span>${g.destinatario.nombre}</span>
+                <span>
+                    ${escapeHtml(g.destinatario?.nombre || "—")}
+                </span>
             </div>
             <div class="guia-meta-item">
                 <label>Motivo de traslado</label>
-                <span>${g.traslado.motivo || "No especificado"}</span>
+                <span>
+                    ${escapeHtml(
+                        g.traslado?.motivo ||
+                        "No especificado"
+                    )}
+                </span>
             </div>
             <div class="guia-meta-item">
                 <label>Peso total</label>
-                <span>${g.traslado.peso_total || "0"} kg</span>
+                <span>
+                    ${escapeHtml(
+                        String(
+                            g.traslado?.peso_total ||
+                            "0"
+                        )
+                    )} kg
+                </span>
             </div>
             <div class="guia-meta-item">
                 <label>
@@ -393,14 +446,24 @@ function mostrarGuiaBonita(g) {
                 <span class="icon">📍</span>
                 <div class="content">
                     <div class="label">Punto de partida</div>
-                    <div class="direccion-texto">${g.partida?.direccion || "No disponible"}</div>
+                    <div class="direccion-texto">
+                        ${escapeHtml(
+                            g.partida?.direccion ||
+                            "No disponible"
+                        )}
+                    </div>
                 </div>
             </div>
             <div class="direccion-block">
                 <span class="icon">🏁</span>
                 <div class="content">
                     <div class="label">Punto de llegada</div>
-                    <div class="direccion-texto">${g.llegada?.direccion || "No disponible"}</div>
+                    <div class="direccion-texto">
+                        ${escapeHtml(
+                            g.llegada?.direccion ||
+                            "No disponible"
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
@@ -427,13 +490,52 @@ function mostrarGuiaBonita(g) {
             const bg = idx % 2 === 0 ? "#ffffff" : "#f9fafb";
             html += `
             <tr style="background:${bg};">
-                <td style="text-align:center;">${item.linea ?? idx + 1}</td>
-                <td>
-                    <span class="codigo-bien">${item.codigo_bien || "-"}</span>
+                <td style="text-align:center;">
+                    ${escapeHtml(
+                        String(
+                            item.linea ??
+                            idx + 1
+                        )
+                    )}
                 </td>
-                <td>${item.descripcion || "-"}</td>
-                <td style="text-align:center;">${item.cantidad || "-"}</td>
-                <td style="text-align:center;">${item.unidad || "-"}</td>
+
+                <td>
+                    <span class="codigo-bien">
+                        ${escapeHtml(
+                            String(
+                                item.codigo_bien ||
+                                "-"
+                            )
+                        )}
+                    </span>
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        String(
+                            item.descripcion ||
+                            "-"
+                        )
+                    )}
+                </td>
+
+                <td style="text-align:center;">
+                    ${escapeHtml(
+                        String(
+                            item.cantidad ||
+                            "-"
+                        )
+                    )}
+                </td>
+
+                <td style="text-align:center;">
+                    ${escapeHtml(
+                        String(
+                            item.unidad ||
+                            "-"
+                        )
+                    )}
+                </td>
             </tr>`;
         });
     }
@@ -445,6 +547,15 @@ function mostrarGuiaBonita(g) {
 
 
     ultimaGuiaCargada = g;
+
+
+    // ========================================================
+    // ACTUALIZAR TARJETA SUPERIOR "GUÍA ACTUAL"
+    // ========================================================
+
+    actualizarBarraGuiaActual(
+        g
+    );
 
 
     // ========================================================
@@ -503,9 +614,27 @@ async function guardarGuia(g) {
 // VER GUIA POR ID
 // ============================================================
 async function verGuiaPorId(id) {
-    if (!id) { mostrarAlerta("❌ ID inválido", "error"); return; }
+        if (!id) {
+        mostrarAlerta(
+            "❌ ID inválido",
+            "error"
+        );
 
-    const requestId = Date.now();
+        return;
+    }
+
+
+    // ========================================================
+    // GUARDAR GUÍA ACTUALMENTE SELECCIONADA
+    // ========================================================
+
+    guiaSeleccionadaId =
+        Number(id);
+
+
+    const requestId =
+        Date.now();
+
     verGuiaPorId._lastRequestId = requestId;
 
     const response = await fetchJSON(`${API_URL}/guias/${id}`);
@@ -839,12 +968,94 @@ async function mostrarHistorial() {
 
     buscando = false;
 
-    const contHistorial = document.getElementById("historial-lista");
-    const contBuscador = document.getElementById("historial-busqueda");
+    busquedaAvanzadaActiva =
+        false;
 
-    contHistorial.style.display = "block";
-    contBuscador.style.display = "none";
-    contBuscador.innerHTML = "";
+
+    const historialAvanzado =
+        document.getElementById(
+            "historial-avanzado"
+        );
+
+    const resumenAvanzado =
+        document.getElementById(
+            "resumen-busqueda-avanzada"
+        );
+
+    const barraSeleccion =
+        document.getElementById(
+            "barra-seleccion-guias"
+        );
+
+
+    if (historialAvanzado) {
+
+        historialAvanzado.style.display =
+            "none";
+
+        historialAvanzado.innerHTML =
+            "";
+    }
+
+
+    if (resumenAvanzado) {
+
+        resumenAvanzado.style.display =
+            "none";
+    }
+
+
+    if (barraSeleccion) {
+
+        barraSeleccion.style.display =
+            "none";
+    }
+
+
+    desactivarModoResultadosAvanzados();
+
+    const contHistorial =
+        document.getElementById(
+            "historial-lista"
+        );
+
+    const contBuscador =
+        document.getElementById(
+            "historial-busqueda"
+        );
+
+    const contPaginacion =
+        document.getElementById(
+            "paginacion-guias"
+        );
+
+
+    if (contHistorial) {
+        contHistorial.style.display =
+            "block";
+    }
+
+
+    if (contBuscador) {
+
+        contBuscador.style.display =
+            "none";
+
+        contBuscador.innerHTML =
+            "";
+
+    }
+
+
+    if (contPaginacion) {
+
+        contPaginacion.style.display =
+            "block";
+
+        contPaginacion.innerHTML =
+            "";
+
+    }
 
     contHistorial.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Cargando...</p></div>`;
 
@@ -910,9 +1121,26 @@ async function mostrarHistorial() {
     guiasOrdenadas.forEach(g => {
         const cliente = g.destinatario_nombre || "—";
         html += `
-        <tr data-id="${g.id}" onclick="seleccionarGuia(this, ${g.id})">
-            <td><span class="guia-numero">📄 ${g.numero}</span></td>
-            <td><span class="guia-cliente" title="${cliente}">${cliente}</span></td>
+        <tr
+            data-id="${Number(g.id)}"
+            onclick="seleccionarGuia(this, ${Number(g.id)})"
+        >
+            <td>
+                <span class="guia-numero">
+                    📄 ${escapeHtml(
+                        g.numero || "—"
+                    )}
+                </span>
+            </td>
+
+            <td>
+                <span
+                    class="guia-cliente"
+                    title="${escapeHtml(cliente)}"
+                >
+                    ${escapeHtml(cliente)}
+                </span>
+            </td>
             <td>
                 <span class="guia-fecha">
                     ${
@@ -928,11 +1156,16 @@ async function mostrarHistorial() {
     html += `
             </tbody>
         </table>
-
-        ${generarPaginacionHistorial()}
     `;
 
     contHistorial.innerHTML = html;
+
+    if (contPaginacion) {
+
+        contPaginacion.innerHTML =
+            generarPaginacionHistorial();
+
+    }
 }
 
 // ============================================================
@@ -945,6 +1178,11 @@ async function filtrarGuias() {
     const btnLimpiar = document.getElementById("btn-limpiar");
     const contHistorial = document.getElementById("historial-lista");
     const contBuscador = document.getElementById("historial-busqueda");
+
+    const contPaginacion =
+        document.getElementById(
+            "paginacion-guias"
+        );
 
     if (btnLimpiar) {
         btnLimpiar.style.display = texto ? "flex" : "none";
@@ -962,6 +1200,13 @@ async function filtrarGuias() {
     }
 
     buscando = true;
+
+    if (contPaginacion) {
+
+        contPaginacion.style.display =
+            "none";
+
+    }
 
     if (busquedaController) {
         busquedaController.abort();
@@ -1079,12 +1324,47 @@ function escapeHtml(str) {
         .replace(/'/g, "&#39;");
 }
 
-function resaltarTexto(texto, busqueda) {
-    if (!busqueda || !texto) return escapeHtml(String(texto));
-    const textoStr = String(texto);
-    const busquedaEscapada = busqueda.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${busquedaEscapada})`, "gi");
-    return textoStr.replace(regex, `<mark>$1</mark>`);
+function resaltarTexto(
+    texto,
+    busqueda
+) {
+
+    const textoSeguro =
+        escapeHtml(
+            String(
+                texto ?? ""
+            )
+        );
+
+
+    if (
+        !busqueda ||
+        !texto
+    ) {
+
+        return textoSeguro;
+    }
+
+
+    const busquedaEscapada =
+        String(busqueda)
+            .replace(
+                /[.*+?^${}()|[\]\\]/g,
+                "\\$&"
+            );
+
+
+    const regex =
+        new RegExp(
+            `(${busquedaEscapada})`,
+            "gi"
+        );
+
+
+    return textoSeguro.replace(
+        regex,
+        "<mark>$1</mark>"
+    );
 }
 
 function renderResultadosBusqueda(resultados, texto) {
@@ -1142,11 +1422,21 @@ function renderResultadosBusqueda(resultados, texto) {
             <div class="search-address">
                 <div class="addr">
                     <i class="fa-solid fa-location-dot"></i>
-                    <span class="text">${g.direccion_partida || "—"}</span>
+                    <span class="text">
+                        ${escapeHtml(
+                            g.direccion_partida ||
+                            "—"
+                        )}
+                    </span>
                 </div>
                 <div class="addr">
                     <i class="fa-solid fa-flag-checkered"></i>
-                    <span class="text">${g.direccion_llegada || "—"}</span>
+                    <span class="text">
+                        ${escapeHtml(
+                            g.direccion_llegada ||
+                            "—"
+                        )}
+                    </span>
                 </div>
             </div>
         </div>`;
@@ -1239,6 +1529,89 @@ function formatearFecha(fechaISO) {
     const fecha = fechaISO.split("T")[0];
     const [year, month, day] = fecha.split("-");
     return `${day}/${month}/${year}`;
+}
+
+// ============================================================
+// ACTUALIZAR TARJETA "GUÍA ACTUAL"
+// ============================================================
+
+function actualizarBarraGuiaActual(guia = null) {
+
+    const numeroGuia =
+        document.getElementById(
+            "current-guide-number"
+        );
+
+    const textoGuia =
+        document.getElementById(
+            "current-guide-text"
+        );
+
+    const puntoEstado =
+        document.querySelector(
+            ".action-current .current-guide-dot"
+        );
+
+
+    // SIN GUÍA SELECCIONADA
+    if (!guia) {
+
+        if (numeroGuia) {
+            numeroGuia.textContent =
+                "Ninguna guía";
+        }
+
+        if (textoGuia) {
+            textoGuia.innerHTML =
+                "Sin<br>seleccionar";
+        }
+
+        if (puntoEstado) {
+            puntoEstado.style.background =
+                "#b8c4cd";
+        }
+
+        return;
+    }
+
+
+    // NÚMERO DE GUÍA
+    if (numeroGuia) {
+
+        numeroGuia.textContent =
+            guia.numero ||
+            "Sin número";
+
+        numeroGuia.title =
+            guia.numero ||
+            "Sin número";
+    }
+
+
+    // FECHA OPERATIVA
+    const fecha =
+        obtenerFechaOperativa(
+            guia
+        );
+
+
+    if (textoGuia) {
+
+        textoGuia.textContent =
+            fecha
+                ? formatearFecha(fecha)
+                : "Sin fecha";
+    }
+
+
+    // GUÍA ACTIVA
+    if (puntoEstado) {
+
+        puntoEstado.style.background =
+            "#22c55e";
+
+    }
+
 }
 
 // ============================================================
@@ -1347,11 +1720,45 @@ async function filtrarPorFecha() {
         return;
     }
 
-    const contHistorial = document.getElementById("historial-lista");
-    const contBuscador = document.getElementById("historial-busqueda");
+    if (desde > hasta) {
 
-    contHistorial.style.display = "none";
-    contBuscador.style.display = "block";
+        mostrarAlerta(
+            "La fecha desde no puede ser mayor que la fecha hasta",
+            "error"
+        );
+
+        return;
+    }
+
+    const contHistorial =
+        document.getElementById(
+            "historial-lista"
+        );
+
+    const contBuscador =
+        document.getElementById(
+            "historial-busqueda"
+        );
+
+    const contPaginacion =
+        document.getElementById(
+            "paginacion-guias"
+        );
+
+
+    contHistorial.style.display =
+        "none";
+
+    contBuscador.style.display =
+        "block";
+
+
+    if (contPaginacion) {
+
+        contPaginacion.style.display =
+            "none";
+
+    }
 
     contBuscador.innerHTML = `
         <div class="loading-state">
@@ -1426,10 +1833,30 @@ async function filtrarPorFecha() {
     `;
 
     guiasOrdenadas.forEach(g => {
+
+        const cliente =
+        g.destinatario_nombre ||
+        "—";
+
         html += `
-        <tr data-id="${g.id}" onclick="seleccionarGuia(this, ${g.id})">
-            <td><span class="guia-numero">📄 ${g.numero}</span></td>
-            <td><span class="guia-cliente">${g.destinatario_nombre || "—"}</span></td>
+        <tr
+            data-id="${Number(g.id)}"
+            onclick="seleccionarGuia(this, ${Number(g.id)})"
+        >
+            <td>
+                <span class="guia-numero">
+                    📄 ${escapeHtml(g.numero || "—")}
+                </span>
+            </td>
+
+            <td>
+                <span
+                    class="guia-cliente"
+                    title="${escapeHtml(cliente)}"
+                >
+                    ${escapeHtml(cliente)}
+                </span>
+            </td>
             <td>
                 <span class="guia-fecha">
                     ${
@@ -1752,6 +2179,11 @@ async function buscarGuiasAvanzado() {
     const barraSeleccion =
         document.getElementById("barra-seleccion-guias");
 
+    const contPaginacion =
+        document.getElementById(
+            "paginacion-guias"
+        );
+
 
     if (historialNormal) {
         historialNormal.style.display = "none";
@@ -1781,6 +2213,13 @@ async function buscarGuiasAvanzado() {
         barraSeleccion.style.display = "none";
     }
 
+    if (contPaginacion) {
+
+        contPaginacion.style.display =
+            "none";
+
+    }
+
 
     // Construir URL
     const params = new URLSearchParams();
@@ -1798,13 +2237,51 @@ async function buscarGuiasAvanzado() {
     console.log("🔎 URL BÚSQUEDA AVANZADA:");
     console.log(urlBusqueda);*/
 
-    const response = await fetch(urlBusqueda, {
-        method: "GET",
-        cache: "no-store",
-        headers: {
-            "Accept": "application/json"
+    let response;
+
+    try {
+
+        response =
+            await fetch(
+                urlBusqueda,
+                {
+                    method: "GET",
+                    cache: "no-store",
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
+                }
+            );
+
+    } catch (error) {
+
+        console.error(
+            "❌ Error de conexión en búsqueda avanzada:",
+            error
+        );
+
+        if (historialAvanzado) {
+
+            historialAvanzado.innerHTML = `
+                <div class="sin-resultados-avanzados">
+
+                    <i class="fa-solid fa-wifi"></i>
+
+                    <strong>
+                        No se pudo conectar
+                    </strong>
+
+                    <span>
+                        Verifica la conexión e inténtalo nuevamente.
+                    </span>
+
+                </div>
+            `;
         }
-    });
+
+        return;
+    }
 
     /*console.log("🌐 HTTP STATUS:", response.status);*/
 
@@ -2393,10 +2870,6 @@ function actualizarBarraSeleccionAvanzada() {
     const btnPdf =
         document.getElementById("btn-pdf-seleccionadas");
 
-    const btnExcel =
-        document.getElementById("btn-excel-seleccionadas");
-
-
     const total =
         resultadosBusquedaAvanzada.length;
 
@@ -2447,13 +2920,6 @@ function actualizarBarraSeleccionAvanzada() {
 
     }
 
-
-    if (btnExcel) {
-
-        btnExcel.disabled =
-            seleccionadas === 0;
-
-    }
 }
 
 
@@ -4261,616 +4727,6 @@ async function exportarPDFSeleccionadas() {
     }
 }
 
-// ============================================================
-// EXPORTAR EXCEL - GUÍAS SELECCIONADAS
-// ============================================================
-async function exportarExcelSeleccionadas() {
-
-    if (
-        guiasSeleccionadasAvanzadas.size === 0
-    ) {
-
-        mostrarAlerta(
-            "Selecciona al menos una guía",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const seleccionadas =
-        resultadosBusquedaAvanzada.filter(
-            guia =>
-                guiasSeleccionadasAvanzadas.has(
-                    Number(guia.id)
-                )
-        );
-
-
-    if (seleccionadas.length === 0) {
-
-        mostrarAlerta(
-            "No se encontraron las guías seleccionadas",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const boton =
-        document.getElementById(
-            "btn-excel-seleccionadas"
-        );
-
-
-    const contenidoOriginal =
-        boton?.innerHTML;
-
-
-    if (boton) {
-
-        boton.disabled = true;
-
-        boton.innerHTML = `
-            <i class="fa-solid fa-spinner fa-spin"></i>
-            Generando...
-        `;
-
-    }
-
-
-    try {
-
-        // ====================================================
-        // LIBRO
-        // ====================================================
-        const workbook =
-            XLSX.utils.book_new();
-
-
-        // ====================================================
-        // HOJA 1 - RESUMEN DE BÚSQUEDA
-        // ====================================================
-        const resumen = [
-
-            [
-                "RESULTADO DE BÚSQUEDA DE GUÍAS"
-            ],
-
-            [],
-
-            [
-                "Producto",
-                filtrosBusquedaAvanzadaActuales.producto || "-"
-            ],
-
-            [
-                "Punto de partida",
-                filtrosBusquedaAvanzadaActuales.partida || "-"
-            ],
-
-            [
-                "Punto de llegada",
-                filtrosBusquedaAvanzadaActuales.llegada || "-"
-            ],
-
-            [
-                "Desde",
-                filtrosBusquedaAvanzadaActuales.desde
-                    ? formatearFecha(
-                        filtrosBusquedaAvanzadaActuales.desde
-                    )
-                    : "-"
-            ],
-
-            [
-                "Hasta",
-                filtrosBusquedaAvanzadaActuales.hasta
-                    ? formatearFecha(
-                        filtrosBusquedaAvanzadaActuales.hasta
-                    )
-                    : "-"
-            ],
-
-            [
-                "Guías seleccionadas",
-                seleccionadas.length
-            ],
-
-            [],
-
-            [
-                "#",
-                "Guía",
-                "Fecha traslado",
-                "Destinatario",
-                "Punto de partida",
-                "Punto de llegada",
-                "Coincidencias"
-            ]
-
-        ];
-
-
-        seleccionadas.forEach(
-            (guia, index) => {
-
-                resumen.push([
-
-                    index + 1,
-
-                    guia.numero || "-",
-
-                    formatearFecha(
-                        obtenerFechaOperativa(guia)
-                    ),
-
-                    guia.destinatario_nombre || "-",
-
-                    guia.direccion_partida || "-",
-
-                    guia.direccion_llegada || "-",
-
-                    Number(
-                        guia.cantidad_coincidencias || 0
-                    )
-
-                ]);
-
-            }
-        );
-
-
-        const wsResumen =
-            XLSX.utils.aoa_to_sheet(
-                resumen
-            );
-
-
-        wsResumen["!cols"] = [
-
-            { wch: 6 },
-            { wch: 18 },
-            { wch: 14 },
-            { wch: 38 },
-            { wch: 55 },
-            { wch: 55 },
-            { wch: 14 }
-
-        ];
-
-
-        wsResumen["!merges"] = [
-
-            {
-                s: { r: 0, c: 0 },
-                e: { r: 0, c: 6 }
-            }
-
-        ];
-
-
-        XLSX.utils.book_append_sheet(
-            workbook,
-            wsResumen,
-            "Resumen"
-        );
-
-
-        // ====================================================
-        // HOJA 2 - TODOS LOS ITEMS
-        // ====================================================
-        const detalle = [
-
-            [
-                "Guía",
-                "Fecha traslado",
-                "Cliente",
-                "Partida",
-                "Llegada",
-                "Línea",
-                "Código",
-                "Descripción",
-                "Cantidad",
-                "Unidad",
-                "Coincidencia"
-            ]
-
-        ];
-
-
-        seleccionadas.forEach(guia => {
-
-            const idsCoincidentes =
-                new Set(
-                    (
-                        guia.items_coincidentes ||
-                        []
-                    )
-                        .map(
-                            item =>
-                                Number(item.id)
-                        )
-                        .filter(
-                            id =>
-                                Number.isFinite(id)
-                        )
-                );
-
-
-            const palabrasProducto =
-                normalizarTexto(
-                    filtrosBusquedaAvanzadaActuales.producto ||
-                    ""
-                )
-                    .split(" ")
-                    .filter(Boolean);
-
-
-            const items =
-                Array.isArray(guia.items)
-                    ? guia.items
-                    : [];
-
-
-            items.forEach(
-                (item, index) => {
-
-                    let coincide = false;
-
-
-                    // Primero por ID
-                    if (
-                        item.id != null &&
-                        idsCoincidentes.has(
-                            Number(item.id)
-                        )
-                    ) {
-
-                        coincide = true;
-
-                    }
-
-
-                    // Fallback por texto
-                    if (
-                        !coincide &&
-                        palabrasProducto.length > 0
-                    ) {
-
-                        const textoItem =
-                            normalizarTexto(
-                                `${
-                                    item.codigo_bien || ""
-                                } ${
-                                    item.descripcion || ""
-                                }`
-                            );
-
-
-                        coincide =
-                            palabrasProducto.every(
-                                palabra =>
-                                    textoItem.includes(
-                                        palabra
-                                    )
-                            );
-
-                    }
-
-
-                    detalle.push([
-
-                        guia.numero || "-",
-
-                        formatearFecha(
-                            obtenerFechaOperativa(guia)
-                        ),
-
-                        guia.destinatario_nombre || "-",
-
-                        guia.direccion_partida || "-",
-
-                        guia.direccion_llegada || "-",
-
-                        item.linea ??
-                            index + 1,
-
-                        item.codigo_bien || "-",
-
-                        item.descripcion || "-",
-
-                        item.cantidad ?? "-",
-
-                        item.unidad || "-",
-
-                        coincide
-                            ? "SÍ"
-                            : ""
-
-                    ]);
-
-                }
-            );
-
-        });
-
-
-        const wsDetalle =
-            XLSX.utils.aoa_to_sheet(
-                detalle
-            );
-
-
-        wsDetalle["!cols"] = [
-
-            { wch: 18 },
-            { wch: 14 },
-            { wch: 35 },
-            { wch: 50 },
-            { wch: 50 },
-            { wch: 8 },
-            { wch: 22 },
-            { wch: 60 },
-            { wch: 12 },
-            { wch: 10 },
-            { wch: 14 }
-
-        ];
-
-
-        XLSX.utils.book_append_sheet(
-            workbook,
-            wsDetalle,
-            "Detalle"
-        );
-
-
-        // ====================================================
-        // HOJA 3 - SOLO COINCIDENCIAS
-        // ====================================================
-        const coincidencias = [
-
-            [
-                "Guía",
-                "Fecha traslado",
-                "Producto encontrado",
-                "Cantidad",
-                "Unidad",
-                "Punto de partida",
-                "Punto de llegada"
-            ]
-
-        ];
-
-
-        seleccionadas.forEach(
-            guia => {
-
-                const items =
-                    Array.isArray(
-                        guia.items_coincidentes
-                    )
-                        ? guia.items_coincidentes
-                        : [];
-
-
-                items.forEach(
-                    item => {
-
-                        coincidencias.push([
-
-                            guia.numero || "-",
-
-                            formatearFecha(
-                                obtenerFechaOperativa(guia)
-                            ),
-
-                            item.descripcion || "-",
-
-                            item.cantidad ?? "-",
-
-                            item.unidad || "-",
-
-                            guia.direccion_partida || "-",
-
-                            guia.direccion_llegada || "-"
-
-                        ]);
-
-                    }
-                );
-
-            }
-        );
-
-
-        const wsCoincidencias =
-            XLSX.utils.aoa_to_sheet(
-                coincidencias
-            );
-
-
-        wsCoincidencias["!cols"] = [
-
-            { wch: 18 },
-            { wch: 14 },
-            { wch: 65 },
-            { wch: 12 },
-            { wch: 10 },
-            { wch: 55 },
-            { wch: 55 }
-
-        ];
-
-
-        XLSX.utils.book_append_sheet(
-            workbook,
-            wsCoincidencias,
-            "Coincidencias"
-        );
-
-
-        // ====================================================
-        // NOMBRE
-        // ====================================================
-        const producto =
-            normalizarTexto(
-                filtrosBusquedaAvanzadaActuales.producto ||
-                "busqueda"
-            )
-                .replace(/\s+/g, "_")
-                .slice(0, 30);
-
-
-        const nombre =
-            `guias_${producto}_${seleccionadas.length}.xlsx`;
-
-
-        XLSX.writeFile(
-            workbook,
-            nombre
-        );
-
-
-        mostrarAlerta(
-            `✅ Excel generado con ${seleccionadas.length} guía(s)`,
-            "success"
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "❌ Error generando Excel seleccionado:",
-            error
-        );
-
-
-        mostrarAlerta(
-            "No se pudo generar el Excel",
-            "error"
-        );
-
-
-    } finally {
-
-        if (boton) {
-
-            boton.disabled =
-                guiasSeleccionadasAvanzadas.size === 0;
-
-
-            boton.innerHTML =
-                contenidoOriginal;
-
-        }
-
-    }
-}
-
-// ============================================================
-// EXPORTAR EXCEL
-// ============================================================
-async function exportarExcel() {
-    const g = ultimaGuiaCargada;
-    if (!g) { mostrarAlerta("Primero selecciona o carga una guía", "error"); return; }
-
-    let rows = [
-        ["GUÍA DE REMISIÓN"], [],
-        ["Número:", g.numero],
-        [
-            "Fecha de emisión:",
-            formatearFecha(
-                g.fecha_emision
-            )
-        ],
-
-        [
-            "Inicio de traslado:",
-            formatearFecha(
-                g.fecha_inicio_traslado ||
-                g.fecha_emision
-            )
-        ],
-        ["Remitente:", g.remitente.razon_social],
-        ["RUC:", g.remitente.ruc],
-        ["Destinatario:", g.destinatario.nombre], [],
-        ["Motivo:", g.traslado.motivo],
-        ["Peso:", g.traslado.peso_total + " kg"], [],
-        ["Partida:", g.partida.direccion],
-        ["Llegada:", g.llegada.direccion], [],
-        ["ITEMS"],
-        ["#", "Código", "Descripción", "Cantidad", "Unidad"]
-    ];
-
-    const filaHeaderItems = rows.length;
-
-    g.items.forEach((i, idx) => {
-        rows.push([
-            i.linea || idx + 1,
-            i.codigo_bien || "-",
-            i.descripcion,
-            i.cantidad,
-            i.unidad
-        ]);
-    });
-
-    let ws = XLSX.utils.aoa_to_sheet(rows);
-    ws["!cols"] = [
-        { wch: 5 }, { wch: 20 }, { wch: 50 }, { wch: 12 }, { wch: 10 }
-    ];
-    ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
-
-    if (ws["A1"]) ws["A1"].s = {
-        font: { bold: true, sz: 14 },
-        alignment: { horizontal: "center" }
-    };
-
-    ["A", "B", "C", "D", "E"].forEach(col => {
-        const cell = ws[`${col}${filaHeaderItems}`];
-        if (cell) {
-            cell.s = {
-                font: { bold: true, color: { rgb: "FFFFFF" } },
-                fill: { fgColor: { rgb: "0A5C8C" } },
-                alignment: { horizontal: "center" }
-            };
-        }
-    });
-
-    for (let i = filaHeaderItems + 1; i <= rows.length; i++) {
-        ["A", "B", "D", "E"].forEach(col => {
-            const cell = ws[`${col}${i}`];
-            if (cell) {
-                cell.s = { alignment: { horizontal: "center" } };
-            }
-        });
-    }
-
-    for (let i = filaHeaderItems; i <= rows.length; i++) {
-        ["A", "B", "C", "D", "E"].forEach(col => {
-            const cell = ws[`${col}${i}`];
-            if (cell) {
-                cell.s = {
-                    ...cell.s,
-                    border: {
-                        top: { style: "thin" },
-                        bottom: { style: "thin" },
-                        left: { style: "thin" },
-                        right: { style: "thin" }
-                    }
-                };
-            }
-        });
-    }
-
-    let wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Guía");
-    XLSX.writeFile(wb, `guia_${g.numero}.xlsx`);
-    mostrarAlerta(`✅ Excel exportado: guia_${g.numero}.xlsx`, "success");
-}
 
 // ============================================================
 // HTML PARA PDF UNITARIO
@@ -5795,12 +5651,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Filtro por fecha automático
-    const fechaDesde = document.getElementById("fecha-desde");
-    const fechaHasta = document.getElementById("fecha-hasta");
-    if (fechaDesde) fechaDesde.addEventListener("change", filtrarPorFecha);
-    if (fechaHasta) fechaHasta.addEventListener("change", filtrarPorFecha);
-
     // ========================================================
     // BÚSQUEDA AVANZADA
     // ========================================================
@@ -5819,12 +5669,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const btnPdfSeleccionadas =
         document.getElementById("btn-pdf-seleccionadas");
-
-    const btnExcelSeleccionadas =
-        document.getElementById(
-            "btn-excel-seleccionadas"
-        );
-
     
     if (seleccionarTodas) {
 
@@ -5849,16 +5693,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
     }
-
-    if (btnExcelSeleccionadas) {
-
-        btnExcelSeleccionadas.addEventListener(
-            "click",
-            exportarExcelSeleccionadas
-        );
-
-    }
-
 
     if (btnToggleAvanzada) {
 
@@ -5920,6 +5754,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     });
 
-    // Cargar historial inicial
+    // ========================================================
+    // ESTADO INICIAL DE LA GUÍA ACTUAL
+    // ========================================================
+
+    actualizarBarraGuiaActual(
+        null
+    );
+
+
+    // ========================================================
+    // CARGAR HISTORIAL INICIAL
+    // ========================================================
+
     mostrarHistorial();
 });

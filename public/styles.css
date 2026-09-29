@@ -546,16 +546,6 @@ img {
         0 5px 14px rgba(10, 92, 140, .20);
 }
 
-.btn-excel {
-    color: #fff;
-
-    background: var(--success);
-}
-
-.btn-excel:hover:not(:disabled) {
-    background: var(--success-hover);
-}
-
 .btn-pdf {
     color: #fff;
 
@@ -615,8 +605,13 @@ img {
     gap: 10px;
 }
 
-.file-wrapper input[type="file"] {
-    display: none;
+/* ============================================================
+   OCULTAR INPUT NATIVO XML
+============================================================ */
+
+.guias-module .xml-selection-block input[type="file"],
+.guias-module #xmlfile {
+    display: none !important;
 }
 
 .btn-file {
@@ -1713,8 +1708,7 @@ img {
     display: grid;
 
     grid-template-columns:
-        minmax(0, 1fr)
-        minmax(0, 1fr);
+        1fr;
 
     gap: 7px;
 }
@@ -3942,7 +3936,6 @@ mark {
 
     .selection-toolbar-actions {
         grid-template-columns:
-            1fr
             1fr;
     }
 
@@ -4084,6 +4077,9 @@ label:focus-visible {
     outline-offset: 2px;
 }
 
+/* ============================================================
+   GUÍAS WEB — ACTION BAR V2
+============================================================ */
 
 /* ============================================================
    35. MOTION
@@ -4101,4 +4097,755 @@ label:focus-visible {
         animation-iteration-count: 1 !important;
     }
 
+}
+
+
+/* ============================================================
+   BARRA DE ACCIONES — INTELLIALL DESKTOP
+   NUEVA GUÍA + GUÍA ACTUAL
+============================================================ */
+
+.guias-module .action-bar {
+    width: 100%;
+
+    margin-bottom: 12px;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(620px, 760px)
+        minmax(340px, 390px);
+
+    justify-content: space-between;
+
+    align-items: stretch;
+
+    gap: 14px;
+}
+
+
+/* ============================================================
+   TARJETAS
+============================================================ */
+
+.guias-module .action-group {
+    min-width: 0;
+
+    min-height: 72px;
+
+    padding:
+        10px
+        12px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 16px;
+
+    background:
+        #ffffff;
+
+    border:
+        1px solid
+        #cfdae2;
+
+    border-top:
+        2px solid
+        var(--primary);
+
+    border-radius:
+        12px;
+
+    box-shadow:
+        0
+        5px
+        16px
+        rgba(
+            25,
+            52,
+            68,
+            .07
+        );
+}
+
+
+/* ============================================================
+   CABECERA INTERNA
+============================================================ */
+
+.guias-module .action-group-heading {
+    flex:
+        0 0 auto;
+
+    min-width:
+        145px;
+}
+
+
+.guias-module .action-group-title {
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        9px;
+}
+
+
+.guias-module .action-group-title > div {
+    min-width:
+        0;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        2px;
+}
+
+
+/* ============================================================
+   ICONOS DE LAS TARJETAS
+============================================================ */
+
+.guias-module .action-icon {
+    width:
+        34px;
+
+    height:
+        34px;
+
+    flex:
+        0 0 34px;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    border-radius:
+        9px;
+
+    font-size:
+        14px;
+}
+
+
+.guias-module .action-icon-import {
+    background:
+        var(--primary-soft);
+
+    color:
+        var(--primary);
+}
+
+
+.guias-module .action-icon-current {
+    background:
+        #f4f1e8;
+
+    color:
+    #a78324;
+}
+
+
+/* ============================================================
+   TEXTOS
+============================================================ */
+
+.guias-module .action-eyebrow {
+    color:
+        #557b94;
+
+    font-size:
+        10px;
+
+    line-height:
+        1.1;
+
+    font-weight:
+        700;
+
+    text-transform:
+        uppercase;
+
+    letter-spacing:
+        .7px;
+}
+
+
+.guias-module .action-group-title strong {
+    color:
+        var(--text);
+
+    font-size:
+        13px;
+
+    line-height:
+        1.2;
+
+    font-weight:
+        600;
+
+    white-space:
+        nowrap;
+}
+
+/* ============================================================
+   NUEVA GUÍA — CONTROLES
+============================================================ */
+
+.guias-module .action-import-controls {
+    flex:
+        1 1 auto;
+
+    min-width:
+        0;
+
+    display:
+        grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    align-items:
+        center;
+
+    gap:
+        18px;
+}
+
+
+/* ============================================================
+   SELECCIÓN DE XML
+   Botón arriba + nombre del archivo debajo
+============================================================ */
+
+.guias-module .xml-selection-block {
+    min-width:
+        0;
+
+    justify-self:
+        center;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    gap:
+        4px;
+}
+
+
+.guias-module .xml-selection-block .btn-file {
+    width:
+        180px;
+
+    min-height:
+        36px;
+
+    padding:
+        7px
+        12px;
+
+    flex:
+        0 0 auto;
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    align-self:
+        center;
+
+    font-size:
+        12px;
+
+    font-weight:
+        600;
+}
+
+
+/* ============================================================
+   NOMBRE DEL XML
+============================================================ */
+
+.guias-module .xml-selection-block .file-name,
+.guias-module .xml-selection-block #file-name {
+    width:
+        180px;
+
+    max-width:
+        180px;
+
+    display:
+        block;
+
+    margin:
+        0 auto;
+
+    overflow:
+        hidden;
+
+    color:
+        var(--text-secondary);
+
+    font-size:
+        11px;
+
+    font-weight:
+        400;
+
+    text-align:
+        center;
+
+    text-overflow:
+        ellipsis;
+
+    white-space:
+        nowrap;
+}
+
+/* ============================================================
+   BOTÓN PROCESAR
+============================================================ */
+
+.guias-module .action-import-controls .btn-primary {
+    min-height:
+        36px;
+
+    padding:
+        7px
+        13px;
+
+    flex:
+        0 0 auto;
+
+    justify-self:
+        end;
+
+    font-size:
+        12px;
+
+    font-weight:
+        600;
+}
+
+/* ============================================================
+   GUÍA ACTUAL
+============================================================ */
+
+.guias-module .action-current {
+    min-width:
+        0;
+}
+
+
+.guias-module .action-current .action-group-heading {
+    min-width:
+        145px;
+}
+
+/* ============================================================
+   NÚMERO DE GUÍA ACTUAL
+============================================================ */
+
+.guias-module .current-guide-number {
+    display:
+        block;
+
+    max-width:
+        155px;
+
+    overflow:
+        hidden;
+
+    color:
+        var(--primary-dark);
+
+    font-size:
+        14px;
+
+    line-height:
+        1.25;
+
+    font-weight:
+        800;
+
+    text-overflow:
+        ellipsis;
+
+    white-space:
+        nowrap;
+}
+
+/* ============================================================
+   CONTENIDO DE GUÍA ACTUAL
+============================================================ */
+
+.guias-module .action-current-content {
+    flex:
+        1 1 auto;
+
+    min-width:
+        0;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        flex-end;
+
+    gap:
+        10px;
+}
+
+
+/* ============================================================
+   ESTADO / NÚMERO DE GUÍA
+============================================================ */
+
+.guias-module .current-guide-info {
+    min-width:
+        0;
+
+    flex:
+        1 1 auto;
+
+    display:
+        flex;
+
+    justify-content:
+        flex-end;
+}
+
+
+.guias-module .current-guide-status {
+    min-width:
+        0;
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    gap:
+        6px;
+
+    color:
+        var(--text-secondary);
+
+    font-size:
+        12px;
+
+    font-weight:
+        500;
+}
+
+
+.guias-module .current-guide-status #current-guide-text {
+    max-width:
+        90px;
+
+    overflow:
+        visible;
+
+    text-overflow:
+        clip;
+
+    white-space:
+        normal;
+
+    line-height:
+        1.15;
+
+    text-align:
+        left;
+}
+
+
+.guias-module .current-guide-dot {
+    width:
+        7px;
+
+    height:
+        7px;
+
+    flex:
+        0 0 7px;
+
+    border-radius:
+        50%;
+
+    background:
+        #b8c4cd;
+}
+
+
+/* ============================================================
+   BOTONES GUÍA ACTUAL
+============================================================ */
+
+.guias-module .action-current-buttons {
+    flex:
+        0 0 auto;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        7px;
+}
+
+
+/* ACTUALIZAR */
+
+.guias-module .btn-refresh-guides {
+    width:
+        36px;
+
+    height:
+        36px;
+
+    min-height:
+        36px;
+
+    padding:
+        0;
+
+    display:
+        grid;
+
+    place-items:
+        center;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius:
+        8px;
+
+    background:
+        #ffffff;
+
+    color:
+        var(--text-secondary);
+
+    box-shadow:
+        none;
+}
+
+
+.guias-module .btn-refresh-guides:hover {
+    border-color:
+        #a8c8da;
+
+    background:
+        var(--primary-soft);
+
+    color:
+        var(--primary);
+}
+
+
+/* PDF */
+
+.guias-module .action-current .btn-pdf {
+    min-width:
+        72px;
+
+    min-height:
+        36px;
+
+    padding:
+        7px
+        12px;
+
+    font-size:
+        12px;
+
+    font-weight:
+        600;
+}
+
+
+/* ============================================================
+   RESPONSIVE DESKTOP
+============================================================ */
+
+@media (max-width: 1350px) {
+
+    .guias-module .action-bar {
+        grid-template-columns:
+            minmax(
+                560px,
+                1fr
+            )
+            350px;
+
+        gap:
+            10px;
+    }
+
+
+    .guias-module .action-group-heading {
+        min-width:
+            125px;
+    }
+
+
+    .guias-module .action-icon {
+        width:
+            30px;
+
+        height:
+            30px;
+
+        flex-basis:
+            30px;
+    }
+
+
+    .guias-module .xml-selection-block .file-name,
+    .guias-module .xml-selection-block #file-name {
+        width:
+            150px;
+
+        max-width:
+            150px;
+    }
+
+
+    .guias-module
+    .current-guide-status
+    #current-guide-text {
+        max-width:
+            105px;
+    }
+
+}
+
+
+/* ============================================================
+   VENTANA MÁS ESTRECHA
+============================================================ */
+
+@media (max-width: 1120px) {
+
+    .guias-module .action-bar {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .guias-module .action-group {
+        width:
+            100%;
+    }
+
+}
+
+/* ============================================================
+   LISTADO DE GUÍAS — SCROLL INDEPENDIENTE
+============================================================ */
+
+.guias-module .results-scroll-area {
+    flex:
+        1 1 auto;
+
+    min-height:
+        0;
+
+    overflow-y:
+        auto;
+
+    overflow-x:
+        hidden;
+
+    margin-top:
+        7px;
+
+    padding-right:
+        3px;
+}
+
+
+.guias-module .results-scroll-area .results-container {
+    min-height:
+        0;
+
+    overflow:
+        visible;
+
+    margin-top:
+        0;
+
+    padding-right:
+        0;
+}
+
+
+/* ============================================================
+   PAGINACIÓN FIJA
+============================================================ */
+
+.guias-module .paginacion-fija {
+    flex:
+        0 0 auto;
+
+    width:
+        100%;
+
+    margin-top:
+        6px;
+
+    padding-top:
+        6px;
+
+    background:
+        #ffffff;
+
+    border-top:
+        1px solid
+        #dce6ed;
+}
+
+
+.guias-module .paginacion-fija .paginacion {
+    margin-top:
+        0;
+
+    padding:
+        0;
 }

@@ -42,7 +42,7 @@
 
     <link
         rel="stylesheet"
-        href="styles.css?v=11"
+        href="styles.css?v=13"
     >
 
 
@@ -61,10 +61,6 @@
     ====================================================== -->
 
     <script
-        src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"
-    ></script>
-
-    <script
         src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
     ></script>
 
@@ -77,7 +73,7 @@
          APLICACIÓN
     ====================================================== -->
 
-    <script src="script.js?v=15" defer></script>
+    <script src="script.js?v=17" defer></script>
 
 </head>
 
@@ -147,135 +143,206 @@
 
 <main class="app-shell">
 
+    <section class="guias-module">
 
-    <!-- =====================================================
-         BARRA DE ACCIONES
-    ====================================================== -->
+        <!-- =====================================================
+            BARRA DE ACCIONES
+        ====================================================== -->
 
-    <section class="action-bar">
-
-
-        <!-- IMPORTAR -->
-        <div class="action-group action-import">
-
-            <div class="action-group-info">
-
-                <span class="action-eyebrow">
-                    Nueva guía
-                </span>
-
-                <strong>
-                    Importar XML SUNAT
-                </strong>
-
-            </div>
+        <section class="action-bar">
 
 
-            <div class="action-import-controls">
+            <!-- =============================================
+                NUEVA GUÍA
+            ============================================== -->
 
+            <div class="action-group action-import">
 
-                <!-- ARCHIVO -->
-                <div class="file-wrapper">
+                <div class="action-group-heading">
 
-                    <label
-                        for="xmlfile"
-                        class="btn-file"
-                    >
+                    <div class="action-group-title">
 
-                        <i class="fa-solid fa-folder-open"></i>
+                        <span class="action-icon action-icon-import">
 
-                        <span>
-                            Seleccionar XML
+                            <i class="fa-solid fa-file-arrow-up"></i>
+
                         </span>
 
-                    </label>
 
+                        <div>
 
-                    <input
-                        type="file"
-                        id="xmlfile"
-                        accept=".xml"
-                    >
+                            <span class="action-eyebrow">
+                                Nueva guía
+                            </span>
 
+                            <strong>
+                                Importar XML SUNAT
+                            </strong>
 
-                    <span
-                        id="file-name"
-                        class="file-name"
-                    >
-                        Ningún archivo seleccionado
-                    </span>
+                        </div>
+
+                    </div>
 
                 </div>
 
 
-                <!-- PROCESAR -->
-                <button
-                    type="button"
-                    class="btn btn-primary"
-                    onclick="leerGuia()"
-                >
+                <div class="action-import-controls">
 
-                    <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                    <div class="xml-selection-block">
 
-                    Procesar
+                        <label
+                            for="xmlfile"
+                            class="btn-file"
+                        >
 
-                </button>
+                            <i class="fa-solid fa-folder-open"></i>
 
-            </div>
+                            <span>
+                                Seleccionar XML
+                            </span>
 
-        </div>
-
-
-        <!-- EXPORTACIÓN DE LA GUÍA ABIERTA -->
-        <div class="action-group action-export">
-
-            <div class="action-group-info">
-
-                <span class="action-eyebrow">
-                    Guía actual
-                </span>
-
-                <strong>
-                    Exportar documento
-                </strong>
-
-            </div>
+                        </label>
 
 
-            <div class="action-export-buttons">
-
-                <button
-                    type="button"
-                    class="btn btn-excel"
-                    onclick="exportarExcel()"
-                    title="Exportar guía actual a Excel"
-                >
-
-                    <i class="fa-solid fa-file-excel"></i>
-
-                    Excel
-
-                </button>
+                        <input
+                            type="file"
+                            id="xmlfile"
+                            accept=".xml"
+                        >
 
 
-                <button
-                    type="button"
-                    class="btn btn-pdf"
-                    onclick="exportarPDF()"
-                    title="Exportar guía actual a PDF"
-                >
+                        <span
+                            id="file-name"
+                            class="file-name"
+                        >
+                            Ningún archivo seleccionado
+                        </span>
 
-                    <i class="fa-solid fa-file-pdf"></i>
+                    </div>
 
-                    PDF
 
-                </button>
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        onclick="leerGuia()"
+                    >
+
+                        <i class="fa-solid fa-arrow-up-from-bracket"></i>
+
+                        <span>
+                            Procesar
+                        </span>
+
+                    </button>
+
+                </div>
 
             </div>
 
-        </div>
 
-    </section>
+
+            <!-- =============================================
+                GUÍA ACTUAL
+            ============================================== -->
+
+            <div class="action-group action-current">
+
+                <div class="action-group-heading">
+
+                    <div class="action-group-title">
+
+                        <span class="action-icon action-icon-current">
+
+                            <i class="fa-regular fa-file-lines"></i>
+
+                        </span>
+
+
+                        <div>
+
+                            <span class="action-eyebrow">
+                                Guía actual
+                            </span>
+
+                            <strong
+                                id="current-guide-number"
+                                class="current-guide-number"
+                            >
+                                Ninguna guía
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="action-current-content">
+
+
+                    <!-- INFORMACIÓN DE GUÍA ACTUAL -->
+
+                    <div class="current-guide-info">
+
+                        <span class="current-guide-status">
+
+                            <span class="current-guide-dot"></span>
+
+                            <span id="current-guide-text">
+                                Sin<br>seleccionar
+                            </span>
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- ACCIONES -->
+
+                    <div class="action-current-buttons">
+
+
+                        <!-- ACTUALIZAR LISTADO -->
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary btn-refresh-guides"
+                            title="Actualizar listado de guías"
+                            aria-label="Actualizar listado de guías"
+                            onclick="mostrarHistorial()"
+                        >
+
+                            <i class="fa-solid fa-rotate"></i>
+
+                        </button>
+
+
+                        <!-- PDF -->
+
+                        <button
+                            type="button"
+                            class="btn btn-pdf"
+                            onclick="exportarPDF()"
+                            title="Exportar guía actual a PDF"
+                        >
+
+                            <i class="fa-solid fa-file-pdf"></i>
+
+                            <span>
+                                PDF
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+        
 
 
 
@@ -698,7 +765,7 @@
 
 
             <!-- =================================================
-                 SELECCIÓN Y EXPORTACIÓN
+                SELECCIÓN Y EXPORTACIÓN MÚLTIPLE
             ================================================== -->
 
             <section
@@ -749,34 +816,17 @@
 
                     </button>
 
-
-                    <button
-                        type="button"
-                        id="btn-excel-seleccionadas"
-                        class="btn btn-excel"
-                        disabled
-                    >
-
-                        <i class="fa-solid fa-file-excel"></i>
-
-                        Excel seleccionadas
-
-                    </button>
-
                 </div>
 
             </section>
 
 
-
             <!-- =================================================
-                 RESULTADOS
+                RESULTADOS
             ================================================== -->
 
             <section class="results-section">
 
-
-                <!-- CABECERA -->
                 <div class="results-header">
 
                     <div>
@@ -791,33 +841,40 @@
 
                     </div>
 
-
                     <i class="fa-solid fa-list-ul"></i>
 
                 </div>
 
 
+                <!-- ÁREA DESPLAZABLE -->
 
-                <!-- BÚSQUEDA AVANZADA -->
+                <div class="results-scroll-area">
+
+                    <div
+                        id="historial-avanzado"
+                        class="results-container"
+                        style="display:none;"
+                    ></div>
+
+                    <div
+                        id="historial-lista"
+                        class="results-container"
+                    ></div>
+
+                    <div
+                        id="historial-busqueda"
+                        class="results-container"
+                        style="display:none;"
+                    ></div>
+
+                </div>
+
+
+                <!-- PAGINACIÓN FIJA -->
+
                 <div
-                    id="historial-avanzado"
-                    class="results-container"
-                    style="display:none;"
-                ></div>
-
-
-                <!-- HISTORIAL NORMAL -->
-                <div
-                    id="historial-lista"
-                    class="results-container"
-                ></div>
-
-
-                <!-- BÚSQUEDA NORMAL -->
-                <div
-                    id="historial-busqueda"
-                    class="results-container"
-                    style="display:none;"
+                    id="paginacion-guias"
+                    class="paginacion-fija"
                 ></div>
 
             </section>
@@ -830,108 +887,110 @@
              VISOR
         ================================================== -->
 
-        <section class="viewer-panel">
+            <section class="viewer-panel">
 
 
-            <div class="viewer-card">
+                <div class="viewer-card">
 
 
-                <!-- CABECERA VISOR -->
-                <div class="viewer-header">
+                    <!-- CABECERA VISOR -->
+                    <div class="viewer-header">
 
 
-                    <div class="viewer-header-left">
+                        <div class="viewer-header-left">
 
-                        <span class="viewer-eyebrow">
-                            Documento
-                        </span>
+                            <span class="viewer-eyebrow">
+                                Documento
+                            </span>
 
 
-                        <h2>
+                            <h2>
 
-                            <i class="fa-solid fa-file-lines"></i>
+                                <i class="fa-solid fa-file-lines"></i>
 
-                            Vista de guía
+                                Vista de guía
 
-                        </h2>
+                            </h2>
+
+                        </div>
+
+
+                        <div class="viewer-header-status">
+
+                            <span class="viewer-status-dot"></span>
+
+                            <span>
+                                Seleccione una guía
+                            </span>
+
+                        </div>
 
                     </div>
 
 
-                    <div class="viewer-header-status">
 
-                        <span class="viewer-status-dot"></span>
-
-                        <span>
-                            Seleccione una guía
-                        </span>
-
-                    </div>
-
-                </div>
-
-
-
-                <!-- ÁREA DOCUMENTO -->
-                <div
-                    id="pdf-area"
-                    class="viewer-area"
-                >
-
+                    <!-- ÁREA DOCUMENTO -->
                     <div
-                        id="salida"
-                        class="viewer-content"
+                        id="pdf-area"
+                        class="viewer-area"
                     >
 
-
-                        <!-- EMPTY STATE -->
-                        <div class="empty-view">
-
-                            <div class="empty-view-icon">
-
-                                <i class="fa-regular fa-file-circle-plus"></i>
-
-                            </div>
+                        <div
+                            id="salida"
+                            class="viewer-content"
+                        >
 
 
-                            <h3>
-                                Ninguna guía seleccionada
-                            </h3>
+                            <!-- EMPTY STATE -->
+                            <div class="empty-view">
+
+                                <div class="empty-view-icon">
+
+                                    <i class="fa-regular fa-file-circle-plus"></i>
+
+                                </div>
 
 
-                            <p>
-                                Seleccione una guía del listado o procese un
-                                archivo XML para visualizar su contenido.
-                            </p>
+                                <h3>
+                                    Ninguna guía seleccionada
+                                </h3>
 
 
-                            <div class="empty-view-help">
-
-                                <span>
-
-                                    <i class="fa-solid fa-magnifying-glass"></i>
-
-                                    Buscar
-
-                                </span>
+                                <p>
+                                    Seleccione una guía del listado o procese un
+                                    archivo XML para visualizar su contenido.
+                                </p>
 
 
-                                <span>
+                                <div class="empty-view-help">
 
-                                    <i class="fa-solid fa-arrow-pointer"></i>
+                                    <span>
 
-                                    Seleccionar
+                                        <i class="fa-solid fa-magnifying-glass"></i>
 
-                                </span>
+                                        Buscar
+
+                                    </span>
 
 
-                                <span>
+                                    <span>
 
-                                    <i class="fa-solid fa-file-export"></i>
+                                        <i class="fa-solid fa-arrow-pointer"></i>
 
-                                    Exportar
+                                        Seleccionar
 
-                                </span>
+                                    </span>
+
+
+                                    <span>
+
+                                        <i class="fa-solid fa-file-export"></i>
+
+                                        Exportar
+
+                                    </span>
+
+                                </div>
 
                             </div>
 
@@ -941,9 +1000,12 @@
 
                 </div>
 
-            </div>
+            </section>
 
         </section>
+
+
+    <!-- FIN MÓDULO GUÍAS -->
 
     </section>
 
