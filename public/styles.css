@@ -909,7 +909,7 @@ img {
     color:
         var(--text);
 
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .search-toolbar input::placeholder {
@@ -1031,12 +1031,12 @@ img {
 
     color: var(--text-secondary);
 
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 600;
 }
 
 .btn-orden {
-    min-height: 30px;
+    min-height: 34px;
 
     display: inline-flex;
     align-items: center;
@@ -1054,7 +1054,7 @@ img {
 
     cursor: pointer;
 
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
 
     transition: var(--transition);
@@ -1120,7 +1120,7 @@ img {
     color:
         #657d8f;
 
-    font-size: 9px;
+    font-size: 11px;
 
     font-weight: 800;
 
@@ -1153,7 +1153,7 @@ img {
     color:
         var(--text-secondary);
 
-    font-size: 11px;
+    font-size: 12.5px;
 
     transition:
         var(--transition);
@@ -1278,7 +1278,7 @@ img {
     color:
         var(--primary-dark);
 
-    font-size: 12px;
+    font-size: 13.5px;
 
     font-weight: 800;
 }
@@ -1290,7 +1290,7 @@ img {
     color:
         var(--text-muted);
 
-    font-size: 9px;
+    font-size: 11px;
 }
 
 .btn-toggle-avanzada > i {
