@@ -1275,97 +1275,345 @@ app.get("/buscar-avanzado", async (req, res) => {
 });
 
 // ----------------------
-// GUARDAR GUÍA
+// GUARDAR / ACTUALIZAR GUÍA
 // ----------------------
 app.post("/guardar-guia", async (req, res) => {
+
     const g = req.body;
 
-    try {
-        const existe = await query(
-            "SELECT id FROM guias WHERE numero = ?", [g.numero]
-        );
+    let connection;
 
-        if(existe.length > 0){
-            return res.json({
-                ok:      false,
-                mensaje: `⚠️ La guía ${g.numero} ya fue procesada`
+    try {
+
+        // =====================================================
+        // VALIDACIONES BÁSICAS
+        // =====================================================
+
+        if (!g || !g.numero) {
+
+            return res.status(400).json({
+                ok: false,
+                mensaje:
+                    "La guía no contiene un número válido"
             });
+
         }
 
-        const [result] =
-            await pool.query(
+
+        if (!Array.isArray(g.items)) {
+
+            return res.status(400).json({
+                ok: false,
+                mensaje:
+                    "La guía no contiene una lista de ítems válida"
+            });
+
+        }
+
+
+        // =====================================================
+        // OBTENER CONEXIÓN
+        // =====================================================
+
+        connection =
+            await pool.getConnection();
+
+
+        // =====================================================
+        // INICIAR TRANSACCIÓN
+        // =====================================================
+
+        await connection.beginTransaction();
+
+
+        // =====================================================
+        // VERIFICAR SI LA GUÍA YA EXISTE
+        // =====================================================
+
+        const [existentes] =
+            await connection.query(
                 `
-                INSERT INTO guias
-                (
-                    numero,
-                    fecha_emision,
-                    hora_emision,
-                    fecha_inicio_traslado,
-                    remitente_ruc,
-                    remitente_nombre,
-                    destinatario_nombre,
-                    motivo,
-                    peso_total,
-                    direccion_partida,
-                    direccion_llegada
-                )
-                VALUES
-                (
-                    ?, ?, ?, ?, ?, ?,
-                    ?, ?, ?, ?, ?
-                )
+                    SELECT
+                        id
+                    FROM guias
+                    WHERE numero = ?
+                    LIMIT 1
                 `,
                 [
-                    g.numero,
-
-                    g.fecha_emision || null,
-
-                    g.hora_emision || null,
-
-                    g.fecha_inicio_traslado || null,
-
-                    g.remitente.ruc,
-
-                    g.remitente.razon_social,
-
-                    g.destinatario.nombre,
-
-                    g.traslado.motivo,
-
-                    g.traslado.peso_total,
-
-                    g.partida.direccion,
-
-                    g.llegada.direccion
+                    g.numero
                 ]
             );
 
-        const guiaId = result.insertId;
 
-        for (const item of g.items) {
-            await pool.query(`
-                INSERT INTO guia_items 
-                (guia_id, linea, codigo_bien, descripcion, cantidad, unidad)
-                VALUES (?, ?, ?, ?, ?, ?)
-            `, [
-                guiaId,
-                item.linea,
-                item.codigo_bien,
-                item.descripcion,
-                item.cantidad,
-                item.unidad
-            ]);
+        let guiaId;
+        let actualizada = false;
+
+
+        // =====================================================
+        // SI YA EXISTE → ACTUALIZAR
+        // =====================================================
+
+        if (existentes.length > 0) {
+
+            guiaId =
+                Number(
+                    existentes[0].id
+                );
+
+            actualizada = true;
+
+
+            // -------------------------------------------------
+            // ACTUALIZAR CABECERA
+            // -------------------------------------------------
+
+            await connection.query(
+                `
+                    UPDATE guias
+
+                    SET
+                        fecha_emision = ?,
+                        hora_emision = ?,
+                        fecha_inicio_traslado = ?,
+                        remitente_ruc = ?,
+                        remitente_nombre = ?,
+                        destinatario_nombre = ?,
+                        motivo = ?,
+                        peso_total = ?,
+                        direccion_partida = ?,
+                        direccion_llegada = ?
+
+                    WHERE id = ?
+                `,
+                [
+                    g.fecha_emision || null,
+                    g.hora_emision || null,
+                    g.fecha_inicio_traslado || null,
+
+                    g.remitente?.ruc || null,
+
+                    g.remitente?.razon_social || null,
+
+                    g.destinatario?.nombre || null,
+
+                    g.traslado?.motivo || null,
+
+                    g.traslado?.peso_total || null,
+
+                    g.partida?.direccion || null,
+
+                    g.llegada?.direccion || null,
+
+                    guiaId
+                ]
+            );
+
+
+            // -------------------------------------------------
+            // ELIMINAR ÍTEMS ANTERIORES
+            // -------------------------------------------------
+
+            await connection.query(
+                `
+                    DELETE FROM guia_items
+                    WHERE guia_id = ?
+                `,
+                [
+                    guiaId
+                ]
+            );
+
         }
 
-        res.json({
-            ok:      true,
-            mensaje: `✅ La guía ${g.numero} fue guardada correctamente`
+        // =====================================================
+        // SI NO EXISTE → CREAR
+        // =====================================================
+
+        else {
+
+            const [result] =
+                await connection.query(
+                    `
+                        INSERT INTO guias
+                        (
+                            numero,
+                            fecha_emision,
+                            hora_emision,
+                            fecha_inicio_traslado,
+                            remitente_ruc,
+                            remitente_nombre,
+                            destinatario_nombre,
+                            motivo,
+                            peso_total,
+                            direccion_partida,
+                            direccion_llegada
+                        )
+
+                        VALUES
+                        (
+                            ?, ?, ?, ?, ?, ?,
+                            ?, ?, ?, ?, ?
+                        )
+                    `,
+                    [
+                        g.numero,
+
+                        g.fecha_emision || null,
+
+                        g.hora_emision || null,
+
+                        g.fecha_inicio_traslado || null,
+
+                        g.remitente?.ruc || null,
+
+                        g.remitente?.razon_social || null,
+
+                        g.destinatario?.nombre || null,
+
+                        g.traslado?.motivo || null,
+
+                        g.traslado?.peso_total || null,
+
+                        g.partida?.direccion || null,
+
+                        g.llegada?.direccion || null
+                    ]
+                );
+
+
+            guiaId =
+                result.insertId;
+
+        }
+
+
+        // =====================================================
+        // INSERTAR ÍTEMS ACTUALES
+        // =====================================================
+
+        for (const item of g.items) {
+
+            await connection.query(
+                `
+                    INSERT INTO guia_items
+                    (
+                        guia_id,
+                        linea,
+                        codigo_bien,
+                        descripcion,
+                        cantidad,
+                        unidad
+                    )
+
+                    VALUES
+                    (?, ?, ?, ?, ?, ?)
+                `,
+                [
+                    guiaId,
+
+                    item.linea || null,
+
+                    item.codigo_bien || null,
+
+                    item.descripcion || null,
+
+                    item.cantidad || null,
+
+                    item.unidad || null
+                ]
+            );
+
+        }
+
+
+        // =====================================================
+        // CONFIRMAR TRANSACCIÓN
+        // =====================================================
+
+        await connection.commit();
+
+
+        // =====================================================
+        // RESPUESTA
+        // =====================================================
+
+        return res.json({
+
+            ok: true,
+
+            actualizada,
+
+            guia_id:
+                guiaId,
+
+            total_items:
+                g.items.length,
+
+            mensaje:
+                actualizada
+                    ? `✅ La guía ${g.numero} fue actualizada correctamente con ${g.items.length} ítems`
+                    : `✅ La guía ${g.numero} fue guardada correctamente con ${g.items.length} ítems`
+
         });
 
-    } catch(err) {
-        console.error("❌ Error guardando:", err.message);
-        res.status(500).json({ ok: false, mensaje: err.message });
+
+    } catch (err) {
+
+        // =====================================================
+        // REVERTIR SI FALLA ALGO
+        // =====================================================
+
+        if (connection) {
+
+            try {
+
+                await connection.rollback();
+
+            } catch (rollbackError) {
+
+                console.error(
+                    "❌ Error rollback:",
+                    rollbackError.message
+                );
+
+            }
+
+        }
+
+
+        console.error(
+            "❌ Error guardando/actualizando guía:",
+            err.message
+        );
+
+
+        return res.status(500).json({
+
+            ok: false,
+
+            mensaje:
+                "No se pudo guardar o actualizar la guía",
+
+            error:
+                err.message
+
+        });
+
+
+    } finally {
+
+        // =====================================================
+        // LIBERAR CONEXIÓN
+        // =====================================================
+
+        if (connection) {
+
+            connection.release();
+
+        }
+
     }
+
 });
 
 // ----------------------
