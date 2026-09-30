@@ -2378,13 +2378,13 @@ img {
 }
 
 /* ============================================================
-   20. NORMAL SEARCH CARDS
+   20. RESULTADOS DE BÚSQUEDA — MAYOR LEGIBILIDAD
 ============================================================ */
 
 .search-result-card {
-    margin-bottom: 7px;
+    margin-bottom: 10px;
 
-    padding: 10px;
+    padding: 13px 14px;
 
     background: #fff;
 
@@ -2396,6 +2396,7 @@ img {
     transition: var(--transition);
 }
 
+
 .search-result-card:hover {
     border-color: #b8d3e1;
 
@@ -2403,6 +2404,7 @@ img {
 
     transform: translateY(-1px);
 }
+
 
 .search-result-card.activa {
     border-color: #8abbd3 !important;
@@ -2414,105 +2416,151 @@ img {
         rgba(10, 92, 140, .06) !important;
 }
 
+
+/* CABECERA */
+
 .search-card-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
 
-    gap: 8px;
+    gap: 10px;
 
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
+
 
 .search-card-header .numero {
     color: var(--primary);
 
-    font-size: 12px;
-    font-weight: 750;
+    font-size: 14px;
+
+    line-height: 1.3;
+
+    font-weight: 800;
 }
+
 
 .search-card-header .fecha {
     color: var(--text-muted);
 
-    font-size: 9px;
+    font-size: 11.5px;
+
+    line-height: 1.35;
+
+    font-weight: 600;
 }
 
+
+/* CLIENTE */
+
 .search-client {
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 
     display: flex;
     align-items: flex-start;
 
-    gap: 6px;
+    gap: 7px;
 
     color: var(--text);
 
-    font-size: 10px;
+    font-size: 12.5px;
+
+    line-height: 1.4;
+
+    font-weight: 500;
 }
 
+
 .search-client i {
-    margin-top: 2px;
+    margin-top: 3px;
 
     color: var(--primary);
 
-    font-size: 9px;
+    font-size: 11px;
+
+    flex-shrink: 0;
 }
+
+
+/* PRODUCTOS ENCONTRADOS */
 
 .search-items {
     color: var(--text-secondary);
 
-    font-size: 9.5px;
+    font-size: 12px;
+
+    line-height: 1.45;
 }
+
 
 .search-items strong {
     display: block;
 
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 
     color: var(--text);
 
-    font-size: 9.5px;
+    font-size: 12.5px;
+
+    font-weight: 800;
 }
+
 
 .item-match {
     display: flex;
     align-items: flex-start;
 
-    gap: 5px;
+    gap: 7px;
 
-    padding: 2px 0;
+    padding: 4px 0;
+
+    line-height: 1.45;
 }
 
+
 .item-match i {
-    margin-top: 2px;
+    margin-top: 3px;
 
     color: var(--success);
 
-    font-size: 8px;
+    font-size: 10px;
+
+    flex-shrink: 0;
 }
 
+
 .item-more {
-    margin-top: 3px;
-    padding-left: 15px;
+    margin-top: 5px;
+
+    padding-left: 18px;
 
     color: var(--text-muted);
 
-    font-size: 8.5px;
+    font-size: 11px;
+
+    font-weight: 600;
 }
 
+
+/* DIRECCIONES */
+
 .search-address {
-    margin-top: 7px;
-    padding-top: 7px;
+    margin-top: 10px;
+
+    padding-top: 9px;
 
     display: grid;
+
     grid-template-columns:
         minmax(0, 1fr)
         minmax(0, 1fr);
 
-    gap: 7px;
+    gap: 10px;
 
     border-top: 1px solid #edf1f4;
 }
+
 
 .search-address .addr {
     min-width: 0;
@@ -2520,25 +2568,29 @@ img {
     display: flex;
     align-items: flex-start;
 
-    gap: 5px;
+    gap: 6px;
 
     color: var(--text-secondary);
 
-    font-size: 8.5px;
+    font-size: 10.5px;
+
+    line-height: 1.4;
 }
 
+
 .search-address .addr i {
-    margin-top: 2px;
+    margin-top: 3px;
 
     color: var(--primary);
 
-    font-size: 8px;
+    font-size: 9px;
 
     flex-shrink: 0;
 }
 
+
 .search-address .text {
-    line-height: 1.35;
+    line-height: 1.4;
 
     overflow-wrap: anywhere;
 }
