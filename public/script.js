@@ -623,6 +623,24 @@ async function verGuiaPorId(id) {
         return;
     }
 
+    // ========================================================
+    // CONSERVAR POSICIÓN DE LA INTERFAZ
+    // ========================================================
+
+    const scrollPaginaAntes =
+        window.scrollY;
+
+
+    const contenedorListado =
+        document.querySelector(
+            ".results-container:not([style*='display: none'])"
+        );
+
+
+    const scrollListadoAntes =
+        contenedorListado
+            ? contenedorListado.scrollTop
+            : 0;
 
     // ========================================================
     // GUARDAR GUÍA ACTUALMENTE SELECCIONADA
@@ -697,10 +715,66 @@ async function verGuiaPorId(id) {
         }))
     };
 
-    mostrarGuiaBonita(guia);
-    
-    // 🔥 CORREGIDO - Marcar la guía como seleccionada en el historial
-    actualizarGuiaSeleccionada(id);
+    mostrarGuiaBonita(
+        guia
+    );
+
+
+    // Marcar selección
+    actualizarGuiaSeleccionada(
+        id
+    );
+
+
+    // ========================================================
+    // RESTAURAR POSICIÓN SIN ANIMACIÓN
+    // ========================================================
+
+    requestAnimationFrame(() => {
+
+        window.scrollTo({
+            top:
+                scrollPaginaAntes,
+
+            left: 0,
+
+            behavior:
+                "auto"
+        });
+
+
+        if (contenedorListado) {
+
+            contenedorListado.scrollTop =
+                scrollListadoAntes;
+
+        }
+
+
+        // Segunda corrección después del reflow
+        requestAnimationFrame(() => {
+
+            window.scrollTo({
+                top:
+                    scrollPaginaAntes,
+
+                left: 0,
+
+                behavior:
+                    "auto"
+            });
+
+
+            if (contenedorListado) {
+
+                contenedorListado.scrollTop =
+                    scrollListadoAntes;
+
+            }
+
+        });
+
+    });
 }
 
 // ============================================================

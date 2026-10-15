@@ -5212,3 +5212,24 @@ label:focus-visible {
 
     font-weight: 600;
 }
+
+/* ============================================================
+   EVITAR SALTOS AUTOMÁTICOS AL ACTUALIZAR EL VISOR
+============================================================ */
+
+#salida,
+.viewer-card,
+.viewer-body {
+
+    overflow-anchor:
+        none;
+
+}
+
+
+.results-container {
+
+    overflow-anchor:
+        none;
+
+}
