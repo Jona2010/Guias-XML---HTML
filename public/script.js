@@ -716,83 +716,26 @@ function actualizarGuiaSeleccionada(id) {
         card.style.boxShadow = "";
         card.style.borderWidth = "1px";
     });
-    
-    // 🔥 CORREGIDO - Buscar y marcar en la tabla del historial
-    const filaTabla = document.querySelector(`.historial-tabla tr[data-id="${id}"]`);
+
+    // ========================================================
+    // MARCAR FILA SELECCIONADA
+    // No modificar la posición del scroll
+    // ========================================================
+
+    const filaTabla =
+        document.querySelector(
+            `.historial-tabla tr[data-id="${id}"]`
+        );
+
+
     if (filaTabla) {
 
         filaTabla.classList.add(
             "fila-activa"
         );
 
-
-        const contenedor =
-            filaTabla.closest(
-                ".results-container"
-            );
-
-
-        if (contenedor) {
-
-            const rectFila =
-                filaTabla.getBoundingClientRect();
-
-            const rectContenedor =
-                contenedor.getBoundingClientRect();
-
-
-            const fueraArriba =
-                rectFila.top <
-                rectContenedor.top;
-
-
-            const fueraAbajo =
-                rectFila.bottom >
-                rectContenedor.bottom;
-
-
-            if (
-                fueraArriba ||
-                fueraAbajo
-            ) {
-
-                const offsetFila =
-                    filaTabla.offsetTop;
-
-                const altoFila =
-                    filaTabla.offsetHeight;
-
-                const altoContenedor =
-                    contenedor.clientHeight;
-
-
-                const nuevaPosicion =
-                    offsetFila -
-                    (
-                        altoContenedor / 2
-                    ) +
-                    (
-                        altoFila / 2
-                    );
-
-
-                contenedor.scrollTo({
-                    top:
-                        Math.max(
-                            0,
-                            nuevaPosicion
-                        ),
-
-                    behavior:
-                        "smooth"
-                });
-
-            }
-
-        }
-
-    }
-    
+    }    
+        
     // 🔥 CORREGIDO - Marcar card en resultados de búsqueda
     const cards = document.querySelectorAll(".search-result-card");
     cards.forEach(card => {
