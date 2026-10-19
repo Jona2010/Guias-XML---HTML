@@ -797,35 +797,76 @@ function generarPaginacionHistorial() {
     const totalPaginas = totalPaginasHistorial;
     const paginasPorBloque = 5;
 
-    const bloqueActual =
-        Math.floor((paginaActual - 1) / paginasPorBloque);
+    let inicioBloque;
+    let finBloque;
 
-    let inicioBloque =
-        bloqueActual * paginasPorBloque + 1;
 
-    let finBloque =
-        Math.min(
-            inicioBloque + paginasPorBloque - 1,
+    // ========================================================
+    // PAGINACIÓN DINÁMICA
+    //
+    // 1 2 3 4 5 ... 71
+    //
+    // Al seleccionar 5:
+    // 1 ... 5 6 7 8 9 10 ... 71
+    //
+    // Al seleccionar 6:
+    // 1 ... 6 7 8 9 10 ... 71
+    // ========================================================
+
+    const esUltimaDelBloque =
+        paginaActual % paginasPorBloque === 0 &&
+        paginaActual < totalPaginas;
+
+
+    if (esUltimaDelBloque) {
+
+        // Mantener visible la página actual
+        // y mostrar inmediatamente el siguiente bloque.
+        inicioBloque = paginaActual;
+
+        finBloque = Math.min(
+            paginaActual + paginasPorBloque,
             totalPaginas
         );
+
+    } else {
+
+        const bloqueActual =
+            Math.floor(
+                (paginaActual - 1) /
+                paginasPorBloque
+            );
+
+        inicioBloque =
+            bloqueActual *
+            paginasPorBloque + 1;
+
+        finBloque =
+            Math.min(
+                inicioBloque +
+                paginasPorBloque - 1,
+                totalPaginas
+            );
+    }
+
 
     let botonesPaginas = "";
 
 
     // ========================================================
-    // PRIMERA PÁGINA + ...
-    // Ejemplo:
-    // 1 ... 6 7 8 9 10
+    // PRIMERA PÁGINA
     // ========================================================
 
     if (inicioBloque > 1) {
 
-        botonesPaginas += crearBotonPaginaHistorial(
-            1,
-            paginaActual
-        );
+        botonesPaginas +=
+            crearBotonPaginaHistorial(
+                1,
+                paginaActual
+            );
 
         if (inicioBloque > 2) {
+
             botonesPaginas += `
                 <span class="pagina-ellipsis">
                     …
@@ -836,7 +877,7 @@ function generarPaginacionHistorial() {
 
 
     // ========================================================
-    // BLOQUE ACTUAL
+    // PÁGINAS DEL BLOQUE
     // ========================================================
 
     for (
@@ -845,7 +886,7 @@ function generarPaginacionHistorial() {
         numero++
     ) {
 
-        // Evitar duplicar página 1
+        // Evitar repetir la página 1
         if (
             numero === 1 &&
             inicioBloque > 1
@@ -853,7 +894,7 @@ function generarPaginacionHistorial() {
             continue;
         }
 
-        // Evitar duplicar última página
+        // Evitar repetir última página
         if (
             numero === totalPaginas &&
             finBloque < totalPaginas
@@ -870,7 +911,7 @@ function generarPaginacionHistorial() {
 
 
     // ========================================================
-    // ... + ÚLTIMA PÁGINA
+    // ÚLTIMA PÁGINA
     // ========================================================
 
     if (finBloque < totalPaginas) {
@@ -879,6 +920,7 @@ function generarPaginacionHistorial() {
             finBloque <
             totalPaginas - 1
         ) {
+
             botonesPaginas += `
                 <span class="pagina-ellipsis">
                     …

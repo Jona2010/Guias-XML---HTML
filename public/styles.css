@@ -5516,14 +5516,22 @@ label:focus-visible {
 }
 
 .search-panel-refactor .historial-tabla thead th {
-    padding: 8px 9px;
-    font-size: 9.5px;
+    padding: 10px 10px;
+
+    font-size: 11px;
+    line-height: 1.2;
+
+    font-weight: 850;
     letter-spacing: .35px;
 }
 
 .search-panel-refactor .historial-tabla td {
-    height: 48px;
-    padding: 6px 9px;
+    height: 56px;
+
+    padding:
+        8px
+        10px;
+
     vertical-align: middle;
 }
 
@@ -5534,35 +5542,58 @@ label:focus-visible {
 
 .search-panel-refactor .guia-numero {
     max-width: 100%;
-    gap: 4px;
-    font-size: 12.5px;
+
+    gap: 5px;
+
+    color: #006da8;
+
+    font-size: 14px;
     line-height: 1.2;
+
+    font-weight: 850;
+
     white-space: nowrap;
 }
 
-/* Cliente: máximo dos líneas, legible y sin apretarse. */
 .search-panel-refactor .guia-cliente {
     display: -webkit-box;
+
     max-width: 100%;
+
     overflow: hidden;
+
     color: #314d60;
-    font-size: 10.8px;
-    line-height: 1.28;
-    font-weight: 600;
+
+    font-size: 12px;
+    line-height: 1.25;
+
+    font-weight: 650;
+
     text-overflow: ellipsis;
+
+    white-space: normal;
+
     overflow-wrap: normal;
     word-break: normal;
+
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+
     line-clamp: 2;
 }
 
 .search-panel-refactor .guia-fecha {
     display: block;
-    font-size: 10.5px;
+
+    color: #456b83;
+
+    font-size: 12px;
     line-height: 1.2;
-    font-weight: 650;
+
+    font-weight: 700;
+
     text-align: left;
+
     white-space: nowrap;
 }
 
