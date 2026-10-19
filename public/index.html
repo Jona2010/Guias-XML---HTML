@@ -42,7 +42,7 @@
 
     <link
         rel="stylesheet"
-        href="styles.css?v=15"
+        href="styles.css?v=18"
     >
 
 
@@ -73,7 +73,7 @@
          APLICACIÓN
     ====================================================== -->
 
-    <script src="script.js?v=21" defer></script>
+    <script src="script.js?v=24" defer></script>
 
 </head>
 
@@ -85,7 +85,7 @@
      HEADER
 ========================================================= -->
 
-<header class="app-header">
+<header class="app-header app-header-refactor">
 
     <div class="app-header-inner">
 
@@ -149,7 +149,7 @@
             BARRA DE ACCIONES
         ====================================================== -->
 
-        <section class="action-bar">
+        <section class="action-bar action-bar-refactor">
 
 
             <!-- =============================================
@@ -350,14 +350,14 @@
          WORKSPACE
     ====================================================== -->
 
-    <section class="workspace">
+    <section class="workspace workspace-refactor">
 
 
         <!-- =================================================
              PANEL IZQUIERDO
         ================================================== -->
 
-        <aside class="search-panel">
+        <aside class="search-panel search-panel-refactor">
 
             <!-- CABECERA COMPACTA -->
             <div class="panel-titlebar panel-titlebar-compact">
@@ -372,7 +372,7 @@
                         <h2>Explorar guías</h2>
 
                         <span class="panel-title-description">
-                            Buscar, filtrar y consultar historial
+                            Buscar, filtrar y consultar historial de guías de remisión
                         </span>
                     </div>
 
@@ -825,30 +825,33 @@
                 RESULTADOS
             ================================================== -->
 
-            <section class="results-section">
+            <section class="results-section results-section-refactor">
 
-                <div class="results-header">
+                <div class="results-header results-header-listado">
 
-                    <div>
+                    <div class="results-header-title">
 
-                        <span class="results-eyebrow">
-                            Listado
+                        <span class="results-header-icon" aria-hidden="true">
+                            <i class="fa-solid fa-cube"></i>
                         </span>
 
                         <strong>
-                            Guías
+                            Listado de guías
                         </strong>
 
                     </div>
 
-                    <i class="fa-solid fa-list-ul"></i>
+                    <div class="results-header-sort" aria-label="Orden actual">
+                        <i class="fa-solid fa-arrow-down-wide-short"></i>
+                        <span>Más recientes</span>
+                    </div>
 
                 </div>
 
 
                 <!-- ÁREA DESPLAZABLE -->
 
-                <div class="results-scroll-area">
+                <div class="results-scroll-area results-scroll-area-refactor">
 
                     <div
                         id="historial-avanzado"
@@ -874,7 +877,7 @@
 
                 <div
                     id="paginacion-guias"
-                    class="paginacion-fija"
+                    class="paginacion-fija paginacion-fija-refactor"
                 ></div>
 
             </section>
@@ -887,10 +890,10 @@
              VISOR
         ================================================== -->
 
-            <section class="viewer-panel">
+            <section class="viewer-panel viewer-panel-refactor">
 
 
-                <div class="viewer-card">
+                <div class="viewer-card viewer-card-refactor">
 
 
                     <!-- CABECERA VISOR -->
@@ -932,12 +935,12 @@
                     <!-- ÁREA DOCUMENTO -->
                     <div
                         id="pdf-area"
-                        class="viewer-area"
+                        class="viewer-area viewer-area-refactor"
                     >
 
                         <div
                             id="salida"
-                            class="viewer-content"
+                            class="viewer-content viewer-content-refactor"
                         >
 
 

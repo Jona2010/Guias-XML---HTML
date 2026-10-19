@@ -624,18 +624,13 @@ async function verGuiaPorId(id) {
     }
 
     // ========================================================
-    // CONSERVAR POSICIÓN DE LA INTERFAZ
+    // CONSERVAR POSICIÓN DEL LISTADO
     // ========================================================
-
-    const scrollPaginaAntes =
-        window.scrollY;
-
 
     const contenedorListado =
         document.querySelector(
             ".results-container:not([style*='display: none'])"
         );
-
 
     const scrollListadoAntes =
         contenedorListado
@@ -727,52 +722,15 @@ async function verGuiaPorId(id) {
 
 
     // ========================================================
-    // RESTAURAR POSICIÓN SIN ANIMACIÓN
+    // RESTAURAR POSICIÓN DEL LISTADO
     // ========================================================
 
     requestAnimationFrame(() => {
 
-        window.scrollTo({
-            top:
-                scrollPaginaAntes,
-
-            left: 0,
-
-            behavior:
-                "auto"
-        });
-
-
         if (contenedorListado) {
-
             contenedorListado.scrollTop =
                 scrollListadoAntes;
-
         }
-
-
-        // Segunda corrección después del reflow
-        requestAnimationFrame(() => {
-
-            window.scrollTo({
-                top:
-                    scrollPaginaAntes,
-
-                left: 0,
-
-                behavior:
-                    "auto"
-            });
-
-
-            if (contenedorListado) {
-
-                contenedorListado.scrollTop =
-                    scrollListadoAntes;
-
-            }
-
-        });
 
     });
 }
@@ -829,54 +787,57 @@ function actualizarGuiaSeleccionada(id) {
     }
 }
 
-// ============================================================
-// PAGINACIÓN NUMERADA DEL HISTORIAL
-// BLOQUES: 1-5, 6-10, 11-15...
-// ============================================================
 function generarPaginacionHistorial() {
 
-    if (
-        totalPaginasHistorial <= 1
-    ) {
+    if (totalPaginasHistorial <= 1) {
         return "";
     }
 
+    const paginaActual = pagina + 1;
+    const totalPaginas = totalPaginasHistorial;
+    const paginasPorBloque = 5;
 
-    const paginaActual =
-        pagina + 1;
-
-
-    const paginasPorBloque =
-        5;
-
-
-    // Ejemplo:
-    // página 1 -> bloque 0 -> 1 al 5
-    // página 6 -> bloque 1 -> 6 al 10
     const bloqueActual =
-        Math.floor(
-            (paginaActual - 1) /
-            paginasPorBloque
-        );
+        Math.floor((paginaActual - 1) / paginasPorBloque);
 
+    let inicioBloque =
+        bloqueActual * paginasPorBloque + 1;
 
-    const inicioBloque =
-        bloqueActual *
-        paginasPorBloque +
-        1;
-
-
-    const finBloque =
+    let finBloque =
         Math.min(
-            inicioBloque +
-            paginasPorBloque -
-            1,
-            totalPaginasHistorial
+            inicioBloque + paginasPorBloque - 1,
+            totalPaginas
         );
-
 
     let botonesPaginas = "";
 
+
+    // ========================================================
+    // PRIMERA PÁGINA + ...
+    // Ejemplo:
+    // 1 ... 6 7 8 9 10
+    // ========================================================
+
+    if (inicioBloque > 1) {
+
+        botonesPaginas += crearBotonPaginaHistorial(
+            1,
+            paginaActual
+        );
+
+        if (inicioBloque > 2) {
+            botonesPaginas += `
+                <span class="pagina-ellipsis">
+                    …
+                </span>
+            `;
+        }
+    }
+
+
+    // ========================================================
+    // BLOQUE ACTUAL
+    // ========================================================
 
     for (
         let numero = inicioBloque;
@@ -884,60 +845,75 @@ function generarPaginacionHistorial() {
         numero++
     ) {
 
-        botonesPaginas += `
+        // Evitar duplicar página 1
+        if (
+            numero === 1 &&
+            inicioBloque > 1
+        ) {
+            continue;
+        }
 
-            <button
-                type="button"
-                class="
-                    pagina-btn
-                    ${
-                        numero === paginaActual
-                            ? "activa"
-                            : ""
-                    }
-                "
-                onclick="irPaginaHistorial(${numero})"
-                aria-label="Ir a la página ${numero}"
-                ${
-                    numero === paginaActual
-                        ? 'aria-current="page"'
-                        : ""
-                }
-            >
-                ${numero}
-            </button>
+        // Evitar duplicar última página
+        if (
+            numero === totalPaginas &&
+            finBloque < totalPaginas
+        ) {
+            continue;
+        }
 
-        `;
-
+        botonesPaginas +=
+            crearBotonPaginaHistorial(
+                numero,
+                paginaActual
+            );
     }
 
-    const cambiaBloqueSiguiente =
-        paginaActual === finBloque &&
-        finBloque < totalPaginasHistorial;
+
+    // ========================================================
+    // ... + ÚLTIMA PÁGINA
+    // ========================================================
+
+    if (finBloque < totalPaginas) {
+
+        if (
+            finBloque <
+            totalPaginas - 1
+        ) {
+            botonesPaginas += `
+                <span class="pagina-ellipsis">
+                    …
+                </span>
+            `;
+        }
+
+        botonesPaginas +=
+            crearBotonPaginaHistorial(
+                totalPaginas,
+                paginaActual
+            );
+    }
 
 
-    const cambiaBloqueAnterior =
-        paginaActual === inicioBloque &&
-        inicioBloque > 1;
+    // ========================================================
+    // INFORMACIÓN
+    // ========================================================
+
+    const desde =
+        pagina * limite + 1;
+
+    const hasta =
+        Math.min(
+            (pagina + 1) * limite,
+            totalGuiasHistorial
+        );
+
 
     return `
-
         <div class="paginacion paginacion-numerada">
 
             <span class="paginacion-info">
-
-                Mostrando
-                ${
-                    pagina * limite + 1
-                }–${
-                    Math.min(
-                        (pagina + 1) * limite,
-                        totalGuiasHistorial
-                    )
-                }
-                de
-                ${totalGuiasHistorial}
-
+                Mostrando ${desde}–${hasta}
+                de ${totalGuiasHistorial}
             </span>
 
 
@@ -945,33 +921,12 @@ function generarPaginacionHistorial() {
 
                 <button
                     type="button"
-                    class="
-                        btn-icon
-                        ${
-                            cambiaBloqueAnterior
-                                ? "cambio-bloque"
-                                : ""
-                        }
-                    "
+                    class="btn-icon"
                     onclick="anteriorPagina()"
-                    aria-label="${
-                        cambiaBloqueAnterior
-                            ? "Ir al bloque anterior"
-                            : "Página anterior"
-                    }"
-                    ${
-                        paginaActual === 1
-                            ? "disabled"
-                            : ""
-                    }
+                    aria-label="Página anterior"
+                    ${paginaActual === 1 ? "disabled" : ""}
                 >
-                    <i
-                        class="fa-solid ${
-                            cambiaBloqueAnterior
-                                ? "fa-angles-left"
-                                : "fa-chevron-left"
-                        }"
-                    ></i>
+                    <i class="fa-solid fa-chevron-left"></i>
                 </button>
 
 
@@ -980,43 +935,51 @@ function generarPaginacionHistorial() {
 
                 <button
                     type="button"
-                    class="
-                        btn-icon
-                        ${
-                            cambiaBloqueSiguiente
-                                ? "cambio-bloque"
-                                : ""
-                        }
-                    "
+                    class="btn-icon"
                     onclick="siguientePagina()"
-                    aria-label="${
-                        cambiaBloqueSiguiente
-                            ? "Ir al siguiente bloque de páginas"
-                            : "Página siguiente"
-                    }"
+                    aria-label="Página siguiente"
                     ${
-                        paginaActual ===
-                        totalPaginasHistorial
+                        paginaActual === totalPaginas
                             ? "disabled"
                             : ""
                     }
                 >
-                    <i
-                        class="fa-solid ${
-                            cambiaBloqueSiguiente
-                                ? "fa-angles-right"
-                                : "fa-chevron-right"
-                        }"
-                    ></i>
+                    <i class="fa-solid fa-chevron-right"></i>
                 </button>
 
             </div>
 
         </div>
-
     `;
 }
 
+function crearBotonPaginaHistorial(
+    numero,
+    paginaActual
+) {
+
+    const activa =
+        numero === paginaActual
+            ? "activa"
+            : "";
+
+    const ariaCurrent =
+        numero === paginaActual
+            ? 'aria-current="page"'
+            : "";
+
+    return `
+        <button
+            type="button"
+            class="pagina-btn ${activa}"
+            onclick="irPaginaHistorial(${numero})"
+            aria-label="Ir a la página ${numero}"
+            ${ariaCurrent}
+        >
+            ${numero}
+        </button>
+    `;
+}
 
 // ============================================================
 // IR DIRECTAMENTE A UNA PÁGINA
@@ -1195,9 +1158,9 @@ async function mostrarHistorial() {
     <table class="historial-tabla">
         <thead>
             <tr>
-                <th style="width:35%;">N° Guía</th>
-                <th style="width:40%;">Cliente</th>
-                <th style="width:25%;">Traslado</th>
+                <th>N° Guía</th>
+                <th>Cliente</th>
+                <th>Traslado</th>
             </tr>
         </thead>
         <tbody>
@@ -1907,11 +1870,9 @@ async function filtrarPorFecha() {
     <table class="historial-tabla">
         <thead>
             <tr>
-                <th style="width:35%;">N° Guía</th>
-                <th style="width:40%;">Cliente</th>
-                <th style="width:25%;">
-                    Traslado
-                </th>
+                <th>N° Guía</th>
+                <th>Cliente</th>
+                <th>Traslado</th>
             </tr>
         </thead>
         <tbody>

@@ -5233,3 +5233,580 @@ label:focus-visible {
         none;
 
 }
+/* ============================================================
+   36. REFACTOR VISUAL — FASE 2
+   Objetivo: layout compacto, listado legible y visor estable
+============================================================ */
+
+/* ------------------------------------------------------------
+   TOKENS DE LAYOUT
+------------------------------------------------------------ */
+:root {
+    --header-height: 82px;
+    --actionbar-height: 76px;
+    --workspace-gap: 14px;
+    --panel-left-width: clamp(470px, 34vw, 535px);
+}
+
+/* ------------------------------------------------------------
+   HEADER MÁS COMPACTO
+------------------------------------------------------------ */
+.app-header-refactor {
+    min-height: var(--header-height);
+}
+
+.app-header-refactor .app-header-inner {
+    min-height: var(--header-height);
+    padding: 7px 22px;
+}
+
+.app-header-refactor .app-brand-logo-horizontal {
+    width: clamp(255px, 22vw, 325px);
+    height: 68px;
+    padding: 4px 9px;
+    border-radius: 14px;
+}
+
+.app-header-refactor .app-brand-info {
+    gap: 5px;
+}
+
+.app-header-refactor .app-brand-description {
+    max-width: 315px;
+    font-size: 12px;
+}
+
+.app-header-refactor .app-header-status {
+    padding: 8px 12px;
+    font-size: 11px;
+}
+
+/* ------------------------------------------------------------
+   SHELL / BARRA SUPERIOR
+------------------------------------------------------------ */
+.app-shell {
+    width: min(1720px, 100%);
+    padding: 14px 18px 18px;
+}
+
+.action-bar-refactor {
+    margin-bottom: 12px;
+    grid-template-columns: minmax(0, 1.55fr) minmax(335px, .85fr);
+    gap: 12px;
+}
+
+.action-bar-refactor .action-group {
+    min-height: var(--actionbar-height);
+    padding: 10px 13px;
+    gap: 14px;
+    border-radius: 13px;
+}
+
+.action-bar-refactor .action-group-title {
+    gap: 10px;
+}
+
+.action-bar-refactor .action-icon {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+}
+
+.action-bar-refactor .action-eyebrow {
+    font-size: 9px;
+}
+
+.action-bar-refactor .action-group-title strong,
+.action-bar-refactor .current-guide-number {
+    font-size: 13px;
+}
+
+.action-bar-refactor .btn,
+.action-bar-refactor .btn-file {
+    min-height: 38px;
+}
+
+.action-bar-refactor .file-name {
+    max-width: 245px;
+}
+
+/* ------------------------------------------------------------
+   WORKSPACE: PANEL IZQUIERDO + VISOR
+------------------------------------------------------------ */
+.workspace-refactor {
+    grid-template-columns: var(--panel-left-width) minmax(0, 1fr);
+    align-items: stretch;
+    gap: var(--workspace-gap);
+}
+
+.search-panel-refactor,
+.viewer-card-refactor {
+    height: calc(
+        100vh -
+        var(--header-height) -
+        var(--actionbar-height) -
+        54px
+    );
+
+    min-height: 640px;
+    max-height: 900px;
+}
+
+.search-panel-refactor {
+    position: sticky;
+    top: calc(var(--header-height) + 10px);
+    padding: 13px;
+    overflow: hidden;
+    border-radius: 16px;
+}
+
+.viewer-panel-refactor {
+    min-width: 0;
+}
+
+.viewer-card-refactor {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.viewer-card-refactor .viewer-header {
+    flex: 0 0 auto;
+    min-height: 56px;
+    padding: 10px 16px;
+}
+
+.viewer-area-refactor {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px;
+}
+
+.viewer-content-refactor {
+    min-height: 100%;
+}
+
+/* ------------------------------------------------------------
+   PANEL EXPLORAR GUÍAS
+------------------------------------------------------------ */
+.search-panel-refactor .panel-titlebar {
+    padding: 1px 2px 10px;
+}
+
+.search-panel-refactor .panel-title-icon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+}
+
+.search-panel-refactor .panel-titlebar h2 {
+    font-size: 19px;
+}
+
+.search-panel-refactor .panel-title-description {
+    max-width: 360px;
+    font-size: 10px;
+}
+
+.search-panel-refactor .search-section-basic {
+    padding-top: 9px;
+}
+
+.search-panel-refactor .search-toolbar {
+    min-height: 43px;
+}
+
+.search-panel-refactor .search-toolbar input {
+    min-height: 41px;
+    font-size: 12.5px;
+}
+
+.search-panel-refactor .date-filter {
+    margin-top: 7px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 38px 38px;
+    gap: 6px;
+}
+
+.search-panel-refactor .date-field input[type="date"] {
+    height: 38px;
+    font-size: 11.5px;
+}
+
+.search-panel-refactor .date-filter .btn-icon {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+}
+
+.search-panel-refactor .advanced-search-wrapper {
+    margin-top: 8px;
+}
+
+.search-panel-refactor .btn-toggle-avanzada {
+    min-height: 44px;
+}
+
+/* ------------------------------------------------------------
+   ÁREA DE RESULTADOS: MÁS ESPACIO VERTICAL REAL
+------------------------------------------------------------ */
+.results-section-refactor {
+    flex: 1;
+    min-height: 0;
+    margin-top: 7px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.results-section-refactor .results-header {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 4px 4px 6px;
+}
+
+.results-section-refactor .results-header strong {
+    font-size: 15px;
+}
+
+.results-scroll-area-refactor {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.results-scroll-area-refactor .results-container {
+    flex: 1;
+    min-height: 0;
+    margin-top: 5px;
+    padding-right: 4px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ------------------------------------------------------------
+   TABLA DE GUÍAS — COLUMNAS EQUILIBRADAS
+------------------------------------------------------------ */
+.search-panel-refactor .historial-tabla {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+}
+
+/* El !important es intencional: el JS actual inyecta width inline. */
+.search-panel-refactor .historial-tabla th:nth-child(1),
+.search-panel-refactor .historial-tabla td:nth-child(1) {
+    width: 29% !important;
+}
+
+.search-panel-refactor .historial-tabla th:nth-child(2),
+.search-panel-refactor .historial-tabla td:nth-child(2) {
+    width: 46% !important;
+}
+
+.search-panel-refactor .historial-tabla th:nth-child(3),
+.search-panel-refactor .historial-tabla td:nth-child(3) {
+    width: 25% !important;
+}
+
+.search-panel-refactor .historial-tabla thead th {
+    padding: 8px 9px;
+    font-size: 9.5px;
+    letter-spacing: .35px;
+}
+
+.search-panel-refactor .historial-tabla td {
+    height: 48px;
+    padding: 6px 9px;
+    vertical-align: middle;
+}
+
+.search-panel-refactor .historial-tabla td:first-child,
+.search-panel-refactor .historial-tabla th:first-child {
+    padding-left: 11px;
+}
+
+.search-panel-refactor .guia-numero {
+    max-width: 100%;
+    gap: 4px;
+    font-size: 12.5px;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+/* Cliente: máximo dos líneas, legible y sin apretarse. */
+.search-panel-refactor .guia-cliente {
+    display: -webkit-box;
+    max-width: 100%;
+    overflow: hidden;
+    color: #314d60;
+    font-size: 10.8px;
+    line-height: 1.28;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    overflow-wrap: normal;
+    word-break: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+.search-panel-refactor .guia-fecha {
+    display: block;
+    font-size: 10.5px;
+    line-height: 1.2;
+    font-weight: 650;
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* ------------------------------------------------------------
+   PAGINACIÓN FIJA Y COMPACTA
+------------------------------------------------------------ */
+.paginacion-fija-refactor {
+    flex: 0 0 auto;
+    min-height: 47px;
+    padding-top: 6px;
+    background: #fff;
+}
+
+.paginacion-fija-refactor .paginacion {
+    min-height: 42px;
+    margin-top: 0;
+    padding: 7px 1px 0;
+    gap: 8px;
+}
+
+.paginacion-fija-refactor .paginacion-info {
+    font-size: 10px !important;
+}
+
+.paginacion-fija-refactor .paginacion-controls {
+    gap: 4px;
+}
+
+.paginacion-fija-refactor .pagina-btn,
+.paginacion-fija-refactor .btn-icon {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    border-radius: 7px;
+    font-size: 10px;
+}
+
+/* ------------------------------------------------------------
+   VISOR MÁS LIMPIO Y COMPACTO
+------------------------------------------------------------ */
+.viewer-card-refactor .viewer-header-left h2 {
+    font-size: 19px;
+}
+
+.viewer-card-refactor .guia-card {
+    padding: 18px;
+}
+
+.viewer-card-refactor .guia-header {
+    margin-bottom: 13px;
+    padding-bottom: 13px;
+}
+
+.viewer-card-refactor .guia-header h3 {
+    font-size: 23px;
+}
+
+.viewer-card-refactor .guia-meta {
+    margin-bottom: 12px;
+    padding: 13px 14px;
+    gap: 10px 14px;
+}
+
+.viewer-card-refactor .guia-meta-item span {
+    font-size: 12px;
+}
+
+.viewer-card-refactor .guia-direcciones {
+    margin-bottom: 13px;
+    padding: 13px 14px;
+}
+
+.viewer-card-refactor .direccion-texto {
+    font-size: 11.5px;
+}
+
+.viewer-card-refactor .guia-items-title {
+    margin: 14px 0 8px;
+}
+
+.viewer-card-refactor .tabla-items thead th {
+    padding: 9px 10px;
+}
+
+.viewer-card-refactor .tabla-items td {
+    padding: 9px 10px;
+    font-size: 11.5px;
+    line-height: 1.35;
+}
+
+/* ------------------------------------------------------------
+   ESTABILIDAD DE SCROLL / REFLOW
+------------------------------------------------------------ */
+.search-panel-refactor,
+.results-scroll-area-refactor,
+.results-scroll-area-refactor .results-container,
+.viewer-card-refactor,
+.viewer-area-refactor,
+.viewer-content-refactor {
+    overflow-anchor: none;
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+------------------------------------------------------------ */
+@media (max-width: 1280px) {
+    :root {
+        --panel-left-width: 430px;
+    }
+
+    .app-shell {
+        padding-inline: 14px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .workspace-refactor {
+        grid-template-columns: 1fr;
+    }
+
+    .search-panel-refactor,
+    .viewer-card-refactor {
+        height: auto;
+        min-height: 0;
+        max-height: none;
+    }
+
+    .search-panel-refactor {
+        position: static;
+    }
+
+    .results-scroll-area-refactor {
+        max-height: 560px;
+        min-height: 360px;
+    }
+
+    .viewer-area-refactor {
+        overflow: visible;
+    }
+}
+
+@media (max-width: 720px) {
+    .app-header-refactor .app-brand-logo-horizontal {
+        width: min(69vw, 290px);
+        height: 58px;
+    }
+
+    .action-bar-refactor {
+        grid-template-columns: 1fr;
+    }
+
+    .search-panel-refactor .historial-tabla th:nth-child(1),
+    .search-panel-refactor .historial-tabla td:nth-child(1) {
+        width: 31% !important;
+    }
+
+    .search-panel-refactor .historial-tabla th:nth-child(2),
+    .search-panel-refactor .historial-tabla td:nth-child(2) {
+        width: 44% !important;
+    }
+
+    .search-panel-refactor .historial-tabla th:nth-child(3),
+    .search-panel-refactor .historial-tabla td:nth-child(3) {
+        width: 25% !important;
+    }
+
+    .paginacion-fija-refactor .paginacion {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .paginacion-fija-refactor .paginacion-controls {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ============================================================
+   AJUSTE FINAL — CABECERA LISTADO Y PAGINACIÓN
+============================================================ */
+
+.results-header-listado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.results-header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.results-header-icon {
+    width: 28px;
+    height: 28px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 7px;
+
+    background: var(--primary-soft);
+    color: var(--primary);
+
+    font-size: 11px;
+}
+
+.results-header-sort {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 5px;
+
+    color: #6c8394;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.results-header-sort i {
+    color: var(--primary);
+    font-size: 9px;
+}
+
+.pagina-ellipsis {
+    width: 20px;
+    height: 30px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 20px;
+
+    color: #7b8f9e;
+
+    font-size: 12px;
+    font-weight: 800;
+
+    line-height: 1;
+
+    user-select: none;
+}
